@@ -2,8 +2,8 @@ Source: scrotwm
 Section: x11
 Priority: optional
 Maintainer: Andrea Bolognani <eof@kiyuko.org>
-Build-Depends: debhelper (>= 7), libx11-dev, libxrandr-dev
-Standards-Version: 3.8.0
+Build-Depends: debhelper (>= 7), quilt, libx11-dev, libxrandr-dev
+Standards-Version: 3.8.1
 Homepage: http://www.peereboom.us/scrotwm/html/scrotwm.html
 
 Package: scrotwm
