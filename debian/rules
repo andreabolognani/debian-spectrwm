@@ -1,0 +1,57 @@
+#!/usr/bin/make -f
+#export DH_VERBOSE=1
+
+configure: configure-stamp
+configure-stamp:
+	dh_testdir
+	touch configure-stamp
+
+build: build-stamp
+build-stamp: configure-stamp  
+	dh_testdir
+	dh_prep
+	cp -f scrotwm.c lib/swm_hack.c linux/
+	$(MAKE) -C linux/
+	touch $@
+
+clean: 
+	dh_testdir
+	dh_testroot
+	rm -f build-stamp configure-stamp
+	$(MAKE) -C linux/ clean
+	rm -f linux/scrotwm.c linux/swm_hack.c
+	dh_clean 
+
+binary: binary-indep binary-arch
+binary-indep: build
+binary-arch: build
+	dh_testdir
+	dh_testroot
+	dh_installdirs
+	dh_install linux/scrotwm usr/bin
+	dh_installman scrotwm.1
+	dh_installexamples
+	dh_installchangelogs 
+	dh_installdocs
+#	dh_install
+#	dh_installmenu
+#	dh_installdebconf
+#	dh_installlogrotate
+#	dh_installemacsen
+#	dh_installpam
+#	dh_installmime
+#	dh_python
+#	dh_installinit
+#	dh_installcron
+#	dh_installinfo
+	dh_installman
+	dh_strip
+	dh_compress
+	dh_fixperms
+	dh_installdeb
+	dh_shlibdeps
+	dh_gencontrol
+	dh_md5sums
+	dh_builddeb
+
+.PHONY: build clean binary-indep binary-arch binary configure
