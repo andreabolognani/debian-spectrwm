@@ -2,13 +2,13 @@ Source: scrotwm
 Section: x11
 Priority: optional
 Maintainer: Andrea Bolognani <eof@kiyuko.org>
-Build-Depends: debhelper (>= 7)
+Build-Depends: debhelper (>= 7), libx11-dev, libxrandr-dev
 Standards-Version: 3.8.0
 Homepage: http://www.peereboom.us/scrotwm/html/scrotwm.html
 
 Package: scrotwm
 Architecture: any
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: libx11-6, libxrandr2, ${shlibs:Depends}, ${misc:Depends}
 Description: dynamic tiling window manager
  Scrotwm tries to stay out of the way so that valuable screen real estate can
  be used for much more important stuff.
