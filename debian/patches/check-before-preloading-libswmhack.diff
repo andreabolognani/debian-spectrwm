@@ -1,3 +1,10 @@
+Scrotwm LD_PRELOADs a small library when spawning an external application; if
+the library is not present, however, every time a command is launched from a
+terminal spawned by scrotwm a warning message is shown.
+
+This patch checks the library exists before LD_PRELOADing it, so even if the
+library is not installed (which is the case for the Debian package) the user
+is not annoyed by spurious warning messages.
 Index: scrotwm/scrotwm.c
 ===================================================================
 --- scrotwm.orig/scrotwm.c	2009-03-23 22:01:30.000000000 +0100
