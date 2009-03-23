@@ -11,7 +11,7 @@ build: build-stamp
 build-stamp: configure-stamp  
 	dh_testdir
 	dh_prep
-	cp -f scrotwm.c lib/swm_hack.c linux/
+	cp -f scrotwm.c linux/
 	$(MAKE) -C linux/
 	touch $@
 
@@ -20,7 +20,7 @@ clean:
 	dh_testroot
 	rm -f build-stamp configure-stamp
 	$(MAKE) -C linux/ clean
-	rm -f linux/scrotwm.c linux/swm_hack.c
+	rm -f linux/scrotwm.c
 	dh_clean 
 
 binary: binary-indep binary-arch

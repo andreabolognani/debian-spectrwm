@@ -1,2 +1,3 @@
 do-not-use-symlinks-during-build.diff
+do-not-build-libswmhack.diff
 check-before-preloading-libswmhack.diff
