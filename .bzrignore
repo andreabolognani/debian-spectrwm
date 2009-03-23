@@ -1,9 +1,12 @@
 build-stamp
 configure-stamp
+stamp-patched
+
 *debhelper.log
 *.substvars
 debian/files
 debian/scrotwm/
+.pc
 
 linux/scrotwm.c
 linux/swm_hack.c
