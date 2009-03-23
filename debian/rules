@@ -10,13 +10,14 @@ build-stamp: patch
 	$(MAKE) -C linux/
 	touch $@
 
-clean: 
+clean:
 	dh_testdir
 	dh_testroot
-	rm -f build-stamp configure-stamp
+	rm -f build-stamp
 	$(MAKE) -C linux/ clean
 	rm -f linux/scrotwm.c
-	dh_clean 
+	./debian/rules unpatch
+	dh_clean
 
 binary: binary-indep binary-arch
 binary-indep: build
