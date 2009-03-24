@@ -1,0 +1,15 @@
+x-terminal-emulator is a sensible default terminal emulator on Debian, so use
+it instead of xterm in the default configuration.
+Index: scrotwm/scrotwm.conf
+===================================================================
+--- scrotwm.orig/scrotwm.conf	2009-03-24 15:51:08.000000000 +0100
++++ scrotwm/scrotwm.conf	2009-03-24 15:51:19.000000000 +0100
+@@ -15,7 +15,7 @@
+ clock_enabled		= 1
+ 
+ # spawn app
+-spawn_term		= xterm
++spawn_term		= x-terminal-emulator
+ 
+ # dialog box size ratio .3 >= r < 1
+ dialog_ratio		= 0.6
