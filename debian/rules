@@ -40,4 +40,4 @@ binary-arch: build
 	dh_md5sums
 	dh_builddeb
 
-.PHONY: build clean binary-indep binary-arch binary configure
+.PHONY: build clean binary-indep binary-arch binary
