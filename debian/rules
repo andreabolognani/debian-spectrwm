@@ -2,8 +2,8 @@
 
 include /usr/share/quilt/quilt.make
 
-build: build-stamp
-build-stamp: patch
+build: patch build-stamp
+build-stamp:
 	dh_testdir
 	dh_prep
 	cp -f scrotwm.c linux/
