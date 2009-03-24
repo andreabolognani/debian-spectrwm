@@ -8,6 +8,7 @@ Homepage: http://www.peereboom.us/scrotwm/html/scrotwm.html
 
 Package: scrotwm
 Architecture: any
+Provides: x-window-manager
 Depends: ${shlibs:Depends}, ${misc:Depends}
 Description: dynamic tiling window manager
  Scrotwm tries to stay out of the way so that valuable screen real estate can
