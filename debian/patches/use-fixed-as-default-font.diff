@@ -1,15 +1,15 @@
-Use fixed-medium instead of terminus-medium as default bar font so we don't
-need to depend on xfonts-terminus.
+Use fixed instead of terminus-medium as default bar font so we don't need to
+depend on xfonts-terminus.
 Index: scrotwm/scrotwm.conf
 ===================================================================
---- scrotwm.orig/scrotwm.conf	2009-03-24 15:48:26.000000000 +0100
-+++ scrotwm/scrotwm.conf	2009-03-24 15:48:35.000000000 +0100
+--- scrotwm.orig/scrotwm.conf	2009-03-24 18:49:53.000000000 +0100
++++ scrotwm/scrotwm.conf	2009-03-24 18:59:06.000000000 +0100
 @@ -9,7 +9,7 @@
  bar_border[1]		= rgb:00/80/80
  bar_color[1]		= black
  bar_font_color[1]	= rgb:a0/a0/a0
 -bar_font		= -*-terminus-medium-*-*-*-*-*-*-*-*-*-*-*
-+bar_font		= -*-fixed-medium-*-*-*-*-*-*-*-*-*-*-*
++bar_font		= -*-fixed-*-*-*-*-*-*-*-*-*-*-*-*
  #bar_action		= baraction.sh
  #bar_delay		= 1
  clock_enabled		= 1

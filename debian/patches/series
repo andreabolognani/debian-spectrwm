@@ -1,5 +1,5 @@
 do-not-use-symlinks-during-build.diff
 do-not-build-libswmhack.diff
 check-before-preloading-libswmhack.diff
-use-fixed-medium-as-default-font.diff
+use-fixed-as-default-font.diff
 use-x-terminal-emulator-instead-of-xterm.diff
