@@ -24,7 +24,6 @@ binary-indep: build
 binary-arch: build
 	dh_testdir
 	dh_testroot
-	dh_installdirs
 	dh_install
 	dh_installman scrotwm.1
 	dh_installexamples initscreen.sh baraction.sh screenshot.sh
