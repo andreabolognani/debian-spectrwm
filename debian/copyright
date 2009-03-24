@@ -27,4 +27,3 @@ License: ISC
 Files: debian/*
 Copyright: Copyright 2009, Andrea Bolognani <eof@kiyuko.org>
 License: ISC
- The Debian packaging is licensed under the same terms as scrotwm itself.
