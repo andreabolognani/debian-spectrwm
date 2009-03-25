@@ -5,7 +5,6 @@ include /usr/share/quilt/quilt.make
 build: patch build-stamp
 build-stamp:
 	dh_testdir
-	dh_prep
 	cp -f scrotwm.c linux/
 	$(MAKE) -C linux/
 	touch $@
@@ -24,7 +23,9 @@ binary-indep: build
 binary-arch: build
 	dh_testdir
 	dh_testroot
+	dh_prep
 	dh_install
+	dh_installwm scrotwm
 	dh_installman scrotwm.1
 	dh_installexamples initscreen.sh baraction.sh screenshot.sh
 	dh_installchangelogs 
