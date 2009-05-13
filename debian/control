@@ -5,6 +5,7 @@ Maintainer: Andrea Bolognani <eof@kiyuko.org>
 Build-Depends: debhelper (>= 7), quilt, libx11-dev, libxrandr-dev
 Standards-Version: 3.8.1
 Homepage: http://www.peereboom.us/scrotwm/html/scrotwm.html
+Vcs-Bzr: http://bzr.debian.org/collab-maint/scrotwm/trunk
 
 Package: scrotwm
 Architecture: any
