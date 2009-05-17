@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Scrotwm
-Comment=Start the scrotwm window manager
-Comment[it]=Avvia il gestore di finestre scrotwm
+Comment=This session runs the scrotwm window manager
+Comment[it]=Questa sessione avvia il gestore di finestre scrotwm
 Exec=/usr/bin/scrotwm
 Type=Application
