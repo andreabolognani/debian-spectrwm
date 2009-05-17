@@ -1,2 +1,3 @@
 linux/scrotwm usr/bin
+debian/scrotwm.desktop usr/share/xsessions
 scrotwm.conf etc
