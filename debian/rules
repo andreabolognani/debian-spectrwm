@@ -25,7 +25,7 @@ binary-arch: build
 	dh_testroot
 	dh_prep
 	dh_install
-	dh_installexamples initscreen.sh baraction.sh screenshot.sh
+	dh_installexamples
 	dh_installchangelogs 
 	dh_installdocs
 	dh_installman scrotwm.1
