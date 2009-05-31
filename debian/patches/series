@@ -2,3 +2,4 @@ do-not-use-symlinks-during-build.diff
 do-not-build-libswmhack.diff
 check-before-preloading-libswmhack.diff
 use-x-terminal-emulator-instead-of-xterm.diff
+remove-bash-and-openbsd-assumptions.diff

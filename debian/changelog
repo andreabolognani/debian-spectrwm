@@ -1,6 +1,7 @@
 scrotwm (0.9.5-1) unstable; urgency=low
 
   * New upstream release.
+  * Remove bashisms from baraction.sh example script. (Closes: #530990)
 
  -- Andrea Bolognani <eof@kiyuko.org>  Sat, 30 May 2009 21:18:27 +0200
 
