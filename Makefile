@@ -1,4 +1,4 @@
-# $scrotwm: Makefile,v 1.8 2009/01/24 17:57:26 mcbride Exp $
+# $scrotwm: Makefile,v 1.9 2009/09/13 17:28:19 dwc Exp $
 .include <bsd.xconf.mk>
 
 SUBDIR= lib
@@ -6,7 +6,7 @@ SUBDIR= lib
 PROG=scrotwm
 MAN=scrotwm.1
 
-CFLAGS+=-Wall -Wno-uninitialized -ggdb3
+CFLAGS+=-std=c89 -Wall -Wno-uninitialized -ggdb3
 CPPFLAGS+= -I${X11BASE}/include
 LDADD+=-lutil -L${X11BASE}/lib -lX11 -lXrandr
 

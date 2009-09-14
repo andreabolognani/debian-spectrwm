@@ -1,4 +1,6 @@
 #!/bin/sh
+#
+# $scrotwm: baraction.sh,v 1.14 2009/09/13 22:28:53 marco Exp $
 
 print_date() {
 	# The date is printed to the status bar by default.
@@ -7,6 +9,11 @@ print_date() {
 	FORMAT="%a %b %d %R %Z %Y"
 	DATE=`date "+${FORMAT}"`
 	echo -n "${DATE}     "
+}
+
+print_mem() {
+	MEM=`/usr/bin/top | grep Free: | awk {'print $6'}`
+	echo -n "Free mem: $MEM  "
 }
 
 _print_cpu() {
@@ -73,14 +80,17 @@ while :; do
 	# instead of sleeping, use iostat as the update timer.
 	# cache the output of apm(8), no need to call that every second.
 	/usr/sbin/iostat -C -c 3600 |&	# wish infinity was an option
+	PID="$!"
 	APM_DATA=""
 	I=0
+	trap "kill $PID; exit" TERM
 	while read -p; do
 		if [ $(( ${I} % 1 )) -eq 0 ]; then
 			APM_DATA=`/usr/sbin/apm -alb`
 		fi
 		if [ $I -gt 2 ]; then
 			# print_date
+			# print_mem $MEM
 			print_cpu $REPLY
 			print_apm $APM_DATA
 			echo ""
