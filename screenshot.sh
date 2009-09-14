@@ -1,6 +1,7 @@
 #!/bin/sh
-# $scrotwm: screenshot.sh,v 1.2 2009/01/27 16:16:20 marco Exp $
 #
+# $scrotwm: screenshot.sh,v 1.3 2009/09/13 22:28:53 marco Exp $
+
 screenshot() {
 	case $1 in
 	full)
