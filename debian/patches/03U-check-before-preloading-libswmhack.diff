@@ -7,25 +7,25 @@ library is not installed (which is the case for the Debian package) the user
 is not annoyed by spurious warning messages.
 Index: scrotwm/scrotwm.c
 ===================================================================
---- scrotwm.orig/scrotwm.c	2009-05-31 19:36:32.000000000 +0200
-+++ scrotwm/scrotwm.c	2009-05-31 19:36:46.000000000 +0200
-@@ -1086,6 +1086,7 @@
+--- scrotwm.orig/scrotwm.c	2009-09-14 12:32:07.000000000 +0200
++++ scrotwm/scrotwm.c	2009-09-14 12:34:10.000000000 +0200
+@@ -918,6 +918,7 @@
  {
  	char			*ret;
  	int			si;
-+    struct stat sb;
++	struct stat sb;
  
  	DNPRINTF(SWM_D_MISC, "spawn: %s\n", args->argv[0]);
  	/*
-@@ -1096,7 +1097,10 @@
+@@ -928,7 +929,10 @@
  		if (fork() == 0) {
  			if (display)
  				close(ConnectionNumber(display));
--      			setenv("LD_PRELOAD", SWM_LIB, 1);
-+            if (stat(SWM_LIB, &sb) != -1) {
-+                if (S_ISREG(sb.st_mode))
-+                    setenv("LD_PRELOAD", SWM_LIB, 1);
-+            }
+-			setenv("LD_PRELOAD", SWM_LIB, 1);
++			if (stat(SWM_LIB, &sb) != -1) {
++				if (S_ISREG(sb.st_mode))
++					setenv("LD_PRELOAD", SWM_LIB, 1);
++			}
  			if (asprintf(&ret, "%d", r->ws->idx)) {
  				setenv("_SWM_WS", ret, 1);
  				free(ret);

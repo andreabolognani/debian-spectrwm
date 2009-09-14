@@ -7,18 +7,26 @@ a Debian system, provided the called commands are available. It uses acpi
 instead of apm, which is the best choice for virtually all modern systems.
 Index: scrotwm/baraction.sh
 ===================================================================
---- scrotwm.orig/baraction.sh	2009-05-31 19:17:46.000000000 +0200
-+++ scrotwm/baraction.sh	2009-05-31 19:18:05.000000000 +0200
-@@ -1,5 +1,8 @@
- #!/bin/sh
+--- scrotwm.orig/baraction.sh	2009-09-14 11:13:00.000000000 +0200
++++ scrotwm/baraction.sh	2009-09-14 12:15:36.000000000 +0200
+@@ -2,6 +2,10 @@
+ #
+ # $scrotwm: baraction.sh,v 1.14 2009/09/13 22:28:53 marco Exp $
  
 +ACPI=/usr/bin/acpi
 +IOSTAT=/usr/bin/iostat
++TOP=/usr/bin/top
 +
  print_date() {
  	# The date is printed to the status bar by default.
  	# To print the date through this script, set clock_enabled to 0
-@@ -10,81 +13,55 @@
+@@ -12,89 +16,63 @@
+ }
+ 
+ print_mem() {
+-	MEM=`/usr/bin/top | grep Free: | awk {'print $6'}`
++	MEM=`${TOP} | grep Free: | awk {'print $6'}`
+ 	echo -n "Free mem: $MEM  "
  }
  
  _print_cpu() {
@@ -38,9 +46,8 @@ Index: scrotwm/baraction.sh
 -		else
 -			OUT="$OUT ${1}"
 -		fi
--		shift;
 +		OUT="$OUT `echo $1 | cut -d '.' -f 1`"
-+		shift
+ 		shift;
  	done
  	_print_cpu $OUT
  }
@@ -109,14 +116,17 @@ Index: scrotwm/baraction.sh
 -	# instead of sleeping, use iostat as the update timer.
 -	# cache the output of apm(8), no need to call that every second.
 -	/usr/sbin/iostat -C -c 3600 |&	# wish infinity was an option
+-	PID="$!"
 -	APM_DATA=""
 -	I=0
+-	trap "kill $PID; exit" TERM
 -	while read -p; do
 -		if [ $(( ${I} % 1 )) -eq 0 ]; then
 -			APM_DATA=`/usr/sbin/apm -alb`
 -		fi
 -		if [ $I -gt 2 ]; then
 -			# print_date
+-			# print_mem $MEM
 -			print_cpu $REPLY
 -			print_apm $APM_DATA
 -			echo ""
@@ -124,18 +134,21 @@ Index: scrotwm/baraction.sh
 -		I=$(( ${I} + 1 ));
 -	done
 +# instead of sleeping, use iostat as the update timer.
-+# cache the output of acpi(1), no need to call that every second.
++# cache the output of apm(8), no need to call that every second.
++PID="$!"
 +ACPI_DATA=""
 +I=0
-+$IOSTAT -c 3 2>&1 |
++trap "kill $PID; exit" TERM
++${IOSTAT} -c 3 2>&1 |
 +while read IOSTAT_DATA; do
 +	if [ $(( ${I} % 10 )) -eq 0 ]; then
-+		ACPI_DATA=`$ACPI -b`
++		ACPI_DATA=`${ACPI} -b`
 +	fi
-+	if [ $(( ${I} % 3 )) -eq 0 ] && [ $I -gt 2 ]; then
++	if [ $(( ${I} % 3 )) -eq 0 ] && [ ${I} -gt 2 ]; then
 +		# print_date
++		# print_mem $MEM
 +		print_cpu $IOSTAT_DATA
-+		print_acpi $ACPI_DATA
++		print_apm $ACPI_DATA
 +		echo ""
 +	fi
 +	I=$(( ${I} + 1 ));
