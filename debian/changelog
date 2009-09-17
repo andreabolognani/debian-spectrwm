@@ -1,6 +1,7 @@
 scrotwm (0.9.6-1) unstable; urgency=low
 
   * New upstream release.
+  * Bump Standards-Version to 3.8.3 (no changes needed).
   * 06U-dont-use-hypen-as-minus-sign.diff: new patch which fixes a
     common issue in man pages.
 
