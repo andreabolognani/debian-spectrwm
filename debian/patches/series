@@ -3,3 +3,4 @@
 03U-check-before-preloading-libswmhack.diff
 04D-use-x-terminal-emulator-instead-of-xterm.diff
 05U-remove-bash-and-openbsd-assumptions.diff
+06U-dont-use-hypen-as-minus-sign.diff
