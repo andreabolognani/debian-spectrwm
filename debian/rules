@@ -5,7 +5,6 @@ include /usr/share/quilt/quilt.make
 build: patch build-stamp
 build-stamp:
 	dh_testdir
-	cp -f scrotwm.c linux/
 	$(MAKE) -C linux/
 	touch $@
 
@@ -18,7 +17,6 @@ clean-patched:
 	dh_testroot
 	rm -f build-stamp
 	$(MAKE) -C linux/ clean
-	rm -f linux/scrotwm.c
 
 binary: binary-indep binary-arch
 binary-indep: build
