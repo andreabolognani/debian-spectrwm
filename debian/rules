@@ -24,11 +24,11 @@ binary-arch: build
 	dh_testdir
 	dh_testroot
 	dh_prep
+	$(MAKE) -C linux/ install DESTDIR=$(CURDIR)/debian/scrotwm
 	dh_install
 	dh_installexamples
 	dh_installchangelogs 
 	dh_installdocs
-	dh_installman scrotwm.1
 	dh_installwm scrotwm
 	dh_strip
 	dh_compress
