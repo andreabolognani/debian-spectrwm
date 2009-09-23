@@ -1,4 +1,4 @@
-/* $scrotwm: scrotwm.c,v 1.183 2009/09/13 20:38:04 marco Exp $ */
+/* $scrotwm: scrotwm.c,v 1.187 2009/09/23 04:55:46 marco Exp $ */
 /*
  * Copyright (c) 2009 Marco Peereboom <marco@peereboom.us>
  * Copyright (c) 2009 Ryan McBride <mcbride@countersiege.com>
@@ -50,9 +50,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-static const char	*cvstag = "$scrotwm: scrotwm.c,v 1.183 2009/09/13 20:38:04 marco Exp $";
+static const char	*cvstag = "$scrotwm: scrotwm.c,v 1.187 2009/09/23 04:55:46 marco Exp $";
 
-#define	SWM_VERSION	"0.9.6"
+#define	SWM_VERSION	"0.9.7"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1391,7 +1391,8 @@ stack_master(struct workspace *ws, struct swm_geometry *g, int rot, int flip)
 	DNPRINTF(SWM_D_STACK, "stack_master: workspace: %d\n rot=%s flip=%s",
 	    ws->idx, rot ? "yes" : "no", flip ? "yes" : "no");
 
-	if ((winno = count_win(ws, 0)) == 0)
+	winno = count_win(ws, 0);
+	if (winno == 0 && count_win(ws, 1) == 0)
 		return;
 
 	if (ws->focus == NULL)
@@ -1640,15 +1641,20 @@ horizontal_stack(struct workspace *ws, struct swm_geometry *g)
 
 /* fullscreen view */
 void
-max_stack(struct workspace *ws, struct swm_geometry *g) {
+max_stack(struct workspace *ws, struct swm_geometry *g)
+{
 	XWindowChanges		wc;
 	struct swm_geometry	gg = *g;
 	struct ws_win		*win, *winfocus;
 	unsigned int		mask;
+	int			winno;
+
+	/* XXX this function needs to be rewritten it sucks crap */
 
 	DNPRINTF(SWM_D_STACK, "max_stack: workspace: %d\n", ws->idx);
 
-	if (count_win(ws, 0) == 0)
+	winno = count_win(ws, 0);
+	if (winno == 0 && count_win(ws, 1) == 0)
 		return;
 
 	if (ws->focus == NULL)
@@ -1661,8 +1667,10 @@ max_stack(struct workspace *ws, struct swm_geometry *g) {
 				/* XXX maximize? */
 				stack_floater(win, ws->r);
 				XMapRaised(display, win->id);
-			} else
+			} else {
+				/* XXX this sucks */
 				XUnmapWindow(display, win->id);
+			}
 		} else {
 			bzero(&wc, sizeof wc);
 			wc.border_width = 1;
@@ -2252,7 +2260,7 @@ setup_spawn(void)
 					" -nb $bar_color"
 					" -nf $bar_font_color"
 					" -sb $bar_border"
-					" -sf bar_color",	0);
+					" -sf $bar_color",	0);
 }
 
 /* key bindings */
@@ -3157,10 +3165,7 @@ unmanage_window(struct ws_win *win)
 
 	DNPRINTF(SWM_D_MISC, "unmanage_window:  %lu\n", win->id);
 
-	/* don't unmanage if we are switching workspaces */
 	ws = win->ws;
-	if (ws->restack)
-		return;
 
 	/* find a window to focus */
 	if (ws->focus == win)
@@ -3304,23 +3309,22 @@ focusin(XEvent *e)
 void
 focusout(XEvent *e)
 {
+	struct swm_screen	*s;
+	Window			rr, cr;
+	int			x, y, wx, wy;
+	unsigned int		mask;
+
 	DNPRINTF(SWM_D_EVENT, "focusout: window: %lu\n", e->xfocus.window);
 
 	if (cur_focus && cur_focus->ws->r &&
 	    cur_focus->id == e->xfocus.window) {
-		struct swm_screen	*s = cur_focus->ws->r->s;
-		Window			rr, cr;
-		int			x, y, wx, wy;
-		unsigned int		mask;
-
-		/* Try to detect synergy hiding the cursor.  */
+		s = cur_focus->ws->r->s;
 		if (XQueryPointer(display, cur_focus->id,
 		    &rr, &cr, &x, &y, &wx, &wy, &mask) != False &&
 		    cr == 0 && !mask &&
-		    x == DisplayWidth(display, s->idx)/2 &&
-		    y == DisplayHeight(display, s->idx)/2) {
+		    x == DisplayWidth(display, s->idx) / 2 &&
+		    y == DisplayHeight(display, s->idx) / 2)
 			unfocus_win(cur_focus);
-		}
 	}
 }
 
@@ -3393,13 +3397,8 @@ void
 unmapnotify(XEvent *e)
 {
 	XDestroyWindowEvent	*ev = &e->xdestroywindow;
-	struct ws_win		*win;
 
 	DNPRINTF(SWM_D_EVENT, "unmapnotify: window: %lu\n", e->xunmap.window);
-
-	if ((win = find_window(ev->window)) != NULL)
-		if (win->transient)
-			unmanage_window(win);
 }
 
 void
