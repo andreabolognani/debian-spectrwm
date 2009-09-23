@@ -1,4 +1,3 @@
-001-use-sane-makefile.diff
 002-check-before-preloading-libswmhack.diff
 003-dont-use-hypen-as-minus-sign.diff
 101-use-x-terminal-emulator-instead-of-xterm.diff
