@@ -1,4 +1,4 @@
-scrotwm (0.9.6-1) unstable; urgency=low
+scrotwm (0.9.7-1) unstable; urgency=low
 
   * New upstream release.
   * Build and install swmhack.so.
