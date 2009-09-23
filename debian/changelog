@@ -1,9 +1,8 @@
 scrotwm (0.9.7-1) unstable; urgency=low
 
   * New upstream release.
-  * Build and install swmhack.so.
-  * 001-use-sane-makefile.diff: improve the build system.
-  * 003-dont-use-hypen-as-minus-sign.diff: fixes a common man page issue.
+  * Build and install libswmhack.so.
+  * 003-dont-use-hypen-as-minus-sign.diff: fix a common man page issue.
   * Bump Standards-Version to 3.8.3 (no changes needed).
 
  -- Andrea Bolognani <eof@kiyuko.org>  Mon, 14 Sep 2009 11:13:35 +0200
