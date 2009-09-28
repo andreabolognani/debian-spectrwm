@@ -5,11 +5,11 @@ terminal spawned by scrotwm a warning message is shown.
 This patch checks the library exists before LD_PRELOADing it, so even if the
 library is not installed (which is the case for the Debian package) the user
 is not annoyed by spurious warning messages.
-Index: scrotwm/scrotwm.c
+Index: trunk/scrotwm.c
 ===================================================================
---- scrotwm.orig/scrotwm.c	2009-09-14 12:32:07.000000000 +0200
-+++ scrotwm/scrotwm.c	2009-09-14 12:34:10.000000000 +0200
-@@ -918,6 +918,7 @@
+--- trunk.orig/scrotwm.c	2009-09-28 11:12:11.000000000 +0200
++++ trunk/scrotwm.c	2009-09-28 11:17:27.000000000 +0200
+@@ -1043,6 +1043,7 @@
  {
  	char			*ret;
  	int			si;
@@ -17,7 +17,7 @@ Index: scrotwm/scrotwm.c
  
  	DNPRINTF(SWM_D_MISC, "spawn: %s\n", args->argv[0]);
  	/*
-@@ -928,7 +929,10 @@
+@@ -1053,7 +1054,10 @@
  		if (fork() == 0) {
  			if (display)
  				close(ConnectionNumber(display));

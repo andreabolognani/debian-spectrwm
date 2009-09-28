@@ -1,9 +1,9 @@
 x-terminal-emulator is a sensible default terminal emulator on Debian, so use
 it instead of xterm in the default configuration.
-Index: scrotwm/scrotwm.conf
+Index: trunk/scrotwm.conf
 ===================================================================
---- scrotwm.orig/scrotwm.conf	2009-09-23 15:01:31.000000000 +0200
-+++ scrotwm/scrotwm.conf	2009-09-23 15:02:55.000000000 +0200
+--- trunk.orig/scrotwm.conf	2009-09-28 11:12:11.000000000 +0200
++++ trunk/scrotwm.conf	2009-09-28 11:19:36.000000000 +0200
 @@ -17,13 +17,13 @@
  title_class_enabled	= 0
  
@@ -20,11 +20,11 @@ Index: scrotwm/scrotwm.conf
  
  # dialog box size ratio .3 >= r < 1
  dialog_ratio		= 0.6
-Index: scrotwm/scrotwm.c
+Index: trunk/scrotwm.c
 ===================================================================
---- scrotwm.orig/scrotwm.c	2009-09-23 15:03:00.000000000 +0200
-+++ scrotwm/scrotwm.c	2009-09-23 15:03:43.000000000 +0200
-@@ -2254,7 +2254,7 @@
+--- trunk.orig/scrotwm.c	2009-09-28 11:17:41.000000000 +0200
++++ trunk/scrotwm.c	2009-09-28 11:19:36.000000000 +0200
+@@ -2379,7 +2379,7 @@
  void
  setup_spawn(void)
  {
@@ -33,7 +33,7 @@ Index: scrotwm/scrotwm.c
  	setconfspawn("screenshot_all",	"screenshot.sh full",	0);
  	setconfspawn("screenshot_wind",	"screenshot.sh window",	0);
  	setconfspawn("lock",		"xlock",		0);
-@@ -3736,7 +3736,7 @@
+@@ -3864,7 +3864,7 @@
  	if ((bar_fonts[1] = strdup("-*-times-medium-r-*-*-*-*-*-*-*-*-*-*"))
  	    == NULL)
  		err(1, "setup_globals: strdup");
