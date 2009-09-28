@@ -1,4 +1,4 @@
-#	$scrotwm: Makefile,v 1.1 2009/01/24 17:57:26 mcbride Exp $
+#	$scrotwm: Makefile,v 1.2 2009/09/26 16:40:08 marco Exp $
 
 .include <bsd.xconf.mk>
 
@@ -16,7 +16,7 @@ CFLAGS+= -I${X11BASE}/include
 install:
 	${INSTALL} ${INSTALL_COPY} -o ${LIBOWN} -g ${LIBGRP} -m ${LIBMODE} \
 		lib${LIB}.so.${SHLIB_MAJOR}.${SHLIB_MINOR} \
-		${X11BASE}/lib/swmhack.so
+		${PREFIX}/lib/
 
 .include <bsd.lib.mk>
 .include <bsd.xorg.mk>
