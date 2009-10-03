@@ -1,4 +1,4 @@
-.\"	$scrotwm: scrotwm.1,v 1.25 2009/09/13 20:07:30 dwc Exp $
+.\"	$scrotwm: scrotwm.1,v 1.27 2009/10/02 19:53:12 marco Exp $
 .\"
 .\" Copyright (c) 2009 Marco Peereboom <marco@peereboom.us>
 .\" Copyright (c) 2009 Darrin Chandler <dwchandler@stilyagin.com>
@@ -15,7 +15,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: September 13 2009 $
+.Dd $Mdocdate: October 2 2009 $
 .Dt SCROTWM 1
 .Os
 .Sh NAME
@@ -101,6 +101,8 @@ External script that populates additional information in the status bar,
 such as battery life.
 .It Cm bar_delay
 Update frequency, in seconds, of external script that populates the status bar.
+.It Cm stack_enabled
+Enable or disable displaying the current stacking algorithm in the status bar.
 .It Cm clock_enabled
 Enable or disable displaying the clock in the status bar.
 Disable by setting to 0
@@ -522,6 +524,12 @@ In the following example the main window of Firefox was clicked:
 .Bd -literal -offset indent
 $ xprop | grep WM_CLASS
 WM_CLASS(STRING) = "Navigator", "Firefox"
+.Ed
+.Pp
+Note that grepping for WM_CLASS flips class and name.
+In the example above the quirk entry would be:
+.Bd -literal -offset indent
+quirk[Firefox:Navigator] = FLOAT
 .Ed
 .Sh FILES
 .Bl -tag -width "/etc/scrotwm.confXXX" -compact
