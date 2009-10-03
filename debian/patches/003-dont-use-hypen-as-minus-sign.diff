@@ -3,11 +3,11 @@ taken to escape all minus signs to prevent them from being interpreted
 as dashes by groff.
 
 This patch fixes a couple such problems in the scrotwm man page.
-Index: scrotwm/scrotwm.1
+Index: trunk/scrotwm.1
 ===================================================================
---- scrotwm.orig/scrotwm.1	2009-09-17 18:32:23.000000000 +0200
-+++ scrotwm/scrotwm.1	2009-09-17 18:32:47.000000000 +0200
-@@ -189,7 +189,7 @@
+--- trunk.orig/scrotwm.1	2009-10-03 21:01:17.000000000 +0200
++++ trunk/scrotwm.1	2009-10-03 21:03:02.000000000 +0200
+@@ -191,7 +191,7 @@
  .It Cm initscr
  initscreen.sh
  .It Cm menu

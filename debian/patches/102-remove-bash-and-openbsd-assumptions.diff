@@ -5,13 +5,13 @@ some non-POSIX Bash features.
 This patch modifies the script so it is possible to run it unmodified on
 a Debian system, provided the called commands are available. It uses acpi
 instead of apm, which is the best choice for virtually all modern systems.
-Index: scrotwm/baraction.sh
+Index: cvs/baraction.sh
 ===================================================================
---- scrotwm.orig/baraction.sh	2009-09-14 11:13:00.000000000 +0200
-+++ scrotwm/baraction.sh	2009-09-14 12:15:36.000000000 +0200
+--- cvs.orig/baraction.sh	2009-10-02 23:00:27.000000000 +0200
++++ cvs/baraction.sh	2009-10-02 23:13:14.000000000 +0200
 @@ -2,6 +2,10 @@
  #
- # $scrotwm: baraction.sh,v 1.14 2009/09/13 22:28:53 marco Exp $
+ # $scrotwm: baraction.sh,v 1.15 2009/09/30 02:50:11 marco Exp $
  
 +ACPI=/usr/bin/acpi
 +IOSTAT=/usr/bin/iostat
@@ -24,8 +24,8 @@ Index: scrotwm/baraction.sh
  }
  
  print_mem() {
--	MEM=`/usr/bin/top | grep Free: | awk {'print $6'}`
-+	MEM=`${TOP} | grep Free: | awk {'print $6'}`
+-	MEM=`/usr/bin/top | grep Free: | cut -d " " -f7`
++	MEM=`${TOP} -b -n 1 | grep ^Mem: | cut -d " " -f13`
  	echo -n "Free mem: $MEM  "
  }
  
@@ -134,7 +134,7 @@ Index: scrotwm/baraction.sh
 -		I=$(( ${I} + 1 ));
 -	done
 +# instead of sleeping, use iostat as the update timer.
-+# cache the output of apm(8), no need to call that every second.
++# cache the output of acpi(1), no need to call that every second.
 +PID="$!"
 +ACPI_DATA=""
 +I=0
@@ -148,7 +148,7 @@ Index: scrotwm/baraction.sh
 +		# print_date
 +		# print_mem $MEM
 +		print_cpu $IOSTAT_DATA
-+		print_apm $ACPI_DATA
++		print_acpi $ACPI_DATA
 +		echo ""
 +	fi
 +	I=$(( ${I} + 1 ));
