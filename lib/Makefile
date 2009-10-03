@@ -1,6 +1,8 @@
-#	$scrotwm: Makefile,v 1.2 2009/09/26 16:40:08 marco Exp $
+#	$scrotwm: Makefile,v 1.3 2009/10/02 19:23:48 marco Exp $
 
 .include <bsd.xconf.mk>
+
+PREFIX?=/usr/local
 
 LIB=    swmhack
 NOMAN=	yes
