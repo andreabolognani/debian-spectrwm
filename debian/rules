@@ -5,7 +5,8 @@ include /usr/share/quilt/quilt.make
 build: patch build-stamp
 build-stamp:
 	dh_testdir
-	$(MAKE) -C linux/ PREFIX=/usr LIBDIR=/usr/lib/scrotwm
+	$(MAKE) -C linux/ PREFIX=/usr \
+	                  LIBDIR=/usr/lib/scrotwm
 	touch $@
 
 clean: clean-patched unpatch
@@ -24,12 +25,16 @@ binary-arch: build
 	dh_testdir
 	dh_testroot
 	dh_prep
-	$(MAKE) -C linux/ install PREFIX=/usr LIBDIR=/usr/lib/scrotwm \
-		DESTDIR=$(CURDIR)/debian/scrotwm
+	$(MAKE) -C linux/ install PREFIX=/usr \
+	                          LIBDIR=/usr/lib/scrotwm \
+	                          DESTDIR=$(CURDIR)/debian/scrotwm
 	dh_install
 	dh_installexamples
 	dh_installchangelogs 
 	dh_installdocs
+	dh_installman --language=es scrotwm_es.1
+	mv $(CURDIR)/debian/scrotwm/usr/share/man/es/man1/scrotwm_es.1 \
+	   $(CURDIR)/debian/scrotwm/usr/share/man/es/man1/scrotwm.1
 	dh_installwm scrotwm
 	dh_strip
 	dh_compress
