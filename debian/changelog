@@ -1,7 +1,8 @@
 scrotwm (0.9.10-1) unstable; urgency=low
 
   * New upstream release.
-    - Closes: #531826 [scrotwm: doesn't play well with hidden windows]
+    - Closes: #531826 [doesn't play well with hidden windows]
+    - Closes: #532569 [dialogs are always displayed on the first screen...]
   * 003-dont-use-hypen-as-minus-sign.diff: catch more errors.
   * 102-remove-bash-and-openbsd-assumptions.diff: call top correctly.
 
