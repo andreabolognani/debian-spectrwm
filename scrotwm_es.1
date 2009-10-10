@@ -1,4 +1,4 @@
-.\"	$scrotwm: scrotwm_es.1,v 1.2 2009/10/02 19:59:48 marco Exp $
+.\"	$scrotwm: scrotwm_es.1,v 1.3 2009/10/07 03:19:11 marco Exp $
 .\"
 .\" Copyright (c) 2009 Marco Peereboom <marco@peereboom.us>
 .\" Copyright (c) 2009 Darrin Chandler <dwchandler@stilyagin.com>
@@ -15,7 +15,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: October 2 2009 $
+.Dd $Mdocdate: October 7 2009 $
 .Dt SCROTWM 1
 .Os
 .Sh NOMBRE
@@ -189,7 +189,7 @@ xlock
 .It Cm initscr
 initscreen.sh
 .It Cm menu
-dmenu_run -fn $bar_font -nb $bar_color -nf $bar_font_color -sb $bar_border -sf $bar_color
+dmenu_run \-fn $bar_font \-nb $bar_color \-nf $bar_font_color \-sb $bar_border \-sf $bar_color
 .El
 .Pp
 Los programas en la configuración personal, se especifican aca:
@@ -455,7 +455,7 @@ como por ejemplo, popups, aplicaciones de pantalla completa, etc.
 Los "quirks" (o forzados) por defecto son:
 .Pp
 .Bl -tag -width "OpenOffice.org N.M:VCLSalFrame<TAB>XXX" -offset indent -compact
-.It Firefox-bin:firefox-bin
+.It Firefox\-bin:firefox\-bin
 TRANSSZ
 .It Firefox:Dialog
 FLOAT

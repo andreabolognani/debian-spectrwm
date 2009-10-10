@@ -1,4 +1,4 @@
-/* $scrotwm: scrotwm.c,v 1.226 2009/10/05 17:03:47 marco Exp $ */
+/* $scrotwm: scrotwm.c,v 1.235 2009/10/08 19:21:24 marco Exp $ */
 /*
  * Copyright (c) 2009 Marco Peereboom <marco@peereboom.us>
  * Copyright (c) 2009 Ryan McBride <mcbride@countersiege.com>
@@ -50,9 +50,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-static const char	*cvstag = "$scrotwm: scrotwm.c,v 1.226 2009/10/05 17:03:47 marco Exp $";
+static const char	*cvstag = "$scrotwm: scrotwm.c,v 1.235 2009/10/08 19:21:24 marco Exp $";
 
-#define	SWM_VERSION	"0.9.10"
+#define	SWM_VERSION	"0.9.11"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -157,6 +157,7 @@ char			**start_argv;
 Atom			astate;
 Atom			aprot;
 Atom			adelete;
+Atom			takefocus;
 volatile sig_atomic_t   running = 1;
 int			outputs = 0;
 int			(*xerrorxlib)(Display *, XErrorEvent *);
@@ -232,14 +233,17 @@ TAILQ_HEAD(swm_region_list, swm_region);
 struct ws_win {
 	TAILQ_ENTRY(ws_win)	entry;
 	Window			id;
+	Window			transient;
+	struct ws_win		*child_trans;	/* transient child window */
 	struct swm_geometry	g;
 	int			floating;
-	int			transient;
 	int			manual;
 	int			font_size_boundary[SWM_MAX_FONT_STEPS];
 	int			font_steps;
 	int			last_inc;
 	int			can_delete;
+	int			take_focus;
+	int			java;
 	unsigned long		quirks;
 	struct workspace	*ws;	/* always valid */
 	struct swm_screen	*s;	/* always valid, never changes */
@@ -937,9 +941,12 @@ set_win_state(struct ws_win *win, long state)
 	long			data[] = {state, None};
 	XEvent			ev;
 	XWindowAttributes	wa;
+	int			putback;
 
 	DNPRINTF(SWM_D_EVENT, "set_win_state: window: %lu\n", win->id);
 
+	if (win == NULL)
+		return;
 	/* make sure we drain everything */
 	XSync(display, True);
 
@@ -951,8 +958,11 @@ set_win_state(struct ws_win *win, long state)
 	    (unsigned char *)data, 2);
 
 	/* wait for completion of XChangeProperty */
+	putback = 0;
 	while (XCheckIfEvent(display, &ev, set_win_notify_cb, (char *)win))
-		;
+		putback = 1;
+	if (putback)
+		XPutBackEvent(display, &ev);
 }
 
 long
@@ -991,6 +1001,9 @@ client_msg(struct ws_win *win, Atom a)
 {
 	XClientMessageEvent	cm;
 
+	if (win == NULL)
+		return;
+
 	bzero(&cm, sizeof cm);
 	cm.type = ClientMessage;
 	cm.window = win->id;
@@ -1008,6 +1021,10 @@ config_win(struct ws_win *win)
 
 	DNPRINTF(SWM_D_MISC, "config_win: win %lu x %d y %d w %d h %d\n",
 	    win->id, win->g.x, win->g.y, win->g.w, win->g.h);
+
+	if (win == NULL)
+		return;
+
 	ce.type = ConfigureNotify;
 	ce.display = display;
 	ce.event = win->id;
@@ -1077,6 +1094,7 @@ unmap_window(struct ws_win *win)
 {
 	XEvent			ev;
 	XWindowAttributes	wa;
+	int			putback;
 
 	if (win == NULL)
 		return;
@@ -1089,12 +1107,18 @@ unmap_window(struct ws_win *win)
 	if (wa.map_state == IsUnmapped && getstate(win->id) == IconicState)
 		return;
 
-	set_win_state(win, IconicState);
+	/* java shits itself when windows are set to iconic state */
+	if (win->java == 0)
+		set_win_state(win, IconicState);
+
 	XUnmapWindow(display, win->id);
 
 	/* make sure we wait for XUnmapWindow completion */
+	putback = 0;
 	while (XCheckIfEvent(display, &ev, unmap_window_cb, (char *)win))
-		;
+		putback = 1;
+	if (putback)
+		XPutBackEvent(display, &ev);
 }
 
 void
@@ -1113,6 +1137,9 @@ void
 fake_keypress(struct ws_win *win, int keysym, int modifiers)
 {
 	XKeyEvent event;
+
+	if (win == NULL)
+		return;
 
 	event.display = display;	/* Ignored, but what the hell */
 	event.window = win->id;
@@ -1252,7 +1279,8 @@ unfocus_win(struct ws_win *win)
 {
 	if (win == NULL)
 		return;
-
+	if (win->ws == NULL)
+		return;
 	if (win->ws->r == NULL)
 		return;
 
@@ -1287,6 +1315,8 @@ focus_win(struct ws_win *win)
 
 	if (win == NULL)
 		return;
+	if (win->ws == NULL)
+		return;
 
 	/* use big hammer to make sure it works under all use cases */
 	unfocus_all();
@@ -1298,8 +1328,9 @@ focus_win(struct ws_win *win)
 		grabbuttons(win, 1);
 		if (win->ws->cur_layout->flags & SWM_L_MAPONFOCUS)
 			XMapRaised(display, win->id);
-		XSetInputFocus(display, win->id,
-		    RevertToPointerRoot, CurrentTime);
+		if (win->java == 0)
+			XSetInputFocus(display, win->id,
+			    RevertToPointerRoot, CurrentTime);
 	}
 }
 
@@ -1311,6 +1342,15 @@ switchws(struct swm_region *r, union arg *args)
 	struct ws_win		*win, *winfocus = NULL, *parent = NULL;
 	struct workspace	*new_ws, *old_ws;
 
+	if (!(r && r->s)) {
+		fprintf(stderr, "r && r->s failed\n");
+		abort();
+	}
+	if (wsid < 0 || wsid > SWM_WS_MAX) {
+		fprintf(stderr, "illegal wsid\n");
+		abort();
+	}
+
 	this_r = r;
 	old_ws = this_r->ws;
 	new_ws = &this_r->s->ws[wsid];
@@ -1318,6 +1358,11 @@ switchws(struct swm_region *r, union arg *args)
 	DNPRINTF(SWM_D_WS, "switchws screen[%d]:%dx%d+%d+%d: "
 	    "%d -> %d\n", r->s->idx, WIDTH(r), HEIGHT(r), X(r), Y(r),
 	    old_ws->idx, wsid);
+
+	if (new_ws == NULL || old_ws == NULL) {
+		fprintf(stderr, "new_ws = %p old_ws = %p\n", new_ws, old_ws);
+		abort();
+	}
 
 	if (new_ws == old_ws)
 		return;
@@ -1628,6 +1673,10 @@ stack(void) {
 			    "(screen %d, region %d)\n", r->ws->idx, i, j++);
 
 			/* start with screen geometry, adjust for bar */
+			if (r == NULL) {
+				fprintf(stderr, "illegal r\n");
+				abort();
+			}
 			g = r->g;
 			g.w -= 2;
 			g.h -= 2;
@@ -1635,8 +1684,19 @@ stack(void) {
 				g.y += bar_height;
 				g.h -= bar_height;
 			}
-
+			if (r->ws == NULL) {
+				fprintf(stderr, "illegal ws\n");
+				abort();
+			}
+			if (r->ws->cur_layout == NULL) {
+				fprintf(stderr, "illegal cur_layout\n");
+				abort();
+			}
 			r->ws->restack = 0;
+			if (r->ws->cur_layout->l_stack == NULL) {
+				fprintf(stderr, "illegal l_stack\n");
+				abort();
+			}
 			r->ws->cur_layout->l_stack(r->ws, &g);
 		}
 	}
@@ -3318,7 +3378,7 @@ manage_window(Window id)
 {
 	Window			trans = 0;
 	struct workspace	*ws;
-	struct ws_win		*win, *ww;
+	struct ws_win		*win, *ww, *parent;
 	int			format, i, ws_idx, n, border_me = 0;
 	unsigned long		nitems, bytes;
 	Atom			ws_idx_atom = 0, type;
@@ -3345,14 +3405,20 @@ manage_window(Window id)
 	XGetTransientForHint(display, id, &trans);
 	if (trans) {
 		win->transient = trans;
+		parent = find_window(win->transient);
+		if (parent)
+			parent->child_trans = win;
 		DNPRINTF(SWM_D_MISC, "manage_window: win %u transient %u\n",
 		    (unsigned)win->id, win->transient);
 	}
 	/* get supported protocols */
 	if (XGetWMProtocols(display, id, &prot, &n)) {
-		for (i = 0, pp = prot; i < n; i++, pp++)
+		for (i = 0, pp = prot; i < n; i++, pp++) {
+			if (*pp == takefocus)
+				win->take_focus = 1;
 			if (*pp == adelete)
 				win->can_delete = 1;
+		}
 		if (prot)
 			XFree(prot);
 	}
@@ -3411,6 +3477,11 @@ manage_window(Window id)
 	if (XGetClassHint(display, win->id, &win->ch)) {
 		DNPRINTF(SWM_D_CLASS, "class: %s name: %s\n",
 		    win->ch.res_class, win->ch.res_name);
+
+		/* java is retarded so treat it special */
+		if (strstr(win->ch.res_name, "sun-awt"))
+			win->java = 1;
+
 		for (i = 0; i < quirks_length; i++){
 			if (!strcmp(win->ch.res_class, quirks[i].class) &&
 			    !strcmp(win->ch.res_name, quirks[i].name)) {
@@ -3471,11 +3542,21 @@ void
 unmanage_window(struct ws_win *win)
 {
 	struct workspace	*ws;
+	struct ws_win		*parent;
 
 	if (win == NULL)
 		return;
 
 	DNPRINTF(SWM_D_MISC, "unmanage_window:  %lu\n", win->id);
+
+	/* needed for restart wm */
+	set_win_state(win, WithdrawnState);
+
+	if (win->transient) {
+		parent = find_window(win->transient);
+		if (parent)
+			parent->child_trans = NULL;
+	}
 
 	ws = win->ws;
 	TAILQ_REMOVE(&win->ws->winlist, win, entry);
@@ -3484,6 +3565,28 @@ unmanage_window(struct ws_win *win)
 	if (win->ch.res_name)
 		XFree(win->ch.res_name);
 	free(win);
+}
+
+void
+focus_magic(struct ws_win *win)
+{
+	if (win->child_trans) {
+		/* win = parent & has a transient so focus on that */
+		if (win->java) {
+			focus_win(win->child_trans);
+			if (win->child_trans->take_focus)
+				client_msg(win, takefocus);
+		} else {
+			focus_win(win->child_trans);
+			if (win->child_trans->take_focus)
+				client_msg(win->child_trans, takefocus);
+		}
+	} else {
+		/* regular focus */
+		focus_win(win);
+		if (win->take_focus)
+			client_msg(win, takefocus);
+	}
 }
 
 void
@@ -3533,10 +3636,9 @@ buttonpress(XEvent *e)
 	action = root_click;
 	if ((win = find_window(ev->window)) == NULL)
 		return;
-	else {
-		focus_win(win);
-		action = client_click;
-	}
+
+	focus_magic(win);
+	action = client_click;
 
 	for (i = 0; i < LENGTH(buttons); i++)
 		if (action == buttons[i].action && buttons[i].func &&
@@ -3644,9 +3746,12 @@ destroynotify(XEvent *e)
 			winfocus = find_window(win->transient);
 		else if (ws->focus == win) {
 			/* if in max_stack try harder */
-			if (ws->cur_layout->flags & SWM_L_FOCUSPREV)
-				if (win != ws->focus && win != ws->focus_prev)
+			if (ws->cur_layout->flags & SWM_L_FOCUSPREV) {
+				if (win != ws->focus_prev)
 					winfocus = ws->focus_prev;
+				else if (win != ws->focus)
+					winfocus = ws->focus;
+			}
 
 			/* fallback and normal handling */
 			if (winfocus == NULL) {
@@ -3691,11 +3796,10 @@ enternotify(XEvent *e)
 	if (QLength(display))
 		return;
 
-	if ((win = find_window(ev->window)) != NULL) {
-		if (win->ws->focus == win)
-			return;
-		focus_win(win);
-	}
+	if ((win = find_window(ev->window)) == NULL)
+		return;
+
+	focus_magic(win);
 }
 
 void
@@ -3812,6 +3916,10 @@ unmapnotify(XEvent *e)
 	if (win == NULL)
 		return;
 
+	/* java can not deal with this heuristic */
+	if (win->java)
+		return;
+
 	if (getstate(e->xunmap.window) == NormalState) {
 		/*
 		 * this window does not have a destroy event but but it is no
@@ -3822,8 +3930,10 @@ unmapnotify(XEvent *e)
 		if (ws->cur_layout->flags & SWM_L_FOCUSPREV) {
 			if (win->transient)
 				winfocus = find_window(win->transient);
-			else if (win != ws->focus && win != ws->focus_prev)
+			else if (win != ws->focus_prev)
 				winfocus = ws->focus_prev;
+			else if (win != ws->focus)
+				winfocus = ws->focus;
 		}
 
 		/* normal and fallback if haven't found anything to focus on */
@@ -4124,7 +4234,6 @@ setup_screens(void)
 		/* attach windows to a region */
 		/* normal windows */
 		for (j = 0; j < no; j++) {
-                        XGetWindowAttributes(display, wins[j], &wa);
 			if (!XGetWindowAttributes(display, wins[j], &wa) ||
 			    wa.override_redirect ||
 			    XGetTransientForHint(display, wins[j], &d1))
@@ -4137,7 +4246,8 @@ setup_screens(void)
 		}
 		/* transient windows */
 		for (j = 0; j < no; j++) {
-			if (!XGetWindowAttributes(display, wins[j], &wa))
+			if (!XGetWindowAttributes(display, wins[j], &wa) ||
+			    wa.override_redirect)
 				continue;
 
 			state = getstate(wins[j]);
@@ -4223,6 +4333,7 @@ main(int argc, char *argv[])
 	astate = XInternAtom(display, "WM_STATE", False);
 	aprot = XInternAtom(display, "WM_PROTOCOLS", False);
 	adelete = XInternAtom(display, "WM_DELETE_WINDOW", False);
+	takefocus = XInternAtom(display, "WM_TAKE_FOCUS", False);
 
 	/* look for local and global conf file */
 	pwd = getpwuid(getuid());
