@@ -2,7 +2,7 @@ Format-Specification: http://wiki.debian.org/Proposals/CopyrightFormat?action=re
 
 Upstream-Name: scrotwm
 Upstream-Maintainer: Marco Peereboom <marco@peereboom.us>
-Upstream-Source: http://www.peereboom.us/scrotwm/snapshot/
+Upstream-Source: http://www.scrotwm.org/snapshot/
 
 
 Files: scrotwm.c
