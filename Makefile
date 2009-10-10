@@ -1,4 +1,4 @@
-# $scrotwm: Makefile,v 1.11 2009/10/02 19:23:48 marco Exp $
+# $scrotwm: Makefile,v 1.12 2009/10/07 03:19:11 marco Exp $
 .include <bsd.xconf.mk>
 
 PREFIX?=/usr/local
@@ -7,7 +7,7 @@ BINDIR=${PREFIX}/bin
 SUBDIR= lib
 
 PROG=scrotwm
-MAN=scrotwm.1 scrotwm_es.1
+MAN=scrotwm.1 scrotwm_es.1 scrotwm_it.1
 
 CFLAGS+=-std=c89 -Wall -Wno-uninitialized -ggdb3
 CPPFLAGS+= -I${X11BASE}/include
