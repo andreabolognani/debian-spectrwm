@@ -3,7 +3,7 @@ scrotwm (0.9.11-1) unstable; urgency=low
   * New upstream release.
     - Closes: #531826 [doesn't play well with hidden windows]
     - Closes: #532569 [dialogs are always displayed on the first screen...]
-  * 003-dont-use-hypen-as-minus-sign.diff: catch more errors.
+  * 003-dont-use-hypen-as-minus-sign.diff: merged upstream; dropped.
   * 102-remove-bash-and-openbsd-assumptions.diff: call top correctly.
 
  -- Andrea Bolognani <andre@lagann>  Sat, 10 Oct 2009 11:59:30 +0200

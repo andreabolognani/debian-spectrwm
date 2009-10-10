@@ -2,8 +2,8 @@ x-terminal-emulator is a sensible default terminal emulator on Debian, so use
 it instead of xterm in the default configuration.
 Index: trunk/scrotwm.conf
 ===================================================================
---- trunk.orig/scrotwm.conf	2009-10-06 14:30:29.000000000 +0200
-+++ trunk/scrotwm.conf	2009-10-06 14:32:35.000000000 +0200
+--- trunk.orig/scrotwm.conf	2009-10-10 11:57:15.000000000 +0200
++++ trunk/scrotwm.conf	2009-10-10 12:04:35.000000000 +0200
 @@ -18,13 +18,13 @@
  title_class_enabled	= 0
  
@@ -22,9 +22,9 @@ Index: trunk/scrotwm.conf
  dialog_ratio		= 0.6
 Index: trunk/scrotwm.c
 ===================================================================
---- trunk.orig/scrotwm.c	2009-10-06 14:32:27.000000000 +0200
-+++ trunk/scrotwm.c	2009-10-06 14:32:35.000000000 +0200
-@@ -2601,7 +2601,7 @@
+--- trunk.orig/scrotwm.c	2009-10-10 12:00:11.000000000 +0200
++++ trunk/scrotwm.c	2009-10-10 12:04:35.000000000 +0200
+@@ -2661,7 +2661,7 @@
  void
  setup_spawn(void)
  {
@@ -33,7 +33,7 @@ Index: trunk/scrotwm.c
  	setconfspawn("screenshot_all",	"screenshot.sh full",	0);
  	setconfspawn("screenshot_wind",	"screenshot.sh window",	0);
  	setconfspawn("lock",		"xlock",		0);
-@@ -4169,7 +4169,7 @@
+@@ -4279,7 +4279,7 @@
  	if ((bar_fonts[2] = strdup("-misc-fixed-medium-r-*-*-*-*-*-*-*-*-*-*"))
  	    == NULL)
  		err(1, "setup_globals: strdup");
