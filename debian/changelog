@@ -6,7 +6,7 @@ scrotwm (0.9.11-1) unstable; urgency=low
   * 003-dont-use-hypen-as-minus-sign.diff: merged upstream; dropped.
   * 102-remove-bash-and-openbsd-assumptions.diff: call top correctly.
 
- -- Andrea Bolognani <andre@lagann>  Sat, 10 Oct 2009 11:59:30 +0200
+ -- Andrea Bolognani <eof@kiyuko.org>  Sat, 10 Oct 2009 11:59:30 +0200
 
 scrotwm (0.9.8-1) unstable; urgency=low
 
