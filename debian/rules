@@ -35,6 +35,9 @@ binary-arch: build
 	dh_installman --language=es scrotwm_es.1
 	mv $(CURDIR)/debian/scrotwm/usr/share/man/es/man1/scrotwm_es.1 \
 	   $(CURDIR)/debian/scrotwm/usr/share/man/es/man1/scrotwm.1
+	dh_installman --language=it scrotwm_it.1
+	mv $(CURDIR)/debian/scrotwm/usr/share/man/it/man1/scrotwm_it.1 \
+	   $(CURDIR)/debian/scrotwm/usr/share/man/it/man1/scrotwm.1
 	dh_installwm scrotwm
 	dh_strip
 	dh_compress
