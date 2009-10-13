@@ -1,4 +1,4 @@
-/* $scrotwm: scrotwm.c,v 1.240 2009/10/13 02:28:47 marco Exp $ */
+/* $scrotwm: scrotwm.c,v 1.245 2009/10/13 18:57:37 marco Exp $ */
 /*
  * Copyright (c) 2009 Marco Peereboom <marco@peereboom.us>
  * Copyright (c) 2009 Ryan McBride <mcbride@countersiege.com>
@@ -50,9 +50,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-static const char	*cvstag = "$scrotwm: scrotwm.c,v 1.240 2009/10/13 02:28:47 marco Exp $";
+static const char	*cvstag = "$scrotwm: scrotwm.c,v 1.245 2009/10/13 18:57:37 marco Exp $";
 
-#define	SWM_VERSION	"0.9.14"
+#define	SWM_VERSION	"0.9.15"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1688,8 +1688,8 @@ stack_floater(struct ws_win *win, struct swm_region *r)
 
 	bzero(&wc, sizeof wc);
 	mask = CWX | CWY | CWBorderWidth | CWWidth | CWHeight;
-	if ((win->quirks & SWM_Q_FULLSCREEN) && (win->g.w == WIDTH(r)) &&
-	    (win->g.h == HEIGHT(r)))
+	if ((win->quirks & SWM_Q_FULLSCREEN) && (win->g.w >= WIDTH(r)) &&
+	    (win->g.h >= HEIGHT(r)))
 		wc.border_width = 0;
 	else
 		wc.border_width = 1;
@@ -1708,13 +1708,21 @@ stack_floater(struct ws_win *win, struct swm_region *r)
 	}
 
 	/* adjust for region */
-	wc.x += r->g.x;
-	wc.y += r->g.y;
+	if (wc.x < r->g.x)
+		wc.x += r->g.x;
+	if (wc.y < r->g.y)
+		wc.y += r->g.y;
 
-	DNPRINTF(SWM_D_STACK, "stack_floater: win %lu x %d y %d w %d h %d\n",
+	win->g.x = wc.x;
+	win->g.y = wc.y;
+	win->g.w = wc.width;
+	win->g.h = wc.height;
+
+	DNPRINTF(SWM_D_MISC, "stack_floater: win %lu x %d y %d w %d h %d\n",
 	    win->id, wc.x, wc.y, wc.width, wc.height);
 
 	XConfigureWindow(display, win->id, mask, &wc);
+	configreq_win(win);
 }
 
 /*
@@ -2181,7 +2189,7 @@ resize_window(struct ws_win *win, int center)
 	    win->id, wc.x, wc.y, wc.width, wc.height);
 
 	XConfigureWindow(display, win->id, mask, &wc);
-	config_win(win);
+	configreq_win(win);
 }
 
 void
@@ -2189,6 +2197,7 @@ resize(struct ws_win *win, union arg *args)
 {
 	XEvent			ev;
 	Time			time = 0;
+	struct swm_region	*r = win->ws->r;
 
 	DNPRINTF(SWM_D_MOUSE, "resize: win %lu floating %d trans %d\n",
 	    win->id, win->floating, win->transient);
@@ -2210,6 +2219,14 @@ resize(struct ws_win *win, union arg *args)
 			handler[ev.type](&ev);
 			break;
 		case MotionNotify:
+			/* do not allow resize outside of region */
+			if (ev.xmotion.y_root < r->g.y ||
+			    ev.xmotion.y_root >= r->g.y + r->g.h - 1)
+				continue;
+			if (ev.xmotion.x_root < r->g.x ||
+			    ev.xmotion.x_root >= r->g.x + r->g.w - 1)
+				continue;
+
 			if (ev.xmotion.x <= 1)
 				ev.xmotion.x = 1;
 			if (ev.xmotion.y <= 1)
@@ -2255,7 +2272,7 @@ move_window(struct ws_win *win)
 	    win->id, wc.x, wc.y, wc.width, wc.height);
 
 	XConfigureWindow(display, win->id, mask, &wc);
-	config_win(win);
+	configreq_win(win);
 }
 
 void
@@ -2264,6 +2281,7 @@ move(struct ws_win *win, union arg *args)
 	XEvent			ev;
 	Time			time = 0;
 	int			restack = 0;
+	struct swm_region	*r = win->ws->r;
 
 	DNPRINTF(SWM_D_MOUSE, "move: win %lu floating %d trans %d\n",
 	    win->id, win->floating, win->transient);
@@ -2288,6 +2306,14 @@ move(struct ws_win *win, union arg *args)
 			handler[ev.type](&ev);
 			break;
 		case MotionNotify:
+			/* don't allow to move window out of region */
+			if (ev.xmotion.y_root < r->g.y ||
+			    ev.xmotion.y_root + win->g.h >= r->g.y + r->g.h - 1)
+				continue;
+			if (ev.xmotion.x_root < r->g.x ||
+			    ev.xmotion.x_root + win->g.w >= r->g.x + r->g.w - 1)
+				continue;
+
 			win->g.x = ev.xmotion.x_root;
 			win->g.y = ev.xmotion.y_root;
 
@@ -3488,8 +3514,10 @@ manage_window(Window id)
 			    !strcmp(win->ch.res_name, quirks[i].name)) {
 				DNPRINTF(SWM_D_CLASS, "found: %s name: %s\n",
 				    win->ch.res_class, win->ch.res_name);
-				if (quirks[i].quirk & SWM_Q_FLOAT)
+				if (quirks[i].quirk & SWM_Q_FLOAT) {
 					win->floating = 1;
+					border_me = 1;
+				}
 				win->quirks = quirks[i].quirk;
 			}
 		}
@@ -3678,7 +3706,8 @@ configurerequest(XEvent *e)
 	XWindowChanges		wc;
 
 	if ((win = find_window(ev->window)) == NULL)
-		new = 1;
+		if ((win = find_unmanaged_window(ev->window)) == NULL)
+			new = 1;
 
 	if (new) {
 		DNPRINTF(SWM_D_EVENT, "configurerequest: new window: %lu\n",
@@ -3704,27 +3733,8 @@ configurerequest(XEvent *e)
 				win->g.w = ev->width;
 			if (ev->value_mask & CWHeight)
 				win->g.h = ev->height;
-			if (win->ws->r != NULL) {
-				/* this seems to be full screen */
-				if (win->g.w >= WIDTH(win->ws->r)) {
-					win->g.x = 0;
-					win->g.w = WIDTH(win->ws->r);
-					ev->value_mask |= CWX | CWWidth;
-				}
-				if (win->g.h >= HEIGHT(win->ws->r)) {
-					/* kill border */
-					win->g.y = 0;
-					win->g.h = HEIGHT(win->ws->r);
-					ev->value_mask |= CWY | CWHeight;
-				}
-			}
-			XMoveResizeWindow(display, win->id,
-			    win->g.x, win->g.y, win->g.w, win->g.h);
-			if ((ev->value_mask & (CWX | CWY)) &&
-			    !(ev->value_mask & (CWWidth | CWHeight)))
-				config_win(win);
-		} else
-			config_win(win);
+		}
+		config_win(win);
 	}
 }
 
@@ -3767,7 +3777,8 @@ destroynotify(XEvent *e)
 	ws = win->ws;
 	wl = &ws->winlist;
 
-	for (w = TAILQ_FIRST(&ws->winlist); w != TAILQ_END(&ws->winlist); w = wn) {
+	for (w = TAILQ_FIRST(&ws->winlist); w != TAILQ_END(&ws->winlist);
+	    w = wn) {
 		wn = TAILQ_NEXT(w, entry);
 		if (win == w)
 			continue; /* can't happen but oh well */
