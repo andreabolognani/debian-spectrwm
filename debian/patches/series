@@ -1,3 +1,4 @@
+001-use-tailq-last-instead-of-tailq-end.diff
 002-check-before-preloading-libswmhack.diff
 101-use-x-terminal-emulator-instead-of-xterm.diff
 102-remove-bash-and-openbsd-assumptions.diff

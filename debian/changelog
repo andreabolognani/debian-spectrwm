@@ -3,6 +3,7 @@ scrotwm (0.9.14-1) unstable; urgency=low
   * New upstream release.
     - Closes: #531826 [doesn't play well with hidden windows]
     - Closes: #532569 [dialogs are always displayed on the first screen...]
+  * 001-use-tailq-last-instead-of-tailq-end.diff: fix compile error.
   * 003-dont-use-hypen-as-minus-sign.diff: merged upstream; dropped.
   * 102-remove-bash-and-openbsd-assumptions.diff: call top correctly.
 
