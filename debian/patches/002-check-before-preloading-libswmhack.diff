@@ -7,9 +7,9 @@ library is not installed (which is the case for the Debian package) the user
 is not annoyed by spurious warning messages.
 Index: trunk/scrotwm.c
 ===================================================================
---- trunk.orig/scrotwm.c	2009-10-18 14:21:55.000000000 +0200
-+++ trunk/scrotwm.c	2009-10-18 14:22:24.000000000 +0200
-@@ -1244,6 +1244,7 @@
+--- trunk.orig/scrotwm.c	2009-10-21 09:31:05.000000000 +0200
++++ trunk/scrotwm.c	2009-10-21 09:31:38.000000000 +0200
+@@ -1245,6 +1245,7 @@
  {
  	char			*ret;
  	int			si;
@@ -17,7 +17,7 @@ Index: trunk/scrotwm.c
  
  	DNPRINTF(SWM_D_MISC, "spawn: %s\n", args->argv[0]);
  	/*
-@@ -1254,7 +1255,10 @@
+@@ -1255,7 +1256,10 @@
  		if (fork() == 0) {
  			if (display)
  				close(ConnectionNumber(display));
