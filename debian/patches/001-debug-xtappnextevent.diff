@@ -1,0 +1,18 @@
+Seems intercepting XtAppNextEvent causes trouble. Let's try to find out why.
+Index: 551732/lib/swm_hack.c
+===================================================================
+--- 551732.orig/lib/swm_hack.c	2009-10-22 08:52:53.000000000 +0200
++++ 551732/lib/swm_hack.c	2009-10-22 08:53:10.000000000 +0200
+@@ -203,6 +203,7 @@
+ 	return (*func) (display, window, parent, x, y);
+ }
+ 
++#if 0
+ typedef		void (ANEF) (XtAppContext app_context, XEvent *event_return);
+ int		evcount = 0;
+ 
+@@ -243,3 +244,4 @@
+ 	   event_return->xkey.keycode == kp_subtract))
+ 		event_return->xkey.send_event = 0;
+ }
++#endif
