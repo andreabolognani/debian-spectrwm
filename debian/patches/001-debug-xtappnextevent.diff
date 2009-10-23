@@ -1,18 +1,29 @@
 Seems intercepting XtAppNextEvent causes trouble. Let's try to find out why.
 Index: 551732/lib/swm_hack.c
 ===================================================================
---- 551732.orig/lib/swm_hack.c	2009-10-22 08:52:53.000000000 +0200
-+++ 551732/lib/swm_hack.c	2009-10-22 08:53:10.000000000 +0200
-@@ -203,6 +203,7 @@
- 	return (*func) (display, window, parent, x, y);
- }
+--- 551732.orig/lib/swm_hack.c	2009-10-23 16:36:54.000000000 +0200
++++ 551732/lib/swm_hack.c	2009-10-23 16:53:37.000000000 +0200
+@@ -45,6 +45,7 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <dlfcn.h>
++#include <assert.h>
+ #include <X11/Xlib.h>
+ #include <X11/X.h>
+ #include <X11/Xatom.h>
+@@ -221,11 +222,15 @@
+ 	/* find the real Xlib and the real X function */
+ 	if (!lib_xtlib)
+ 		lib_xtlib = dlopen("libXt.so", RTLD_GLOBAL | RTLD_LAZY);
++	assert(lib_xtlib != NULL);
+ 	if (!func) {
+ 		func = (ANEF *) dlsym(lib_xtlib, "XtAppNextEvent");
++		assert(func != NULL);
+ 		if (dpy != NULL) {
+ 			kp_add = XKeysymToKeycode(dpy, XK_KP_Add);
++			assert(kp_add != 0);
+ 			kp_subtract = XKeysymToKeycode(dpy, XK_KP_Subtract);
++			assert(kp_subtract != 0);
+ 		}
+ 	}
  
-+#if 0
- typedef		void (ANEF) (XtAppContext app_context, XEvent *event_return);
- int		evcount = 0;
- 
-@@ -243,3 +244,4 @@
- 	   event_return->xkey.keycode == kp_subtract))
- 		event_return->xkey.send_event = 0;
- }
-+#endif
