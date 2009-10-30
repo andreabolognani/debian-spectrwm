@@ -1,8 +1,8 @@
 Seems intercepting XtAppNextEvent causes trouble. Let's try to find out why.
 Index: 551732/lib/swm_hack.c
 ===================================================================
---- 551732.orig/lib/swm_hack.c	2009-10-23 16:36:54.000000000 +0200
-+++ 551732/lib/swm_hack.c	2009-10-23 16:53:37.000000000 +0200
+--- 551732.orig/lib/swm_hack.c	2009-10-23 16:55:02.000000000 +0200
++++ 551732/lib/swm_hack.c	2009-10-31 00:36:26.000000000 +0100
 @@ -45,6 +45,7 @@
  #include <stdio.h>
  #include <stdlib.h>
@@ -11,19 +11,44 @@ Index: 551732/lib/swm_hack.c
  #include <X11/Xlib.h>
  #include <X11/X.h>
  #include <X11/Xatom.h>
-@@ -221,11 +222,15 @@
+@@ -217,15 +218,40 @@
+ {
+ 	static ANEF	*func = NULL;
+ 	static int	kp_add = 0, kp_subtract = 0;
++	char *error;
+ 
  	/* find the real Xlib and the real X function */
  	if (!lib_xtlib)
  		lib_xtlib = dlopen("libXt.so", RTLD_GLOBAL | RTLD_LAZY);
-+	assert(lib_xtlib != NULL);
++	if (lib_xtlib == NULL) {
++		if ((error = dlerror()) != NULL) {
++			fprintf(stderr, "%s\n", error);
++			assert(0);
++		}
++	}
  	if (!func) {
  		func = (ANEF *) dlsym(lib_xtlib, "XtAppNextEvent");
-+		assert(func != NULL);
++		if (func == NULL) {
++			if ((error = dlerror()) != NULL) {
++				fprintf(stderr, "%s\n", error);
++				assert(0);
++			}
++		}
  		if (dpy != NULL) {
  			kp_add = XKeysymToKeycode(dpy, XK_KP_Add);
-+			assert(kp_add != 0);
++			if (kp_add == 0) {
++				if ((error = dlerror()) != NULL) {
++					fprintf(stderr, "%s\n", error);
++					assert(0);
++				}
++			}
  			kp_subtract = XKeysymToKeycode(dpy, XK_KP_Subtract);
-+			assert(kp_subtract != 0);
++			if (kp_subtract == 0) {
++				if ((error = dlerror()) != NULL) {
++					fprintf(stderr, "%s\n", error);
++					assert(0);
++				}
++			}
  		}
  	}
  

@@ -1,3 +1,9 @@
+scrotwm (0.9.8-1+bug551732try3) unstable; urgency=low
+
+  * Use dlerror() to get the the error message.
+
+ -- Andrea Bolognani <eof@kiyuko.org>  Sat, 31 Oct 2009 00:41:49 +0100
+
 scrotwm (0.9.8-1+bug551732try2) unstable; urgency=low
 
   * Add assert()s everywhere.
