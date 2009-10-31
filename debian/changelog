@@ -1,4 +1,4 @@
-scrotwm (0.9.18-1) unstable; urgency=low
+scrotwm (0.9.19-1) unstable; urgency=low
 
   * New upstream release.
     - Closes: #531826 [doesn't play well with hidden windows]
@@ -6,7 +6,7 @@ scrotwm (0.9.18-1) unstable; urgency=low
   * 003-dont-use-hypen-as-minus-sign.diff: merged upstream; dropped.
   * 102-remove-bash-and-openbsd-assumptions.diff: call top correctly.
 
- -- Andrea Bolognani <eof@kiyuko.org>  Wed, 21 Oct 2009 09:31:13 +0200
+ -- Andrea Bolognani <eof@kiyuko.org>  Sat, 31 Oct 2009 08:38:49 +0100
 
 scrotwm (0.9.8-1) unstable; urgency=low
 
