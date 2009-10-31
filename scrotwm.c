@@ -1,4 +1,4 @@
-/* $scrotwm: scrotwm.c,v 1.256 2009/10/20 23:22:44 marco Exp $ */
+/* $scrotwm: scrotwm.c,v 1.266 2009/10/24 15:34:50 marco Exp $ */
 /*
  * Copyright (c) 2009 Marco Peereboom <marco@peereboom.us>
  * Copyright (c) 2009 Ryan McBride <mcbride@countersiege.com>
@@ -50,9 +50,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-static const char	*cvstag = "$scrotwm: scrotwm.c,v 1.256 2009/10/20 23:22:44 marco Exp $";
+static const char	*cvstag = "$scrotwm: scrotwm.c,v 1.266 2009/10/24 15:34:50 marco Exp $";
 
-#define	SWM_VERSION	"0.9.18"
+#define	SWM_VERSION	"0.9.19"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1353,6 +1353,8 @@ validate_ws(struct workspace *testws)
 void
 unfocus_win(struct ws_win *win)
 {
+	DNPRINTF(SWM_D_FOCUS, "unfocus_win: id: %lu\n", WINID(win));
+
 	if (win == NULL)
 		return;
 	if (win->ws == NULL)
@@ -1389,22 +1391,26 @@ unfocus_win(struct ws_win *win)
 }
 
 void
-unfocus_all(void)
+unfocus_all_except(struct ws_win *except)
 {
 	struct ws_win		*win;
 	int			i, j;
 
-	DNPRINTF(SWM_D_FOCUS, "unfocus_all:\n");
+	DNPRINTF(SWM_D_FOCUS, "unfocus_all_except: id: %lu\n", except->id);
 
 	for (i = 0; i < ScreenCount(display); i++)
 		for (j = 0; j < SWM_WS_MAX; j++)
 			TAILQ_FOREACH(win, &screens[i].ws[j].winlist, entry)
-				unfocus_win(win);
+				if (win != except)
+					unfocus_win(win);
 }
 
 void
 focus_win(struct ws_win *win)
 {
+	int			rtr;
+	Window			wf;
+
 	DNPRINTF(SWM_D_FOCUS, "focus_win: id: %lu\n", win ? win->id : 0);
 
 	if (win == NULL)
@@ -1420,7 +1426,7 @@ focus_win(struct ws_win *win)
 	}
 
 	/* use big hammer to make sure it works under all use cases */
-	unfocus_all();
+	unfocus_all_except(win);
 
 	if (validate_win(win)) {
 		kill_refs(win);
@@ -1430,14 +1436,17 @@ focus_win(struct ws_win *win)
 	win->ws->focus = win;
 
 	if (win->ws->r != NULL) {
-		grabbuttons(win, 1);
-		if (win->ws->cur_layout->flags & SWM_L_MAPONFOCUS)
-			XMapRaised(display, win->id);
+		XGetInputFocus(display, &wf, &rtr);
+		if (wf != win->id) {
+			grabbuttons(win, 1);
+			if (win->java == 0)
+				XSetInputFocus(display, win->id,
+				    RevertToParent, CurrentTime);
+		}
 		XSetWindowBorder(display, win->id,
 		    win->ws->r->s->c[SWM_S_COLOR_FOCUS].color);
-		if (win->java == 0)
-			XSetInputFocus(display, win->id,
-			    RevertToPointerRoot, CurrentTime);
+		if (win->ws->cur_layout->flags & SWM_L_MAPONFOCUS)
+			XMapRaised(display, win->id);
 	}
 }
 
@@ -1669,24 +1678,27 @@ focus_prev(struct ws_win *win)
 	}
 
 	/* if in max_stack try harder */
-	/* XXX needs more love */
 	if (ws->cur_layout->flags & SWM_L_FOCUSPREV) {
-		if (cur_focus != ws->focus_prev)
-			winfocus = ws->focus_prev;
-		else if (cur_focus != ws->focus)
-			winfocus = ws->focus;
-		goto done;
+ 		if (cur_focus != ws->focus_prev)
+ 			winfocus = ws->focus_prev;
+ 		else if (cur_focus != ws->focus)
+ 			winfocus = ws->focus;
+		else
+			winfocus = TAILQ_PREV(win, ws_win_list, entry);
+		if (winfocus)
+			goto done;
 	}
 
 	if (cur_focus == win)
 		winfocus = TAILQ_PREV(win, ws_win_list, entry);
 	if (winfocus == NULL)
-		winfocus = TAILQ_FIRST(wl);
+		winfocus = TAILQ_LAST(wl, ws_win_list);
 	if (winfocus == NULL || winfocus == win)
 		winfocus = TAILQ_NEXT(cur_focus, entry);
 done:
 	if (winfocus == winlostfocus || winfocus == NULL)
 		return;
+
 	focus_magic(winfocus, SWM_F_GENERIC);
 }
 
@@ -1711,7 +1723,7 @@ focus(struct swm_region *r, union arg *args)
 			winfocus = r->ws->focus_prev;
 		else
 			winfocus = TAILQ_FIRST(&r->ws->winlist);
-			
+
 		focus_magic(winfocus, SWM_F_GENERIC);
 		return;
 	}
@@ -3926,18 +3938,55 @@ void
 enternotify(XEvent *e)
 {
 	XCrossingEvent		*ev = &e->xcrossing;
+	XEvent			cne;
 	struct ws_win		*win;
 
-	DNPRINTF(SWM_D_EVENT, "enternotify: window: %lu\n", ev->window);
+	DNPRINTF(SWM_D_FOCUS, "enternotify: window: %lu mode %d detail %d root "
+	    "%lu subwindow %lu same_screen %d focus %d state %d\n",
+	    ev->window, ev->mode, ev->detail, ev->root, ev->subwindow,
+	    ev->same_screen, ev->focus, ev->state);
 
 	/*
-	 * happens when a window is created or destroyed and the border
-	 * crosses the mouse pointer
+	 * all these checks need to be in this order because the
+	 * XCheckTypedWindowEvent relies on weeding out the previous events
+	 *
+	 * making this code an option would enable a follow mouse for focus
+	 * feature
 	 */
-	if (QLength(display))
+
+	/*
+	 * state is set when we are switching workspaces and focus is set when
+	 * scrotwm launches via a restart
+	 */
+	if (ev->state || ev->focus)
+		return;
+	/*
+	 * happens when a window is created or destroyed and the border
+	 * crosses the mouse pointer and when switching ws
+	 *
+	 * we need the subwindow test to see if we came from root in order
+	 * to give focus to floaters
+	 */
+	if (ev->mode == NotifyNormal && ev->detail == NotifyVirtual &&
+	    ev->subwindow == 0)
 		return;
 
+	/* this window already has focus */
+	if (ev->mode == NotifyNormal && ev->detail == NotifyInferior)
+		return;
+
+	/* this window is being deleted or moved to another ws */
+	if (XCheckTypedWindowEvent(display, ev->window, ConfigureNotify,
+	    &cne) == True) {
+		XPutBackEvent(display, &cne);
+		return;
+	}
+
 	if ((win = find_window(ev->window)) == NULL)
+		return;
+
+	/* in fullstack kill all enters */
+	if (win->ws->cur_layout->flags & SWM_L_FOCUSPREV)
 		return;
 
 	focus_magic(win, SWM_F_TRANSIENT);
