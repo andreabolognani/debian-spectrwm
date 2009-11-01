@@ -1,3 +1,9 @@
+scrotwm (0.9.8-1+bug551732try4) unstable; urgency=low
+
+  * Try versioned libraries if dlopen()ing the unversioned ones fails.
+
+ -- Andrea Bolognani <eof@kiyuko.org>  Mon, 02 Nov 2009 00:04:43 +0100
+
 scrotwm (0.9.8-1+bug551732try3) unstable; urgency=low
 
   * Use dlerror() to get the the error message.

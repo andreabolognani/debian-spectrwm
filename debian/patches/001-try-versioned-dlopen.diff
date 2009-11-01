@@ -1,0 +1,138 @@
+libswmhack.so tries to dlopen() libX11.so and libXt.so, but these symlinks
+are available only if the corresponding -dev package is installed.
+
+If dlopen() fails, try with libX11.so.6 and libXt.so.6. If even that fails,
+print an explanatory error message and abort the process.
+Index: 551732/lib/swm_hack.c
+===================================================================
+--- 551732.orig/lib/swm_hack.c	2009-11-01 23:51:49.000000000 +0100
++++ 551732/lib/swm_hack.c	2009-11-01 23:59:52.000000000 +0100
+@@ -45,6 +45,7 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <dlfcn.h>
++#include <assert.h>
+ #include <X11/Xlib.h>
+ #include <X11/X.h>
+ #include <X11/Xatom.h>
+@@ -111,12 +112,29 @@
+ 	static CWF	*func = NULL;
+ 	char		*env;
+ 	Window		id;
++	char		*error;
+ 
+ 	/* find the real Xlib and the real X function */
+ 	if (!lib_xlib)
+ 		lib_xlib = dlopen("libX11.so", RTLD_GLOBAL | RTLD_LAZY);
++	if (!lib_xlib)
++		lib_xlib = dlopen("libX11.so.6", RTLD_GLOBAL | RTLD_LAZY);
++
++	if (!lib_xlib)
++		if ((error = dlerror()) != NULL) {
++			fprintf(stderr, "%s\n", error);
++			assert(lib_xlib);
++		}
++
+ 	if (!func) {
+ 		func = (CWF *) dlsym(lib_xlib, "XCreateWindow");
++
++		if (!func)
++			if ((error = dlerror()) != NULL) {
++				fprintf(stderr, "%s\n", error);
++				assert(func);
++			}
++
+ 		dpy = display;
+ 	}
+ 
+@@ -156,13 +174,29 @@
+ 	static CSWF	*func = NULL;
+ 	char		*env;
+ 	Window		id;
++	char		*error;
+ 
+ 	/* find the real Xlib and the real X function */
+ 	if (!lib_xlib)
+ 		lib_xlib = dlopen("libX11.so", RTLD_GLOBAL | RTLD_LAZY);
++	if (!lib_xlib)
++		lib_xlib = dlopen("libX11.so.6", RTLD_GLOBAL | RTLD_LAZY);
++
++	if (!lib_xlib)
++		if ((error = dlerror()) != NULL) {
++			fprintf(stderr, "%s\n", error);
++			assert(lib_xlib);
++		}
++
+ 	if (!func)
+ 		func = (CSWF *) dlsym(lib_xlib, "XCreateSimpleWindow");
+ 
++	if (!func)
++		if ((error = dlerror()) != NULL) {
++			fprintf(stderr, "%s\n", error);
++			assert(func);
++		}
++
+ 	if (parent == DefaultRootWindow(display))
+ 		parent = MyRoot(display);
+ 
+@@ -190,13 +224,29 @@
+ XReparentWindow(Display * display, Window window, Window parent, int x, int y)
+ {
+ 	static RWF         *func = NULL;
++	char				*error;
+ 
+ 	/* find the real Xlib and the real X function */
+ 	if (!lib_xlib)
+ 		lib_xlib = dlopen("libX11.so", RTLD_GLOBAL | RTLD_LAZY);
++	if (!lib_xlib)
++		lib_xlib = dlopen("libX11.so.6", RTLD_GLOBAL | RTLD_LAZY);
++
++	if (!lib_xlib)
++		if ((error = dlerror()) != NULL) {
++			fprintf(stderr, "%s\n", error);
++			assert(lib_xlib);
++		}
++
+ 	if (!func)
+ 		func = (RWF *) dlsym(lib_xlib, "XReparentWindow");
+ 
++	if (!func)
++		if ((error = dlerror()) != NULL) {
++			fprintf(stderr, "%s\n", error);
++			assert(func);
++		}
++
+ 	if (parent == DefaultRootWindow(display))
+ 		parent = MyRoot(display);
+ 
+@@ -217,12 +267,30 @@
+ {
+ 	static ANEF	*func = NULL;
+ 	static int	kp_add = 0, kp_subtract = 0;
++	char		*error;
+ 
+ 	/* find the real Xlib and the real X function */
+ 	if (!lib_xtlib)
++		lib_xtlib = dlopen("libXt.so.6", RTLD_GLOBAL | RTLD_LAZY);
++	if (!lib_xtlib)
+ 		lib_xtlib = dlopen("libXt.so", RTLD_GLOBAL | RTLD_LAZY);
++
++	if (!lib_xtlib)
++		if ((error = dlerror()) != NULL) {
++			fprintf(stderr, "%s\n", error);
++			assert(lib_xtlib);
++		}
++
+ 	if (!func) {
+ 		func = (ANEF *) dlsym(lib_xtlib, "XtAppNextEvent");
++
++		if (!func) {
++			if ((error = dlerror()) != NULL) {
++				fprintf(stderr, "%s\n", error);
++				assert(func);
++			}
++		}
++
+ 		if (dpy != NULL) {
+ 			kp_add = XKeysymToKeycode(dpy, XK_KP_Add);
+ 			kp_subtract = XKeysymToKeycode(dpy, XK_KP_Subtract);
