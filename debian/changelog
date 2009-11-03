@@ -1,12 +1,19 @@
 scrotwm (0.9.19-1) unstable; urgency=low
 
-  * New upstream release.
-    - Closes: #531826 [doesn't play well with hidden windows]
-    - Closes: #532569 [dialogs are always displayed on the first screen...]
-  * 003-dont-use-hypen-as-minus-sign.diff: merged upstream; dropped.
-  * 102-remove-bash-and-openbsd-assumptions.diff: call top correctly.
+  * New upstream release:
+    - Closes: #531826 (doesn't play well with hidden windows).
+    - Closes: #532569 (dialogs are always displayed on the first screen in
+      a multi-head setup).
+  * 003-dont-use-hypen-as-minus-sign.diff:
+    - merged upstream; dropped.
+  * 102-remove-bash-and-openbsd-assumptions.diff:
+    - call top correctly.
+  * 103-try-versioned-dlopen.diff:
+    - make libswmhack.so work even when libx11-dev and libxt-dev are not
+      installed. Closes: #551732 (unable to run some applications because
+      of LD_PRELOAD=/usr/.../libswmhack.so.0.0 in the environment).
 
- -- Andrea Bolognani <eof@kiyuko.org>  Sat, 31 Oct 2009 08:38:49 +0100
+ -- Andrea Bolognani <eof@kiyuko.org>  Tue, 03 Nov 2009 21:07:40 +0100
 
 scrotwm (0.9.8-1) unstable; urgency=low
 
