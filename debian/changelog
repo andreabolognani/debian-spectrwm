@@ -1,6 +1,8 @@
 scrotwm (0.9.19-1) unstable; urgency=low
 
   * New upstream release:
+    - Closes: #531790 (focus changes to the window in the background
+      sometimes).
     - Closes: #531826 (doesn't play well with hidden windows).
     - Closes: #532569 (dialogs are always displayed on the first screen in
       a multi-head setup).
@@ -13,7 +15,7 @@ scrotwm (0.9.19-1) unstable; urgency=low
       installed. Closes: #551732 (unable to run some applications because
       of LD_PRELOAD=/usr/.../libswmhack.so.0.0 in the environment).
 
- -- Andrea Bolognani <eof@kiyuko.org>  Tue, 03 Nov 2009 21:07:40 +0100
+ -- Andrea Bolognani <eof@kiyuko.org>  Wed, 04 Nov 2009 16:15:07 +0100
 
 scrotwm (0.9.8-1) unstable; urgency=low
 
