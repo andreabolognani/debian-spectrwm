@@ -1,4 +1,4 @@
-/* $scrotwm: scrotwm.c,v 1.266 2009/10/24 15:34:50 marco Exp $ */
+/* $scrotwm: scrotwm.c,v 1.277 2009/11/25 17:03:53 marco Exp $ */
 /*
  * Copyright (c) 2009 Marco Peereboom <marco@peereboom.us>
  * Copyright (c) 2009 Ryan McBride <mcbride@countersiege.com>
@@ -50,9 +50,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-static const char	*cvstag = "$scrotwm: scrotwm.c,v 1.266 2009/10/24 15:34:50 marco Exp $";
+static const char	*cvstag = "$scrotwm: scrotwm.c,v 1.277 2009/11/25 17:03:53 marco Exp $";
 
-#define	SWM_VERSION	"0.9.19"
+#define	SWM_VERSION	"0.9.20"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -83,6 +83,10 @@ static const char	*cvstag = "$scrotwm: scrotwm.c,v 1.266 2009/10/24 15:34:50 mar
 #include <X11/Xproto.h>
 #include <X11/Xutil.h>
 #include <X11/extensions/Xrandr.h>
+
+#ifdef __OSX__
+#include <osx.h>
+#endif
 
 #if RANDR_MAJOR < 1
 #  error XRandR versions less than 1.0 are not supported
@@ -161,6 +165,7 @@ Atom			adelete;
 Atom			takefocus;
 volatile sig_atomic_t   running = 1;
 int			outputs = 0;
+int			last_focus_event = FocusOut;
 int			(*xerrorxlib)(Display *, XErrorEvent *);
 int			other_wm;
 int			ss_enabled = 0;
@@ -606,8 +611,7 @@ void			configurerequest(XEvent *);
 void			configurenotify(XEvent *);
 void			destroynotify(XEvent *);
 void			enternotify(XEvent *);
-void			focusin(XEvent *);
-void			focusout(XEvent *);
+void			focusevent(XEvent *);
 void			mapnotify(XEvent *);
 void			mappingnotify(XEvent *);
 void			maprequest(XEvent *);
@@ -623,8 +627,8 @@ void			(*handler[LASTEvent])(XEvent *) = {
 				[ConfigureNotify] = configurenotify,
 				[DestroyNotify] = destroynotify,
 				[EnterNotify] = enternotify,
-				[FocusIn] = focusin,
-				[FocusOut] = focusout,
+				[FocusIn] = focusevent,
+				[FocusOut] = focusevent,
 				[MapNotify] = mapnotify,
 				[MappingNotify] = mappingnotify,
 				[MapRequest] = maprequest,
@@ -1119,6 +1123,9 @@ unmap_window(struct ws_win *win)
 	set_win_state(win, IconicState);
 
 	XUnmapWindow(display, win->id);
+	if (win->ws->r)
+		XSetWindowBorder(display, win->id,
+		    win->ws->r->s->c[SWM_S_COLOR_UNFOCUS].color);
 }
 
 void
@@ -1230,13 +1237,32 @@ struct ws_win *
 find_window(Window id)
 {
 	struct ws_win		*win;
-	int			i, j;
+	Window			wrr, wpr, *wcr = NULL;
+	int			i, j, nc;
 
 	for (i = 0; i < ScreenCount(display); i++)
 		for (j = 0; j < SWM_WS_MAX; j++)
 			TAILQ_FOREACH(win, &screens[i].ws[j].winlist, entry)
 				if (id == win->id)
 					return (win);
+
+	/* if we were looking for the parent return that window instead */
+	if (XQueryTree(display, id, &wrr, &wpr, &wcr, &nc) == 0)
+		return (NULL);
+	if (wcr)
+		XFree(wcr);
+
+	/* ignore not found and root */
+	if (wpr == 0 || wrr == wpr)
+		return (NULL);
+
+	/* look for parent */
+	for (i = 0; i < ScreenCount(display); i++)
+		for (j = 0; j < SWM_WS_MAX; j++)
+			TAILQ_FOREACH(win, &screens[i].ws[j].winlist, entry)
+				if (wpr == win->id)
+					return (win);
+
 	return (NULL);
 }
 
@@ -1353,6 +1379,8 @@ validate_ws(struct workspace *testws)
 void
 unfocus_win(struct ws_win *win)
 {
+	XEvent			cne;
+
 	DNPRINTF(SWM_D_FOCUS, "unfocus_win: id: %lu\n", WINID(win));
 
 	if (win == NULL)
@@ -1385,31 +1413,38 @@ unfocus_win(struct ws_win *win)
 		win->ws->focus_prev = NULL;
 	}
 
+	/* drain all previous unfocus events */
+	while (XCheckTypedEvent(display, FocusOut, &cne) == True)
+		;
+
 	grabbuttons(win, 0);
 	XSetWindowBorder(display, win->id,
 	    win->ws->r->s->c[SWM_S_COLOR_UNFOCUS].color);
+
 }
 
 void
-unfocus_all_except(struct ws_win *except)
+unfocus_all(void)
 {
 	struct ws_win		*win;
 	int			i, j;
 
-	DNPRINTF(SWM_D_FOCUS, "unfocus_all_except: id: %lu\n", except->id);
+	DNPRINTF(SWM_D_FOCUS, "unfocus_all\n");
 
 	for (i = 0; i < ScreenCount(display); i++)
 		for (j = 0; j < SWM_WS_MAX; j++)
 			TAILQ_FOREACH(win, &screens[i].ws[j].winlist, entry)
-				if (win != except)
-					unfocus_win(win);
+				unfocus_win(win);
 }
 
 void
 focus_win(struct ws_win *win)
 {
-	int			rtr;
-	Window			wf;
+	XEvent			cne;
+	Window			cur_focus;
+	int			rr;
+	struct ws_win		*cfw = NULL;
+
 
 	DNPRINTF(SWM_D_FOCUS, "focus_win: id: %lu\n", win ? win->id : 0);
 
@@ -1425,24 +1460,26 @@ focus_win(struct ws_win *win)
 		return;
 	}
 
-	/* use big hammer to make sure it works under all use cases */
-	unfocus_all_except(win);
-
 	if (validate_win(win)) {
 		kill_refs(win);
 		return;
 	}
 
+	XGetInputFocus(display, &cur_focus, &rr);
+	if ((cfw = find_window(cur_focus)) != NULL)
+		unfocus_win(cfw);
+
 	win->ws->focus = win;
 
 	if (win->ws->r != NULL) {
-		XGetInputFocus(display, &wf, &rtr);
-		if (wf != win->id) {
-			grabbuttons(win, 1);
-			if (win->java == 0)
-				XSetInputFocus(display, win->id,
-				    RevertToParent, CurrentTime);
-		}
+		/* drain all previous focus events */
+		while (XCheckTypedEvent(display, FocusIn, &cne) == True)
+			;
+
+		if (win->java == 0)
+			XSetInputFocus(display, win->id,
+			    RevertToParent, CurrentTime);
+		grabbuttons(win, 1);
 		XSetWindowBorder(display, win->id,
 		    win->ws->r->s->c[SWM_S_COLOR_FOCUS].color);
 		if (win->ws->cur_layout->flags & SWM_L_MAPONFOCUS)
@@ -1915,6 +1952,7 @@ void
 stack_master(struct workspace *ws, struct swm_geometry *g, int rot, int flip)
 {
 	XWindowChanges		wc;
+	XWindowAttributes	wa;
 	struct swm_geometry	win_g, r_g = *g;
 	struct ws_win		*win;
 	int			i, j, s, stacks;
@@ -2068,7 +2106,10 @@ stack_master(struct workspace *ws, struct swm_geometry *g, int rot, int flip)
 			XConfigureWindow(display, win->id, mask, &wc);
 			configreq_win(win);
 		}
-		XMapRaised(display, win->id);
+
+		if (XGetWindowAttributes(display, win->id, &wa))
+			if (wa.map_state == IsUnmapped)
+				XMapRaised(display, win->id);
 
 		last_h = win_g.h;
 		i++;
@@ -3764,7 +3805,10 @@ unmanage_window(struct ws_win *win)
 			parent->child_trans = NULL;
 	}
 
-	focus_prev(win);
+	/* work around for mplayer going full screen */
+	if (!win->floating)
+		focus_prev(win);
+
 	TAILQ_REMOVE(&win->ws->winlist, win, entry);
 	TAILQ_INSERT_TAIL(&win->ws->unmanagedlist, win, entry);
 
@@ -3929,6 +3973,9 @@ destroynotify(XEvent *e)
 		return;
 	}
 
+	/* make sure we focus on something */
+	win->floating = 0;
+
 	unmanage_window(win);
 	stack();
 	free_window(win);
@@ -3940,12 +3987,18 @@ enternotify(XEvent *e)
 	XCrossingEvent		*ev = &e->xcrossing;
 	XEvent			cne;
 	struct ws_win		*win;
-
+#if 0
+	struct ws_win		*w;
+	Window			focus_return;
+	int			revert_to_return;
+#endif
 	DNPRINTF(SWM_D_FOCUS, "enternotify: window: %lu mode %d detail %d root "
 	    "%lu subwindow %lu same_screen %d focus %d state %d\n",
 	    ev->window, ev->mode, ev->detail, ev->root, ev->subwindow,
 	    ev->same_screen, ev->focus, ev->state);
 
+	goto focusme;
+#if 0
 	/*
 	 * all these checks need to be in this order because the
 	 * XCheckTypedWindowEvent relies on weeding out the previous events
@@ -3956,10 +4009,17 @@ enternotify(XEvent *e)
 
 	/*
 	 * state is set when we are switching workspaces and focus is set when
-	 * scrotwm launches via a restart
+	 * the window or a subwindow already has focus (occurs during restart).
+	 *
+	 * Only honor the focus flag if last_focus_event is not FocusOut,
+	 * this allows scrotwm to continue to control focus when another
+	 * program is also playing with it.
 	 */
-	if (ev->state || ev->focus)
+	if (ev->state || (ev->focus && last_focus_event != FocusOut)) {
+		DNPRINTF(SWM_D_EVENT, "ignoring enternotify: focus\n");
 		return;
+	}
+
 	/*
 	 * happens when a window is created or destroyed and the border
 	 * crosses the mouse pointer and when switching ws
@@ -3968,40 +4028,117 @@ enternotify(XEvent *e)
 	 * to give focus to floaters
 	 */
 	if (ev->mode == NotifyNormal && ev->detail == NotifyVirtual &&
-	    ev->subwindow == 0)
+	    ev->subwindow == 0) {
+		DNPRINTF(SWM_D_EVENT, "ignoring enternotify: NotifyVirtual\n");
 		return;
+	}
 
 	/* this window already has focus */
-	if (ev->mode == NotifyNormal && ev->detail == NotifyInferior)
+	if (ev->mode == NotifyNormal && ev->detail == NotifyInferior) {
+		DNPRINTF(SWM_D_EVENT, "ignoring enternotify: win has focus\n");
 		return;
+	}
 
 	/* this window is being deleted or moved to another ws */
 	if (XCheckTypedWindowEvent(display, ev->window, ConfigureNotify,
 	    &cne) == True) {
+		DNPRINTF(SWM_D_EVENT, "ignoring enternotify: configurenotify\n");
 		XPutBackEvent(display, &cne);
 		return;
 	}
 
-	if ((win = find_window(ev->window)) == NULL)
+	if ((win = find_window(ev->window)) == NULL) {
+		DNPRINTF(SWM_D_EVENT, "ignoring enternotify: win == NULL\n");
 		return;
+	}
 
-	/* in fullstack kill all enters */
-	if (win->ws->cur_layout->flags & SWM_L_FOCUSPREV)
+	/*
+	 * In fullstack kill all enters unless they come from a different ws
+	 * (i.e. another region) or focus has been grabbed externally.
+	 */
+	if (win->ws->cur_layout->flags & SWM_L_FOCUSPREV &&
+	    last_focus_event != FocusOut) {
+		XGetInputFocus(display, &focus_return, &revert_to_return);
+		if ((w = find_window(focus_return)) == NULL ||
+		    w->ws == win->ws) {
+			DNPRINTF(SWM_D_EVENT, "ignoring event: fullstack\n");
+			return;
+		}
+	}
+#endif
+focusme:
+	if (QLength(display)) {
+		DNPRINTF(SWM_D_EVENT, "ignore enternotify %d\n",
+		    QLength(display));
 		return;
+	}
+
+	if ((win = find_window(ev->window)) == NULL) {
+		DNPRINTF(SWM_D_EVENT, "ignoring enternotify: win == NULL\n");
+		return;
+	}
+
+	/*
+	 * if we have more enternotifies let them handle it in due time
+	 */
+	if (XCheckTypedEvent(display, EnterNotify, &cne) == True) {
+		DNPRINTF(SWM_D_EVENT,
+		    "ignoring enternotify: got more enternotify\n");
+		XPutBackEvent(display, &cne);
+		return;
+	}
 
 	focus_magic(win, SWM_F_TRANSIENT);
 }
 
-void
-focusin(XEvent *e)
-{
-	DNPRINTF(SWM_D_EVENT, "focusin: window: %lu\n", e->xfocus.window);
-}
+/* lets us use one switch statement for arbitrary mode/detail combinations */
+#define MERGE_MEMBERS(a,b)	(((a & 0xffff) << 16) | (b & 0xffff))
 
 void
-focusout(XEvent *e)
+focusevent(XEvent *e)
 {
-	DNPRINTF(SWM_D_EVENT, "focusout: window: %lu\n", e->xfocus.window);
+	DNPRINTF(SWM_D_EVENT, "focusevent: %s window: %lu mode %d detail %d\n",
+	    ev->type == FocusIn ? "entering" : "leaving",
+	    ev->window, ev->mode, ev->detail);
+#if 0
+	struct ws_win		*win;
+	u_int32_t		mode_detail;
+	XFocusChangeEvent	*ev = &e->xfocus;
+
+	DNPRINTF(SWM_D_EVENT, "focusevent: %s window: %lu mode %d detail %d\n",
+	    ev->type == FocusIn ? "entering" : "leaving",
+	    ev->window, ev->mode, ev->detail);
+
+	if (last_focus_event == ev->type) {
+		DNPRINTF(SWM_D_FOCUS, "ignoring focusevent: bad ordering\n");
+		return;
+	}
+
+	last_focus_event = ev->type;
+	mode_detail = MERGE_MEMBERS(ev->mode, ev->detail);
+
+	switch (mode_detail) {
+	/* synergy client focus operations */
+	case MERGE_MEMBERS(NotifyNormal, NotifyNonlinear):
+	case MERGE_MEMBERS(NotifyNormal, NotifyNonlinearVirtual):
+
+	/* synergy server focus operations */
+	case MERGE_MEMBERS(NotifyWhileGrabbed, NotifyNonlinear):
+
+	/* Entering applications like rdesktop that mangle the pointer */
+	case MERGE_MEMBERS(NotifyNormal, NotifyPointer):
+
+		if ((win = find_window(e->xfocus.window)) != NULL && win->ws->r)
+			XSetWindowBorder(display, win->id,
+			    win->ws->r->s->c[ev->type == FocusIn ?
+			    SWM_S_COLOR_FOCUS : SWM_S_COLOR_UNFOCUS].color);
+		break;
+	default:
+		fprintf(stderr, "ignoring focusevent\n");
+		DNPRINTF(SWM_D_FOCUS, "ignoring focusevent\n");
+		break;
+	}
+#endif
 }
 
 void
@@ -4100,13 +4237,6 @@ unmapnotify(XEvent *e)
 	/* determine if we need to help unmanage this window */
 	win = find_window(e->xunmap.window);
 	if (win == NULL)
-		return;
-
-	/*
-	 * XXX this is a work around for going fullscreen on mplayer
-	 * remove this and find a better heuristic
-	 */
-	if (win->floating)
 		return;
 
 	if (getstate(e->xunmap.window) == NormalState) {
@@ -4527,6 +4657,8 @@ main(int argc, char *argv[])
 
 	/* set some values to work around bad programs */
 	workaround();
+
+	unfocus_all();
 
 	grabkeys();
 	stack();
