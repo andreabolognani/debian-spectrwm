@@ -6,6 +6,8 @@ scrotwm (0.9.20-1) unstable; urgency=low
     - Closes: #531826 (doesn't play well with hidden windows).
     - Closes: #532569 (dialogs are always displayed on the first screen in
       a multi-head setup).
+  * 002-check-before-preloading-libswmhack.diff:
+    - libswmhack.so is installed now, so this patch is no longer needed.
   * 003-dont-use-hypen-as-minus-sign.diff:
     - merged upstream; dropped.
   * 102-remove-bash-and-openbsd-assumptions.diff:
@@ -15,7 +17,7 @@ scrotwm (0.9.20-1) unstable; urgency=low
       installed. Closes: #551732 (unable to run some applications because
       of LD_PRELOAD=/usr/.../libswmhack.so.0.0 in the environment).
 
- -- Andrea Bolognani <eof@kiyuko.org>  Tue, 01 Dec 2009 14:55:53 +0100
+ -- Andrea Bolognani <eof@kiyuko.org>  Tue, 01 Dec 2009 17:02:55 +0100
 
 scrotwm (0.9.8-1) unstable; urgency=low
 
