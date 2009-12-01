@@ -1,5 +1,9 @@
-x-terminal-emulator is a sensible default terminal emulator on Debian, so use
-it instead of xterm in the default configuration.
+Description: use x-terminal-emulator instead of xterm
+ x-terminal-emulator is a sensible default terminal emulator on Debian, so
+ use it instead of xterm in the default configuration.
+Forwarded: not-needed
+Author: Andrea Bolognani <eof@kiyuko.org>
+Last-Update: 2009-09-23
 Index: trunk/scrotwm.conf
 ===================================================================
 --- trunk.orig/scrotwm.conf	2009-12-01 14:55:37.000000000 +0100

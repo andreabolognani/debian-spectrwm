@@ -1,10 +1,17 @@
-The example baraction.sh script shipped in Scrotwm's release relies on the
-behaviour of the OpenBSD versions of iostat, apm and typeset, as well as
-some non-POSIX Bash features.
-
-This patch modifies the script so it is possible to run it unmodified on
-a Debian system, provided the called commands are available. It uses acpi
-instead of apm, which is the best choice for virtually all modern systems.
+Description: Remove Bash and OpenBSD assumptions
+ The example baraction.sh script shipped in scrotwm's release relies on the
+ behaviour of the OpenBSD versions of iostat, apm and typeset, as well as
+ some non-POSIX Bash features.
+ .
+ This patch modifies the script so it is possible to run it unmodified on
+ a Debian system, provided the called commands are available. It uses acpi
+ instead of apm, which is the best choice for virtually all modern systems.
+ .
+ The patch is still awaiting for upstream approval.
+Bug-Debian: http://bugs.debian.org/530990
+Forwarded: yes
+Author: Andrea Bolognani <eof@kiyuko.org>
+Last-Update: 2009-10-03
 Index: cvs/baraction.sh
 ===================================================================
 --- cvs.orig/baraction.sh	2009-10-02 23:00:27.000000000 +0200
