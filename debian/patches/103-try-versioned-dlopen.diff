@@ -1,8 +1,12 @@
-libswmhack.so tries to dlopen() libX11.so and libXt.so, but these symlinks
-are available only if the corresponding -dev package is installed.
-
-If dlopen() fails, try with libX11.so.6 and libXt.so.6. If even that fails,
-print an explanatory error message and abort the process.
+Description: Try versioned dlopen()
+ libswmhack.so tries to dlopen() libX11.so and libXt.so, but these symlinks
+ are available only if the corresponding -dev package is installed.
+ .
+ If dlopen() fails, try with libX11.so.6 and libXt.so.6. If even that fails,
+ print an explanatory error message and abort the process.
+Bug-Debian: http://bugs.debian.org/551732
+Author: Andrea Bolognani <eof@kiyuko.org>
+Last-Update: 2009-11-02
 Index: 551732/lib/swm_hack.c
 ===================================================================
 --- 551732.orig/lib/swm_hack.c	2009-11-01 23:51:49.000000000 +0100

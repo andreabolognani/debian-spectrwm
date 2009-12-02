@@ -16,8 +16,10 @@ scrotwm (0.9.20-1) unstable; urgency=low
     - make libswmhack.so work even when libx11-dev and libxt-dev are not
       installed. Closes: #551732 (unable to run some applications because
       of LD_PRELOAD=/usr/.../libswmhack.so.0.0 in the environment).
+  * Convert to 3.0 (quilt) source format.
+  * Document patches according to DEP-3.
 
- -- Andrea Bolognani <eof@kiyuko.org>  Tue, 01 Dec 2009 17:02:55 +0100
+ -- Andrea Bolognani <eof@kiyuko.org>  Tue, 01 Dec 2009 17:29:54 +0100
 
 scrotwm (0.9.8-1) unstable; urgency=low
 

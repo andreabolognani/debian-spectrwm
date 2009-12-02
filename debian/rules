@@ -1,23 +1,18 @@
 #!/usr/bin/make -f
 
-include /usr/share/quilt/quilt.make
-
-build: patch build-stamp
+build: build-stamp
 build-stamp:
 	dh_testdir
 	$(MAKE) -C linux/ PREFIX=/usr \
 	                  LIBDIR=/usr/lib/scrotwm
 	touch $@
 
-clean: clean-patched unpatch
-	dh_testdir
-	dh_testroot
-	dh_clean
-clean-patched:
+clean:
 	dh_testdir
 	dh_testroot
 	rm -f build-stamp
 	$(MAKE) -C linux/ clean
+	dh_clean
 
 binary: binary-indep binary-arch
 binary-indep: build
@@ -51,4 +46,4 @@ binary-arch: build
 	dh_md5sums
 	dh_builddeb
 
-.PHONY: build clean clean-patched binary binary-indep binary-arch
+.PHONY: build clean binary binary-indep binary-arch

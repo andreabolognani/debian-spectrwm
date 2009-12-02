@@ -12,3 +12,4 @@ linux/scrotwm.c
 linux/swm_hack.c
 linux/scrotwm
 linux/libswmhack.so.0.0
+debian/patches/.dpkg-source-applied
