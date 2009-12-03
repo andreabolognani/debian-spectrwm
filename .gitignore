@@ -1,6 +1,4 @@
 build-stamp
 configure-stamp
 stamp-patched
-*debhelper.log
-*.substvars
 .pc
