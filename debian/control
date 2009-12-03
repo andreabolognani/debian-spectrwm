@@ -5,8 +5,8 @@ Maintainer: Andrea Bolognani <eof@kiyuko.org>
 Build-Depends: debhelper (>= 7), libx11-dev, libxt-dev, libxrandr-dev
 Standards-Version: 3.8.3
 Homepage: http://www.scrotwm.org/
-Vcs-Bzr: http://bzr.debian.org/collab-maint/scrotwm/trunk
-Vcs-Browser: http://bzr.debian.org/loggerhead/collab-maint/scrotwm
+Vcs-Git: git://git.debian.org/collab-maint/scrotwm.git
+Vcs-Browser: http://git.debian.org/?p=collab-maint/scrotwm.git;a=summary
 
 Package: scrotwm
 Architecture: any
