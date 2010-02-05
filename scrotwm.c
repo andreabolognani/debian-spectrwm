@@ -1,4 +1,4 @@
-/* $scrotwm: scrotwm.c,v 1.277 2009/11/25 17:03:53 marco Exp $ */
+/* $scrotwm: scrotwm.c,v 1.278 2010/01/07 01:30:25 marco Exp $ */
 /*
  * Copyright (c) 2009 Marco Peereboom <marco@peereboom.us>
  * Copyright (c) 2009 Ryan McBride <mcbride@countersiege.com>
@@ -50,9 +50,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-static const char	*cvstag = "$scrotwm: scrotwm.c,v 1.277 2009/11/25 17:03:53 marco Exp $";
+static const char	*cvstag = "$scrotwm: scrotwm.c,v 1.278 2010/01/07 01:30:25 marco Exp $";
 
-#define	SWM_VERSION	"0.9.20"
+#define	SWM_VERSION	"0.9.21"
 
 #include <stdio.h>
 #include <stdlib.h>
