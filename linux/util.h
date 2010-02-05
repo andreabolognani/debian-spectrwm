@@ -1,4 +1,4 @@
-/* $scrotwm: util.h,v 1.2 2009/10/13 14:38:49 marco Exp $ */
+/* $scrotwm: util.h,v 1.3 2010/01/11 20:44:54 marco Exp $ */
 
 #define FPARSELN_UNESCESC	0x01
 #define FPARSELN_UNESCCONT	0x02
@@ -13,6 +13,10 @@ char   *fgetln(FILE *, size_t *);
 char   *fparseln(FILE *, size_t *, size_t *, const char [3], int);
 
 long long strtonum(const char *, long long, long long, const char **);
+
+#ifndef WAIT_ANY
+#define WAIT_ANY		(-1)
+#endif
 
 /* there is no limit to ulrich drepper's crap */
 #ifndef TAILQ_END
