@@ -1,3 +1,4 @@
+001-remove-bash-assumptions.diff
 101-use-x-terminal-emulator-instead-of-xterm.diff
-102-remove-bash-and-openbsd-assumptions.diff
+102-remove-openbsd-assumptions.diff
 103-try-versioned-dlopen.diff

@@ -1,0 +1,144 @@
+Description: Remove OpenBSD assumptions
+ The example baraction.sh script shipped in scrotwm's release relies on
+ some features specific to the OpenBSD versions of the iostat and top
+ commands. Moreover, it uses apm to get battery data.
+ .
+ This patch modifies the script so that it is possible to run it on a Debian
+ system. It uses acpi instead of apm, which is a better choice for virtually
+ any modern system.
+Bug-Debian: http://bugs.debian.org/530990
+Author: Andrea Bolognani <eof@kiyuko.org>
+Last-Update: 2010-02-08
+Index: scrotwm.git/baraction.sh
+===================================================================
+--- scrotwm.git.orig/baraction.sh	2010-02-08 09:53:01.551038638 +0100
++++ scrotwm.git/baraction.sh	2010-02-08 09:53:07.157475074 +0100
+@@ -2,9 +2,9 @@
+ #
+ # $scrotwm: baraction.sh,v 1.15 2009/09/30 02:50:11 marco Exp $
+ 
+-APM="/usr/sbin/apm -alb"
+-IOSTAT="/usr/sbin/iostat -c -C 3600"	# wish infinity was an option
+-TOP="/usr/bin/top"
++ACPI="/usr/bin/acpi -b"
++IOSTAT="/usr/bin/iostat -c 1 3600"
++TOP="/usr/bin/top -b -n 1"
+ 
+ print_date() {
+ 	# The date is printed to the status bar by default.
+@@ -16,73 +16,49 @@
+ }
+ 
+ print_mem() {
+-	MEM=`${TOP} | grep Free: | cut -d " " -f7`
++	MEM=`${TOP} | grep '^Mem:' | cut -d ' ' -f 13`
+ 	echo -n "Free mem: $MEM  "
+ }
+ 
+ _print_cpu() {
+-	typeset -R4 _1=${1} _2=${2} _3=${3} _4=${4} _5=${5}
+-	echo -n "CPU:${_1}% User${_2}% Nice${_3}% Sys${_4}% Int${_5}% Idle     "
++	echo -n "CPU: ${1}% User ${2}% Nice ${3}% Sys ${6}% Idle     "
+ }
+ 
+ print_cpu() {
+ 	OUT=""
+-	# iostat prints each column justified to 3 chars, so if one counter
+-	# is 100, it jams up agains the preceeding one. sort this out.
++	# Remove the decimal part from all the percentages
+ 	while [ "${1}x" != "x" ]; do
+-		if [ ${1} -gt 99 ]; then
+-			OUT="$OUT ${1%100} 100"
+-		else
+-			OUT="$OUT ${1}"
+-		fi
++		OUT="${OUT} `echo "${1}" | cut -d '.' -f 1`"
+ 		shift;
+ 	done
+ 	_print_cpu $OUT
+ }
+ 
+-print_apm() {
+-	BAT_STATUS=$1
+-	BAT_LEVEL=$2
+-	AC_STATUS=$3
+-
+-	if [ $AC_STATUS -ne 255 -o $BAT_STATUS -lt 4 ]; then
+-		if [ $AC_STATUS -eq 0 ]; then
+-			echo -n "on battery (${BAT_LEVEL}%)"
+-		else
+-			case $AC_STATUS in
+-			1)
+-				AC_STRING="on AC: "
+-				;;
+-			2)
+-				AC_STRING="on backup AC: "
+-				;;
+-			*)
+-				AC_STRING=""
+-				;;
+-			esac;
+-			case $BAT_STATUS in
+-			4)
+-				BAT_STRING="(no battery)"
+-				;;
+-			[0-3])
+-		 		BAT_STRING="(battery ${BAT_LEVEL}%)"
+-				;;
+-			*)
+-				BAT_STRING="(battery unknown)"
+-				;;
+-			esac;
+-		
+-			FULL="${AC_STRING}${BAT_STRING}"
+-			if [ "$FULL" != "" ]; then
+-				echo -n "$FULL"
+-			fi
+-		fi
+-	fi
++print_acpi() {
++	BAT_STATUS="${3}"
++	BAT_LEVEL="`echo "${4}" | tr -d ','`"
++
++	case "${BAT_STATUS}" in
++	"Charging,")
++		FULL="on AC: (battery ${BAT_LEVEL})"
++		;;
++	"Discharging,")
++		FULL="on battery (${BAT_LEVEL})"
++		;;
++	"")
++		FULL="on AC (no battery)"
++		;;
++	*)
++		FULL="(battery unknown)"
++		;;
++	esac;
++
++	echo -n "${FULL}"
+ }
+ 
+ while :; do
+ 	# instead of sleeping, use iostat as the update timer.
+-	# cache the output of apm(8), no need to call that every second.
++	# cache the output of acpi(1), no need to call that every second.
+ 	I=0
+ 	${IOSTAT} 2>&1 |
+ 	while read IOSTAT_DATA; do
+@@ -91,13 +67,13 @@
+ 			trap "kill $PID; exit" TERM
+ 		fi
+ 		if [ $(( ${I} % 10 )) -eq 0 ]; then
+-			APM_DATA=`${APM}`
++			ACPI_DATA=`${ACPI}`
+ 		fi
+-		if [ $I -gt 2 ]; then
++		if [ $(( ${I} % 3 )) -eq 0 ] && [ ${I} -gt 2 ]; then
+ 			# print_date
+ 			# print_mem
+ 			print_cpu $IOSTAT_DATA
+-			print_apm $APM_DATA
++			print_acpi $ACPI_DATA
+ 			echo ""
+ 		fi
+ 		I=$(( ${I} + 1 ));

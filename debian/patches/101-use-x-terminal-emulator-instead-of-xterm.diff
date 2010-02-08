@@ -4,10 +4,10 @@ Description: use x-terminal-emulator instead of xterm
 Forwarded: not-needed
 Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2009-09-23
-Index: trunk/scrotwm.conf
+Index: scrotwm.git/scrotwm.conf
 ===================================================================
---- trunk.orig/scrotwm.conf	2009-12-01 14:55:37.000000000 +0100
-+++ trunk/scrotwm.conf	2009-12-01 15:40:01.000000000 +0100
+--- scrotwm.git.orig/scrotwm.conf	2010-01-11 22:02:08.000000000 +0100
++++ scrotwm.git/scrotwm.conf	2010-02-07 18:09:14.324339385 +0100
 @@ -18,13 +18,13 @@
  title_class_enabled	= 0
  
@@ -24,11 +24,11 @@ Index: trunk/scrotwm.conf
  
  # dialog box size ratio .3 >= r < 1
  dialog_ratio		= 0.6
-Index: trunk/scrotwm.c
+Index: scrotwm.git/scrotwm.c
 ===================================================================
---- trunk.orig/scrotwm.c	2009-12-01 15:39:54.000000000 +0100
-+++ trunk/scrotwm.c	2009-12-01 15:40:01.000000000 +0100
-@@ -2859,7 +2859,7 @@
+--- scrotwm.git.orig/scrotwm.c	2010-02-05 16:14:44.761682186 +0100
++++ scrotwm.git/scrotwm.c	2010-02-07 18:09:14.335451137 +0100
+@@ -2855,7 +2855,7 @@
  void
  setup_spawn(void)
  {
@@ -37,7 +37,7 @@ Index: trunk/scrotwm.c
  	setconfspawn("screenshot_all",	"screenshot.sh full",	0);
  	setconfspawn("screenshot_wind",	"screenshot.sh window",	0);
  	setconfspawn("lock",		"xlock",		0);
-@@ -4564,7 +4564,7 @@
+@@ -4560,7 +4560,7 @@
  	if ((bar_fonts[2] = strdup("-misc-fixed-medium-r-*-*-*-*-*-*-*-*-*-*"))
  	    == NULL)
  		err(1, "setup_globals: strdup");
