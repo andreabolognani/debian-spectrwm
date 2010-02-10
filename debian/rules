@@ -1,5 +1,7 @@
 #!/usr/bin/make -f
 
+DESTDIR=$(CURDIR)/debian/scrotwm
+
 build: build-stamp
 build-stamp:
 	dh_testdir
@@ -22,18 +24,18 @@ binary-arch: build
 	dh_prep
 	$(MAKE) -C linux/ install PREFIX=/usr \
 	                          LIBDIR=/usr/lib/scrotwm \
-	                          DESTDIR=$(CURDIR)/debian/scrotwm
+	                          DESTDIR=$(DESTDIR)
 	dh_install
 	dh_installdirs
 	dh_installexamples
 	dh_installchangelogs 
 	dh_installdocs
-	mv $(CURDIR)/debian/scrotwm/usr/share/man/man1/scrotwm_es.1 \
-	   $(CURDIR)/debian/scrotwm/usr/share/man/es/man1/scrotwm.1
-	mv $(CURDIR)/debian/scrotwm/usr/share/man/man1/scrotwm_it.1 \
-	   $(CURDIR)/debian/scrotwm/usr/share/man/it/man1/scrotwm.1
-	mv $(CURDIR)/debian/scrotwm/usr/share/man/man1/scrotwm_ru.1 \
-	   $(CURDIR)/debian/scrotwm/usr/share/man/ru/man1/scrotwm.1
+	mv $(DESTDIR)/usr/share/man/man1/scrotwm_es.1 \
+	   $(DESTDIR)/usr/share/man/es/man1/scrotwm.1
+	mv $(DESTDIR)/usr/share/man/man1/scrotwm_it.1 \
+	   $(DESTDIR)/usr/share/man/it/man1/scrotwm.1
+	mv $(DESTDIR)/usr/share/man/man1/scrotwm_ru.1 \
+	   $(DESTDIR)/usr/share/man/ru/man1/scrotwm.1
 	dh_installwm scrotwm
 	dh_strip
 	dh_compress
