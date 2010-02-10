@@ -3,7 +3,7 @@ Section: x11
 Priority: optional
 Maintainer: Andrea Bolognani <eof@kiyuko.org>
 Build-Depends: debhelper (>= 7), libx11-dev, libxt-dev, libxrandr-dev
-Standards-Version: 3.8.3
+Standards-Version: 3.8.4
 Homepage: http://www.scrotwm.org/
 Vcs-Git: git://git.debian.org/collab-maint/scrotwm.git
 Vcs-Browser: http://git.debian.org/?p=collab-maint/scrotwm.git;a=summary
