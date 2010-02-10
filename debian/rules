@@ -24,17 +24,15 @@ binary-arch: build
 	                          LIBDIR=/usr/lib/scrotwm \
 	                          DESTDIR=$(CURDIR)/debian/scrotwm
 	dh_install
+	dh_installdirs
 	dh_installexamples
 	dh_installchangelogs 
 	dh_installdocs
-	dh_installman --language=es scrotwm_es.1
-	mv $(CURDIR)/debian/scrotwm/usr/share/man/es/man1/scrotwm_es.1 \
+	mv $(CURDIR)/debian/scrotwm/usr/share/man/man1/scrotwm_es.1 \
 	   $(CURDIR)/debian/scrotwm/usr/share/man/es/man1/scrotwm.1
-	dh_installman --language=it scrotwm_it.1
-	mv $(CURDIR)/debian/scrotwm/usr/share/man/it/man1/scrotwm_it.1 \
+	mv $(CURDIR)/debian/scrotwm/usr/share/man/man1/scrotwm_it.1 \
 	   $(CURDIR)/debian/scrotwm/usr/share/man/it/man1/scrotwm.1
-	dh_installman --language=ru scrotwm_ru.1
-	mv $(CURDIR)/debian/scrotwm/usr/share/man/ru/man1/scrotwm_ru.1 \
+	mv $(CURDIR)/debian/scrotwm/usr/share/man/man1/scrotwm_ru.1 \
 	   $(CURDIR)/debian/scrotwm/usr/share/man/ru/man1/scrotwm.1
 	dh_installwm scrotwm
 	dh_strip
