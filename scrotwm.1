@@ -1,4 +1,4 @@
-.\"	$scrotwm: scrotwm.1,v 1.29 2010/06/30 00:09:19 marco Exp $
+.\"	$scrotwm: scrotwm.1,v 1.32 2010/07/03 22:45:32 marco Exp $
 .\"
 .\" Copyright (c) 2009 Marco Peereboom <marco@peereboom.us>
 .\" Copyright (c) 2009 Darrin Chandler <dwchandler@stilyagin.com>
@@ -15,7 +15,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: June 30 2010 $
+.Dd $Mdocdate: July 3 2010 $
 .Dt SCROTWM 1
 .Os
 .Sh NAME
@@ -145,6 +145,8 @@ Mod1 is generally the ALT key and Mod4 is the windows key on a PC.
 .It Cm focus_mode
 Using a value of follow_cursor will make the window manager focus the window
 under the mouse when switching workspaces and creating windows.
+.It Cm disable_border
+Remove border when bar is disabled and there is only one window on the screen.
 .It Cm program Ns Bq Ar p
 Define new action to spawn a program
 .Ar p .
@@ -315,6 +317,8 @@ wind_kill
 ws_next
 .It Cm M- Ns Aq Cm Left
 ws_prev
+.It Cm M-a
+ws_prior
 .It Cm M-S- Ns Aq Cm Right
 screen_next
 .It Cm M-S- Ns Aq Cm Left
@@ -402,6 +406,8 @@ is 1 through 10
 Switch to next workspace with a window in it
 .It Cm ws_prev
 Switch to previous workspace with a window in it
+.It Cm ws_prior
+Switch to last visited workspace
 .It Cm screen_next
 Move pointer to next region
 .It Cm screen_prev
@@ -534,6 +540,10 @@ In the example above the quirk entry would be:
 .Bd -literal -offset indent
 quirk[Firefox:Navigator] = FLOAT
 .Ed
+.Sh SIGNALS
+Sending
+.Nm
+a HUP signal will retstart it.
 .Sh FILES
 .Bl -tag -width "/etc/scrotwm.confXXX" -compact
 .It Pa ~/.scrotwm.conf

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $scrotwm: baraction.sh,v 1.16 2010/01/13 22:17:03 dwc Exp $
+# $scrotwm: baraction.sh,v 1.17 2010/07/01 19:49:37 marco Exp $
 
 print_date() {
 	# The date is printed to the status bar by default.
@@ -18,7 +18,7 @@ print_mem() {
 
 _print_cpu() {
 	typeset -R4 _1=${1} _2=${2} _3=${3} _4=${4} _5=${5}
-	echo -n "CPU:${_1}% User${_2}% Nice${_3}% Sys${_4}% Int${_5}% Idle     "
+	echo -n "CPU:${_1}% User${_2}% Nice${_3}% Sys${_4}% Int${_5}% Idle  "
 }
 
 print_cpu() {
@@ -78,7 +78,7 @@ print_apm() {
 
 print_cpuspeed() {
 	CPU_SPEED=`/sbin/sysctl hw.cpuspeed | cut -d "=" -f2`
-	echo -n "     CPU speed: $CPU_SPEED MHz"
+	echo -n "CPU speed: $CPU_SPEED MHz  "
 }
 
 while :; do
@@ -95,10 +95,10 @@ while :; do
 		fi
 		if [ $I -gt 2 ]; then
 			# print_date
-			# print_mem $MEM
+			print_mem $MEM
 			print_cpu $REPLY
-			print_apm $APM_DATA
 			print_cpuspeed
+			print_apm $APM_DATA
 			echo ""
 		fi
 		I=$(( ${I} + 1 ));
