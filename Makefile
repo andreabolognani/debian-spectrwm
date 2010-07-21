@@ -1,4 +1,4 @@
-# $scrotwm: Makefile,v 1.13 2009/10/25 00:32:33 marco Exp $
+# $scrotwm: Makefile,v 1.14 2010/01/13 21:48:35 dwc Exp $
 .include <bsd.xconf.mk>
 
 PREFIX?=/usr/local
@@ -10,6 +10,8 @@ PROG=scrotwm
 MAN=scrotwm.1 scrotwm_es.1 scrotwm_it.1 scrotwm_ru.1
 
 CFLAGS+=-std=c89 -Wall -Wno-uninitialized -ggdb3
+# Uncomment define below to disallow user settable clock format string
+#CFLAGS+=-DSWM_DENY_CLOCK_FORMAT
 CPPFLAGS+= -I${X11BASE}/include
 LDADD+=-lutil -L${X11BASE}/lib -lX11 -lXrandr
 

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $scrotwm: baraction.sh,v 1.15 2009/09/30 02:50:11 marco Exp $
+# $scrotwm: baraction.sh,v 1.16 2010/01/13 22:17:03 dwc Exp $
 
 print_date() {
 	# The date is printed to the status bar by default.
@@ -76,6 +76,11 @@ print_apm() {
 	fi
 }
 
+print_cpuspeed() {
+	CPU_SPEED=`/sbin/sysctl hw.cpuspeed | cut -d "=" -f2`
+	echo -n "     CPU speed: $CPU_SPEED MHz"
+}
+
 while :; do
 	# instead of sleeping, use iostat as the update timer.
 	# cache the output of apm(8), no need to call that every second.
@@ -93,6 +98,7 @@ while :; do
 			# print_mem $MEM
 			print_cpu $REPLY
 			print_apm $APM_DATA
+			print_cpuspeed
 			echo ""
 		fi
 		I=$(( ${I} + 1 ));
