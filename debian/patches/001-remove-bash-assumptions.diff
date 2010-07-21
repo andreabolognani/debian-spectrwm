@@ -8,17 +8,17 @@ Description: Remove Bash assumptions
 Bug-Debian: http://bugs.debian.org/530990
 Forwarded: Marco Peereboom <marco@peereboom.us>
 Author: Andrea Bolognani <eof@kiyuko.org>
-Last-Update: 2010-02-08
+Last-Update: 2010-07-21
 Index: scrotwm.git/baraction.sh
 ===================================================================
---- scrotwm.git.orig/baraction.sh	2010-07-21 17:41:14.927702988 +0200
-+++ scrotwm.git/baraction.sh	2010-07-21 17:41:17.443700576 +0200
+--- scrotwm.git.orig/baraction.sh	2010-07-21 18:32:30.875700721 +0200
++++ scrotwm.git/baraction.sh	2010-07-21 18:34:51.811816884 +0200
 @@ -2,6 +2,10 @@
  #
- # $scrotwm: baraction.sh,v 1.16 2010/01/13 22:17:03 dwc Exp $
+ # $scrotwm: baraction.sh,v 1.17 2010/07/01 19:49:37 marco Exp $
  
 +APM="/usr/sbin/apm -alb"
-+IOSTAT="/usr/sbin/iostat -c -C 3600"	# wish infinity was an option
++IOSTAT="/usr/sbin/iostat -c -C 3600"   # wish infinity was an option
 +TOP="/usr/bin/top"
 +
  print_date() {
@@ -56,10 +56,10 @@ Index: scrotwm.git/baraction.sh
  		fi
  		if [ $I -gt 2 ]; then
  			# print_date
--			# print_mem $MEM
+-			print_mem $MEM
 -			print_cpu $REPLY
-+			# print_mem
++			print_mem
 +			print_cpu $IOSTAT_DATA
- 			print_apm $APM_DATA
  			print_cpuspeed
+ 			print_apm $APM_DATA
  			echo ""

@@ -6,10 +6,10 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2009-09-23
 Index: scrotwm.git/scrotwm.conf
 ===================================================================
---- scrotwm.git.orig/scrotwm.conf	2010-07-21 17:50:15.239699949 +0200
-+++ scrotwm.git/scrotwm.conf	2010-07-21 17:53:38.451702364 +0200
-@@ -20,13 +20,13 @@
- #focus_mode		= default
+--- scrotwm.git.orig/scrotwm.conf	2010-07-21 17:54:37.883701563 +0200
++++ scrotwm.git/scrotwm.conf	2010-07-21 18:11:44.595701688 +0200
+@@ -21,13 +21,13 @@
+ #disable_border		= 1
  
  # spawn app
 -# program[term]		= xterm
@@ -26,9 +26,9 @@ Index: scrotwm.git/scrotwm.conf
  dialog_ratio		= 0.6
 Index: scrotwm.git/scrotwm.c
 ===================================================================
---- scrotwm.git.orig/scrotwm.c	2010-07-21 17:50:15.239699949 +0200
-+++ scrotwm.git/scrotwm.c	2010-07-21 17:53:38.455702305 +0200
-@@ -2865,7 +2865,7 @@
+--- scrotwm.git.orig/scrotwm.c	2010-07-21 17:54:37.883701563 +0200
++++ scrotwm.git/scrotwm.c	2010-07-21 18:11:44.599702479 +0200
+@@ -3042,7 +3042,7 @@
  void
  setup_spawn(void)
  {
@@ -37,7 +37,7 @@ Index: scrotwm.git/scrotwm.c
  	setconfspawn("screenshot_all",	"screenshot.sh full",	0);
  	setconfspawn("screenshot_wind",	"screenshot.sh window",	0);
  	setconfspawn("lock",		"xlock",		0);
-@@ -4597,7 +4597,7 @@
+@@ -4785,7 +4785,7 @@
  	if ((bar_fonts[2] = strdup("-misc-fixed-medium-r-*-*-*-*-*-*-*-*-*-*"))
  	    == NULL)
  		err(1, "setup_globals: strdup");

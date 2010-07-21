@@ -1,13 +1,24 @@
+Description: Remove OpenBSD assumptions
+ The example baraction.sh script shipped in scrotwm's release relies on
+ some features specific to the OpenBSD versions of the iostat and top
+ commands. Moreover, it uses apm to get battery data.
+ .
+ This patch modifies the script so that it is possible to run it on a Debian
+ system. It uses acpi instead of apm, which is a better choice for virtually
+ any modern system.
+Bug-Debian: http://bugs.debian.org/530990
+Author: Andrea Bolognani <eof@kiyuko.org>
+Last-Update: 2010-07-21
 Index: scrotwm.git/baraction.sh
 ===================================================================
---- scrotwm.git.orig/baraction.sh	2010-07-21 17:42:38.147701527 +0200
-+++ scrotwm.git/baraction.sh	2010-07-21 17:43:38.571816912 +0200
+--- scrotwm.git.orig/baraction.sh	2010-07-21 18:22:22.235816084 +0200
++++ scrotwm.git/baraction.sh	2010-07-21 18:28:12.519816695 +0200
 @@ -2,9 +2,9 @@
  #
- # $scrotwm: baraction.sh,v 1.16 2010/01/13 22:17:03 dwc Exp $
+ # $scrotwm: baraction.sh,v 1.17 2010/07/01 19:49:37 marco Exp $
  
 -APM="/usr/sbin/apm -alb"
--IOSTAT="/usr/sbin/iostat -c -C 3600"	# wish infinity was an option
+-IOSTAT="/usr/sbin/iostat -c -C 3600"   # wish infinity was an option
 -TOP="/usr/bin/top"
 +ACPI="/usr/bin/acpi -b"
 +IOSTAT="/usr/bin/iostat -c 1 3600"
@@ -15,19 +26,19 @@ Index: scrotwm.git/baraction.sh
  
  print_date() {
  	# The date is printed to the status bar by default.
-@@ -16,78 +16,49 @@
+@@ -16,78 +16,47 @@
  }
  
  print_mem() {
 -	MEM=`${TOP} | grep Free: | cut -d " " -f7`
-+	MEM=`${TOP} | grep '^Mem:' | cut -d ' ' -f 13`
++	MEM=`${TOP} | grep '^Mem:' | cut -d ' ' -f 14`
  	echo -n "Free mem: $MEM  "
  }
  
  _print_cpu() {
 -	typeset -R4 _1=${1} _2=${2} _3=${3} _4=${4} _5=${5}
--	echo -n "CPU:${_1}% User${_2}% Nice${_3}% Sys${_4}% Int${_5}% Idle     "
-+	echo -n "CPU: ${1}% User ${2}% Nice ${3}% Sys ${6}% Idle     "
+-	echo -n "CPU:${_1}% User${_2}% Nice${_3}% Sys${_4}% Int${_5}% Idle  "
++	echo -n "CPU: ${1}% User ${2}% Nice ${3}% Sys ${6}% Idle  "
  }
  
  print_cpu() {
@@ -86,6 +97,10 @@ Index: scrotwm.git/baraction.sh
 -		fi
 -	fi
 -}
+-
+-print_cpuspeed() {
+-	CPU_SPEED=`/sbin/sysctl hw.cpuspeed | cut -d "=" -f2`
+-	echo -n "CPU speed: $CPU_SPEED MHz  "
 +print_acpi() {
 +	BAT_STATUS="${3}"
 +	BAT_LEVEL="`echo "${4}" | tr -d ','`"
@@ -104,11 +119,6 @@ Index: scrotwm.git/baraction.sh
 +		FULL="(battery unknown)"
 +		;;
 +	esac;
- 
--print_cpuspeed() {
--	CPU_SPEED=`/sbin/sysctl hw.cpuspeed | cut -d "=" -f2`
--	echo -n "     CPU speed: $CPU_SPEED MHz"
-+	echo -n "${FULL}"
  }
  
  while :; do
@@ -118,7 +128,7 @@ Index: scrotwm.git/baraction.sh
  	I=0
  	${IOSTAT} 2>&1 |
  	while read IOSTAT_DATA; do
-@@ -96,14 +67,13 @@
+@@ -96,14 +65,13 @@
  			trap "kill $PID; exit" TERM
  		fi
  		if [ $(( ${I} % 10 )) -eq 0 ]; then
@@ -128,10 +138,10 @@ Index: scrotwm.git/baraction.sh
 -		if [ $I -gt 2 ]; then
 +		if [ $(( ${I} % 3 )) -eq 0 ] && [ ${I} -gt 2 ]; then
  			# print_date
- 			# print_mem
+ 			print_mem
  			print_cpu $IOSTAT_DATA
--			print_apm $APM_DATA
 -			print_cpuspeed
+-			print_apm $APM_DATA
 +			print_acpi $ACPI_DATA
  			echo ""
  		fi
