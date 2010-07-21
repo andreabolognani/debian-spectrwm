@@ -1,4 +1,4 @@
-# $scrotwm: Makefile,v 1.2 2009/11/25 16:12:13 marco Exp $ 
+# $scrotwm: Makefile,v 1.4 2010/01/17 16:49:49 marco Exp $ 
 
 CFLAGS+= -O2 -Wall -ggdb -D_GNU_SOURCE -D__OSX__ -I.
 CFLAGS+= -DSWM_LIB=\"$(LIBDIR)/libswmhack.so.$(LVERS)\"
@@ -29,6 +29,8 @@ scrotwm: scrotwm.o osx.o
 
 libswmhack.so.$(LVERS): swm_hack.so
 	$(CC) -shared -fpic -o libswmhack.so.$(LVERS) $(LDADD) swm_hack.so
+# replace above line with this for OSX 10.5
+#	$(CC) -shared -bundle -fpic -o libswmhack.so.$(LVERS) $(LDADD) swm_hack.so
 
 install: all
 	install -m 755 -d $(DESTDIR)$(BINDIR)
