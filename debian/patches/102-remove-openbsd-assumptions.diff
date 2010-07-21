@@ -1,21 +1,10 @@
-Description: Remove OpenBSD assumptions
- The example baraction.sh script shipped in scrotwm's release relies on
- some features specific to the OpenBSD versions of the iostat and top
- commands. Moreover, it uses apm to get battery data.
- .
- This patch modifies the script so that it is possible to run it on a Debian
- system. It uses acpi instead of apm, which is a better choice for virtually
- any modern system.
-Bug-Debian: http://bugs.debian.org/530990
-Author: Andrea Bolognani <eof@kiyuko.org>
-Last-Update: 2010-02-08
 Index: scrotwm.git/baraction.sh
 ===================================================================
---- scrotwm.git.orig/baraction.sh	2010-02-08 09:53:01.551038638 +0100
-+++ scrotwm.git/baraction.sh	2010-02-08 09:53:07.157475074 +0100
+--- scrotwm.git.orig/baraction.sh	2010-07-21 17:42:38.147701527 +0200
++++ scrotwm.git/baraction.sh	2010-07-21 17:43:38.571816912 +0200
 @@ -2,9 +2,9 @@
  #
- # $scrotwm: baraction.sh,v 1.15 2009/09/30 02:50:11 marco Exp $
+ # $scrotwm: baraction.sh,v 1.16 2010/01/13 22:17:03 dwc Exp $
  
 -APM="/usr/sbin/apm -alb"
 -IOSTAT="/usr/sbin/iostat -c -C 3600"	# wish infinity was an option
@@ -26,7 +15,7 @@ Index: scrotwm.git/baraction.sh
  
  print_date() {
  	# The date is printed to the status bar by default.
-@@ -16,73 +16,49 @@
+@@ -16,78 +16,49 @@
  }
  
  print_mem() {
@@ -96,6 +85,7 @@ Index: scrotwm.git/baraction.sh
 -			fi
 -		fi
 -	fi
+-}
 +print_acpi() {
 +	BAT_STATUS="${3}"
 +	BAT_LEVEL="`echo "${4}" | tr -d ','`"
@@ -114,7 +104,10 @@ Index: scrotwm.git/baraction.sh
 +		FULL="(battery unknown)"
 +		;;
 +	esac;
-+
+ 
+-print_cpuspeed() {
+-	CPU_SPEED=`/sbin/sysctl hw.cpuspeed | cut -d "=" -f2`
+-	echo -n "     CPU speed: $CPU_SPEED MHz"
 +	echo -n "${FULL}"
  }
  
@@ -125,7 +118,7 @@ Index: scrotwm.git/baraction.sh
  	I=0
  	${IOSTAT} 2>&1 |
  	while read IOSTAT_DATA; do
-@@ -91,13 +67,13 @@
+@@ -96,14 +67,13 @@
  			trap "kill $PID; exit" TERM
  		fi
  		if [ $(( ${I} % 10 )) -eq 0 ]; then
@@ -138,6 +131,7 @@ Index: scrotwm.git/baraction.sh
  			# print_mem
  			print_cpu $IOSTAT_DATA
 -			print_apm $APM_DATA
+-			print_cpuspeed
 +			print_acpi $ACPI_DATA
  			echo ""
  		fi
