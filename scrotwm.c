@@ -1,6 +1,6 @@
-/* $scrotwm: scrotwm.c,v 1.295 2010/07/07 15:40:29 marco Exp $ */
+/* $scrotwm: scrotwm.c,v 1.301 2010/08/31 12:43:22 marco Exp $ */
 /*
- * Copyright (c) 2009 Marco Peereboom <marco@peereboom.us>
+ * Copyright (c) 2009-2010 Marco Peereboom <marco@peereboom.us>
  * Copyright (c) 2009 Ryan McBride <mcbride@countersiege.com>
  * Copyright (c) 2009 Darrin Chandler <dwchandler@stilyagin.com>
  * Copyright (c) 2009 Pierre-Yves Ritschard <pyr@spootnik.org>
@@ -50,9 +50,9 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-static const char	*cvstag = "$scrotwm: scrotwm.c,v 1.295 2010/07/07 15:40:29 marco Exp $";
+static const char	*cvstag = "$scrotwm: scrotwm.c,v 1.301 2010/08/31 12:43:22 marco Exp $";
 
-#define	SWM_VERSION	"0.9.25"
+#define	SWM_VERSION	"0.9.26"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -66,6 +66,7 @@ static const char	*cvstag = "$scrotwm: scrotwm.c,v 1.295 2010/07/07 15:40:29 mar
 #include <string.h>
 #include <util.h>
 #include <pwd.h>
+#include <paths.h>
 #include <ctype.h>
 
 #include <sys/types.h>
@@ -197,6 +198,7 @@ int			bar_version = 0;
 sig_atomic_t		bar_alarm = 0;
 int			bar_delay = 30;
 int			bar_enabled = 1;
+int			bar_at_bottom = 0;
 int			bar_extra = 1;
 int			bar_extra_running = 0;
 int			bar_verbose = 1;
@@ -920,7 +922,7 @@ bar_refresh(void)
 void
 bar_setup(struct swm_region *r)
 {
-	int			i;
+	int			i, x, y;
 
 	if (bar_fs) {
 		XFreeFont(display, bar_fs);
@@ -940,9 +942,11 @@ bar_setup(struct swm_region *r)
 		errx(1, "couldn't create font structure");
 
 	bar_height = bar_fs->ascent + bar_fs->descent + 3;
+	x = X(r);
+	y = bar_at_bottom ? (Y(r) + HEIGHT(r) - bar_height) : Y(r);
 
 	r->bar_window = XCreateSimpleWindow(display,
-	    r->s->root, X(r), Y(r), WIDTH(r) - 2, bar_height - 2,
+	    r->s->root, x, y, WIDTH(r) - 2, bar_height - 2,
 	    1, r->s->c[SWM_S_COLOR_BAR_BORDER].color,
 	    r->s->c[SWM_S_COLOR_BAR].color);
 	bar_gc = XCreateGC(display, r->bar_window, 0, &bar_gcv);
@@ -1105,9 +1109,8 @@ unmap_window(struct ws_win *win)
 	set_win_state(win, IconicState);
 
 	XUnmapWindow(display, win->id);
-	if (win->ws->r)
-		XSetWindowBorder(display, win->id,
-		    win->ws->r->s->c[SWM_S_COLOR_UNFOCUS].color);
+	XSetWindowBorder(display, win->id,
+	    win->s->c[SWM_S_COLOR_UNFOCUS].color); 
 }
 
 void
@@ -1251,39 +1254,56 @@ find_window(Window id)
 void
 spawn(struct swm_region *r, union arg *args)
 {
-	char			*ret;
-	int			si;
+	int			fd;
+	char			*ret = NULL;
 
 	DNPRINTF(SWM_D_MISC, "spawn: %s\n", args->argv[0]);
-	/*
-	 * The double-fork construct avoids zombie processes and keeps the code
-	 * clean from stupid signal handlers.
-	 */
+
 	if (fork() == 0) {
-		if (fork() == 0) {
-			if (display)
-				close(ConnectionNumber(display));
-			setenv("LD_PRELOAD", SWM_LIB, 1);
-			if (asprintf(&ret, "%d", r->ws->idx)) {
-				setenv("_SWM_WS", ret, 1);
-				free(ret);
-			}
-			if (asprintf(&ret, "%d", getpid())) {
-				setenv("_SWM_PID", ret, 1);
-				free(ret);
-			}
-			setsid();
-			/* kill stdin, mplayer, ssh-add etc. need that */
-			si = open("/dev/null", O_RDONLY, 0);
-			if (si == -1)
-				err(1, "open /dev/null");
-			if (dup2(si, 0) == -1)
-				err(1, "dup2 /dev/null");
-			execvp(args->argv[0], args->argv);
-			fprintf(stderr, "execvp failed\n");
-			perror(" failed");
+		if (display)
+			close(ConnectionNumber(display));
+
+		setenv("LD_PRELOAD", SWM_LIB, 1);
+
+		if (asprintf(&ret, "%d", r->ws->idx) == -1) {
+			perror("_SWM_WS");
+			_exit(1);
 		}
-		exit(0);
+		setenv("_SWM_WS", ret, 1);
+		free(ret);
+		ret = NULL;
+
+		if (asprintf(&ret, "%d", getpid()) == -1) {
+			perror("_SWM_PID");
+			_exit(1);
+		}
+		setenv("_SWM_PID", ret, 1);
+		free(ret);
+		ret = NULL;
+
+		if (setsid() == -1) {
+			perror("setsid");
+			_exit(1);
+		}
+
+		/*
+		 * close stdin and stdout to prevent interaction between apps
+		 * and the baraction script
+		 * leave stderr open to record errors
+		*/
+		if ((fd = open(_PATH_DEVNULL, O_RDWR, 0)) == -1) {
+			perror("open");
+			_exit(1);
+		}
+		dup2(fd, STDIN_FILENO);
+		dup2(fd, STDOUT_FILENO);
+		if (fd > 2)
+			close(fd);
+
+		execvp(args->argv[0], args->argv);
+
+		perror("execvp");
+		_exit(1);
 	}
 }
 
@@ -1371,7 +1391,7 @@ unfocus_win(struct ws_win *win)
 		return;
 
 	if (validate_ws(win->ws))
-		abort();
+		abort(); /* XXX replace with return at some point */
 
 	if (win->ws->r == NULL)
 		return;
@@ -1436,7 +1456,8 @@ focus_win(struct ws_win *win)
 		return;
 
 	if (validate_ws(win->ws))
-		abort();
+		abort(); /* XXX replace with return at some point */
+
 	if (validate_win(win)) {
 		kill_refs(win);
 		return;
@@ -1722,10 +1743,10 @@ focus_prev(struct ws_win *win)
 
 	/* if in max_stack try harder */
 	if (ws->cur_layout->flags & SWM_L_FOCUSPREV) {
- 		if (cur_focus != ws->focus_prev)
- 			winfocus = ws->focus_prev;
- 		else if (cur_focus != ws->focus)
- 			winfocus = ws->focus;
+		if (cur_focus != ws->focus_prev)
+			winfocus = ws->focus_prev;
+		else if (cur_focus != ws->focus)
+			winfocus = ws->focus;
 		else
 			winfocus = TAILQ_PREV(win, ws_win_list, entry);
 		if (winfocus)
@@ -1779,7 +1800,7 @@ focus(struct swm_region *r, union arg *args)
 	winlostfocus = cur_focus;
 
 	switch (args->id) {
- 	case SWM_ARG_ID_FOCUSPREV:
+	case SWM_ARG_ID_FOCUSPREV:
 		winfocus = TAILQ_PREV(cur_focus, ws_win_list, entry);
 		if (winfocus == NULL)
 			winfocus = TAILQ_LAST(wl, ws_win_list);
@@ -1862,7 +1883,8 @@ stack(void) {
 			g.w -= 2;
 			g.h -= 2;
 			if (bar_enabled) {
-				g.y += bar_height;
+				if (!bar_at_bottom)
+					g.y += bar_height;
 				g.h -= bar_height;
 			}
 			r->ws->cur_layout->l_stack(r->ws, &g);
@@ -3537,7 +3559,8 @@ enum	{ SWM_S_BAR_DELAY, SWM_S_BAR_ENABLED, SWM_S_STACK_ENABLED,
 	  SWM_S_CYCLE_VISIBLE, SWM_S_SS_ENABLED, SWM_S_TERM_WIDTH,
 	  SWM_S_TITLE_CLASS_ENABLED, SWM_S_TITLE_NAME_ENABLED,
 	  SWM_S_FOCUS_MODE, SWM_S_DISABLE_BORDER, SWM_S_BAR_FONT,
-	  SWM_S_BAR_ACTION, SWM_S_SPAWN_TERM, SWM_S_SS_APP, SWM_S_DIALOG_RATIO
+	  SWM_S_BAR_ACTION, SWM_S_SPAWN_TERM, SWM_S_SS_APP, SWM_S_DIALOG_RATIO,
+	  SWM_S_BAR_AT_BOTTOM
 	};
 
 int
@@ -3549,6 +3572,9 @@ setconfvalue(char *selector, char *value, int flags)
 		break;
 	case SWM_S_BAR_ENABLED:
 		bar_enabled = atoi(value);
+		break;
+	case SWM_S_BAR_AT_BOTTOM:
+		bar_at_bottom = atoi(value);
 		break;
 	case SWM_S_STACK_ENABLED:
 		stack_enabled = atoi(value);
@@ -3660,6 +3686,7 @@ struct config_option {
 };
 struct config_option configopt[] = {
 	{ "bar_enabled",		setconfvalue,	SWM_S_BAR_ENABLED },
+	{ "bar_at_bottom",		setconfvalue,	SWM_S_BAR_AT_BOTTOM },
 	{ "bar_border",			setconfcolor,	SWM_S_COLOR_BAR_BORDER },
 	{ "bar_color",			setconfcolor,	SWM_S_COLOR_BAR },
 	{ "bar_font_color",		setconfcolor,	SWM_S_COLOR_BAR_FONT },
@@ -4044,9 +4071,17 @@ focus_magic(struct ws_win *win, int do_trans)
 			if (win->child_trans->take_focus)
 				client_msg(win, takefocus);
 		} else {
-			focus_win(win->child_trans);
-			if (win->child_trans->take_focus)
-				client_msg(win->child_trans, takefocus);
+			/* make sure transient hasn't dissapeared */
+			if (validate_win(win->child_trans) == 0) {
+				focus_win(win->child_trans);
+				if (win->child_trans->take_focus)
+					client_msg(win->child_trans, takefocus);
+			} else {
+				win->child_trans = NULL;
+				focus_win(win);
+				if (win->take_focus)
+					client_msg(win, takefocus);
+			}
 		}
 	} else {
 		/* regular focus */

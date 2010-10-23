@@ -1,4 +1,4 @@
-# $scrotwm: Makefile,v 1.14 2010/01/13 21:48:35 dwc Exp $
+# $scrotwm: Makefile,v 1.15 2010/09/16 01:16:16 marco Exp $
 .include <bsd.xconf.mk>
 
 PREFIX?=/usr/local
@@ -16,6 +16,9 @@ CPPFLAGS+= -I${X11BASE}/include
 LDADD+=-lutil -L${X11BASE}/lib -lX11 -lXrandr
 
 MANDIR= ${PREFIX}/man/cat
+
+scrotwm_ru.cat1: scrotwm_ru.1
+	 nroff -mandoc ${.CURDIR}/scrotwm_ru.1 > ${.TARGET}
 
 obj: _xenocara_obj
 
