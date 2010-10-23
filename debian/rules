@@ -34,6 +34,8 @@ binary-arch: build
 	   $(DESTDIR)/usr/share/man/es/man1/scrotwm.1
 	mv $(DESTDIR)/usr/share/man/man1/scrotwm_it.1 \
 	   $(DESTDIR)/usr/share/man/it/man1/scrotwm.1
+	mv $(DESTDIR)/usr/share/man/man1/scrotwm_pt.1 \
+	   $(DESTDIR)/usr/share/man/pt/man1/scrotwm.1
 	mv $(DESTDIR)/usr/share/man/man1/scrotwm_ru.1 \
 	   $(DESTDIR)/usr/share/man/ru/man1/scrotwm.1
 	dh_installwm scrotwm
