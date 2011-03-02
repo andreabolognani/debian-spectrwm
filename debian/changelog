@@ -4,9 +4,10 @@ scrotwm (0.9.28-1) unstable; urgency=low
   * Install Portuguese man page.
   * Update watch file to reflect new snapshot location.
   * Recommend suckless-tools, which replaces dwm-tools.
+  * Update Debian copyright file to DEP5 candidate version.
   * Bump Standards-Version to 3.9.1 (no changes needed).
 
- -- Andrea Bolognani <eof@kiyuko.org>  Tue, 08 Feb 2011 15:25:51 +0100
+ -- Andrea Bolognani <eof@kiyuko.org>  Wed, 02 Mar 2011 15:28:36 +0100
 
 scrotwm (0.9.20-1) unstable; urgency=low
 
