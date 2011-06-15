@@ -7,10 +7,10 @@ Description: Try versioned dlopen()
 Bug-Debian: http://bugs.debian.org/551732
 Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2009-11-02
-Index: 551732/lib/swm_hack.c
+Index: scrotwm.git/lib/swm_hack.c
 ===================================================================
---- 551732.orig/lib/swm_hack.c	2009-11-01 23:51:49.000000000 +0100
-+++ 551732/lib/swm_hack.c	2009-11-01 23:59:52.000000000 +0100
+--- scrotwm.git.orig/lib/swm_hack.c	2011-06-15 19:47:05.991275549 +0200
++++ scrotwm.git/lib/swm_hack.c	2011-06-15 19:49:30.617033589 +0200
 @@ -45,6 +45,7 @@
  #include <stdio.h>
  #include <stdlib.h>
@@ -19,7 +19,7 @@ Index: 551732/lib/swm_hack.c
  #include <X11/Xlib.h>
  #include <X11/X.h>
  #include <X11/Xatom.h>
-@@ -111,12 +112,29 @@
+@@ -130,12 +131,29 @@
  	static CWF	*func = NULL;
  	char		*env;
  	Window		id;
@@ -49,7 +49,7 @@ Index: 551732/lib/swm_hack.c
  		dpy = display;
  	}
  
-@@ -156,13 +174,29 @@
+@@ -175,13 +193,29 @@
  	static CSWF	*func = NULL;
  	char		*env;
  	Window		id;
@@ -79,7 +79,7 @@ Index: 551732/lib/swm_hack.c
  	if (parent == DefaultRootWindow(display))
  		parent = MyRoot(display);
  
-@@ -190,13 +224,29 @@
+@@ -209,13 +243,29 @@
  XReparentWindow(Display * display, Window window, Window parent, int x, int y)
  {
  	static RWF         *func = NULL;
@@ -109,7 +109,7 @@ Index: 551732/lib/swm_hack.c
  	if (parent == DefaultRootWindow(display))
  		parent = MyRoot(display);
  
-@@ -217,12 +267,30 @@
+@@ -236,12 +286,30 @@
  {
  	static ANEF	*func = NULL;
  	static int	kp_add = 0, kp_subtract = 0;
