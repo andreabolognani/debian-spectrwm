@@ -1,4 +1,4 @@
-# $scrotwm: Makefile,v 1.16 2010/09/16 02:00:51 marco Exp $
+# $scrotwm: Makefile,v 1.18 2011/06/09 21:28:29 marco Exp $
 .include <bsd.xconf.mk>
 
 PREFIX?=/usr/local

@@ -1,4 +1,4 @@
-.\"	$scrotwm: scrotwm.1,v 1.35 2011/01/18 19:43:12 marco Exp $
+.\"	$scrotwm: scrotwm.1,v 1.40 2011/06/14 15:47:57 marco Exp $
 .\"
 .\" Copyright (c) 2009 Marco Peereboom <marco@peereboom.us>
 .\" Copyright (c) 2009 Darrin Chandler <dwchandler@stilyagin.com>
@@ -15,7 +15,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: January 18 2011 $
+.Dd $Mdocdate: June 14 2011 $
 .Dt SCROTWM 1
 .Os
 .Sh NAME
@@ -87,6 +87,9 @@ Border color of unfocussed windows.
 Enable or disable status bar.
 .It Cm bar_border Ns Bq Ar x
 Color of the status bar border in screen
+.It Cm bar_border_width
+Set status bar border thickness in pixels.
+Disable border by setting to 0
 .Ar x .
 .It Cm bar_color Ns Bq Ar x
 Color of the status bar window in screen
@@ -141,7 +144,7 @@ Enable by setting to 1
 .It Cm title_name_enabled
 Enable or disable displaying the window title in the status bar.
 Enable by setting to 1
-.It Cm window_name_enamed
+.It Cm window_name_enabled
 Enable or disable displaying the window name in the status bar.
 Enable by setting to 1
 .It Cm modkey
@@ -152,6 +155,9 @@ Using a value of follow_cursor will make the window manager focus the window
 under the mouse when switching workspaces and creating windows.
 .It Cm disable_border
 Remove border when bar is disabled and there is only one window on the screen.
+.It Cm border_width
+Set window border thickness in pixels.
+Disable all borders by setting to 0
 .It Cm program Ns Bq Ar p
 Define new action to spawn a program
 .Ar p .
@@ -346,10 +352,14 @@ screenshot_wind
 version
 .It Cm M-t
 float_toggle
-.It Cm M-S Aq Cm Delete
+.It Cm M-S- Ns Aq Cm Delete
 lock
 .It Cm M-S-i
 initscr
+.It Cm M-w
+iconify
+.It Cm M-S-w
+uniconify
 .El
 .Pp
 The action names and descriptions are listed below:
@@ -451,6 +461,10 @@ Reinitialize physical screens
 (see
 .Sx PROGRAMS
 above)
+.It Cm iconify
+Minimize (unmap) currently focused window.
+.It Cm uniconify
+Maximize (map) window returned by dmenu selection.
 .El
 .Pp
 Custom bindings in the configuration file are specified as follows:
@@ -485,7 +499,7 @@ FLOAT
 .It Gimp:gimp
 FLOAT + ANYWHERE
 .It MPlayer:xv
-FLOAT + FULLSCREEN
+FLOAT + FULLSCREEN + FOCUSPREV
 .It OpenOffice.org 2.4:VCLSalFrame
 FLOAT
 .It OpenOffice.org 3.1:VCLSalFrame
@@ -521,6 +535,9 @@ Allow window to position itself, uncentered.
 Adjust xterm fonts when resizing.
 .It FULLSCREEN
 Remove border to allow window to use full screen size.
+.It FOCUSPREV
+On exit force focus on previously focused application not previous application
+in the stack.
 .El
 .Pp
 Custom quirks in the configuration file are specified as follows:
@@ -535,7 +552,7 @@ specify the window to which the quirk(s) apply, and
 is one of the quirks from the list above.
 For example:
 .Bd -literal -offset indent
-quirk[MPlayer:xv] = FLOAT + FULLSCREEN # let mplayer play
+quirk[MPlayer:xv] = FLOAT + FULLSCREEN + FOCUSPREV
 quirk[pcb:pcb] = NONE  # remove existing quirk
 .Ed
 .Pp
