@@ -5,9 +5,9 @@ scrotwm (0.9.30-1) unstable; urgency=low
   * Update watch file to reflect new snapshot location.
   * Recommend suckless-tools, which replaces dwm-tools.
   * Update Debian copyright file to DEP5 candidate version.
-  * Bump Standards-Version to 3.9.1 (no changes needed).
+  * Bump Standards-Version to 3.9.2 (no changes needed).
 
- -- Andrea Bolognani <eof@kiyuko.org>  Wed, 15 Jun 2011 20:23:27 +0200
+ -- Andrea Bolognani <eof@kiyuko.org>  Thu, 16 Jun 2011 11:32:48 +0200
 
 scrotwm (0.9.20-1) unstable; urgency=low
 
