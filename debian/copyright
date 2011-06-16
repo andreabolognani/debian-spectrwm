@@ -1,7 +1,7 @@
 Format: http://dep.debian.net/deps/dep5/
 Upstream-Name: Scrotwm
 Upstream-Contact: Marco Peereboom <marco@peereboom.us>
-Source: http://www.scrotwm.org/
+Source: http://opensource.conformal.com/wiki/Scrotwm
 
 Files: scrotwm.c
 Copyright: 2009, Marco Peereboom <marco@peereboom.us>
