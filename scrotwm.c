@@ -1,4 +1,4 @@
-/* $scrotwm: scrotwm.c,v 1.335 2011/06/14 15:47:57 marco Exp $ */
+/* $scrotwm: scrotwm.c,v 1.342 2011/06/23 03:05:19 marco Exp $ */
 /*
  * Copyright (c) 2009-2010-2011 Marco Peereboom <marco@peereboom.us>
  * Copyright (c) 2009-2010-2011 Ryan McBride <mcbride@countersiege.com>
@@ -51,9 +51,10 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-static const char	*cvstag = "$scrotwm: scrotwm.c,v 1.335 2011/06/14 15:47:57 marco Exp $";
+static const char	*cvstag =
+    "$scrotwm: scrotwm.c,v 1.342 2011/06/23 03:05:19 marco Exp $";
 
-#define	SWM_VERSION	"0.9.30"
+#define	SWM_VERSION	"0.9.31"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -291,6 +292,15 @@ struct ws_win {
 };
 TAILQ_HEAD(ws_win_list, ws_win);
 
+/* pid goo */
+struct pid_e {
+	TAILQ_ENTRY(pid_e)	entry;
+	long			pid;
+	int			ws;
+};
+TAILQ_HEAD(pid_list, pid_e);
+struct pid_list			pidlist = TAILQ_HEAD_INITIALIZER(pidlist);
+
 /* layout handlers */
 void	stack(void);
 void	vertical_config(struct workspace *, int);
@@ -318,8 +328,8 @@ struct layout {
 	{ vertical_stack,	vertical_config,	0,	"[|]" },
 	{ horizontal_stack,	horizontal_config,	0,	"[-]" },
 	{ max_stack,		NULL,
-	  SWM_L_MAPONFOCUS | SWM_L_FOCUSPREV,			"[ ]"},
-	{ NULL,			NULL,			0,	NULL },
+	  SWM_L_MAPONFOCUS | SWM_L_FOCUSPREV,			"[ ]" },
+	{ NULL,			NULL,			0,	NULL  },
 };
 
 /* position of max_stack mode in the layouts array */
@@ -556,7 +566,8 @@ setup_ewmh(void)
 		/* Report supported atoms */
 		XDeleteProperty(display, screens[i].root, sup_list);
 		for (j = 0; j < LENGTH(ewmh); j++)
-			XChangeProperty(display, screens[i].root, sup_list, XA_ATOM, 32,
+			XChangeProperty(display, screens[i].root,
+			    sup_list, XA_ATOM, 32,
 			    PropModeAppend, (unsigned char *)&ewmh[j].atom,1);
 	}
 }
@@ -742,7 +753,8 @@ ewmh_update_win_state(struct ws_win *win, long state, long action)
 			win->manual = (win->ewmh_flags & SWM_F_MANUAL) != 0;
 	if (state == ewmh[_NET_WM_STATE_FULLSCREEN].atom)
 		if (changed)
-			if (!ewmh_set_win_fullscreen(win, win->ewmh_flags & EWMH_F_FULLSCREEN))
+			if (!ewmh_set_win_fullscreen(win,
+			    win->ewmh_flags & EWMH_F_FULLSCREEN))
 				win->ewmh_flags = orig_flags; /* revert */
 
 	XDeleteProperty(display, win->id, ewmh[_NET_WM_STATE].atom);
@@ -785,8 +797,8 @@ ewmh_get_win_state(struct ws_win *win)
 	if (win->manual)
 		win->ewmh_flags |= SWM_F_MANUAL;
 
-	success = get_property(win->id, ewmh[_NET_WM_STATE].atom, (~0L), XA_ATOM,
-	    &n, (unsigned char **)&states);
+	success = get_property(win->id, ewmh[_NET_WM_STATE].atom,
+	    (~0L), XA_ATOM, &n, (unsigned char **)&states);
 
 	if (!success)
 		return;
@@ -1044,6 +1056,21 @@ sighdlr(int sig)
 	errno = saved_errno;
 }
 
+struct pid_e *
+find_pid(long pid)
+{
+	struct pid_e		*p = NULL;
+
+	DNPRINTF(SWM_D_MISC, "find_pid: %lu\n", pid);
+
+	TAILQ_FOREACH(p, &pidlist, entry) {
+		if (p->pid == pid)
+			return (p);
+	}
+
+	return (NULL);
+}
+
 unsigned long
 name_to_color(char *colorname)
 {
@@ -1109,7 +1136,8 @@ custom_region(char *val)
 	    y < 0 || y > DisplayHeight(display, sidx) ||
 	    w + x > DisplayWidth(display, sidx) ||
 	    h + y > DisplayHeight(display, sidx)) {
-		fprintf(stderr, "ignoring region %ux%u+%u+%u - not within screen boundaries "
+		fprintf(stderr, "ignoring region %ux%u+%u+%u "
+		    "- not within screen boundaries "
 		    "(%ux%u)\n", w, h, x, y,
 		    DisplayWidth(display, sidx), DisplayHeight(display, sidx));
 		return;
@@ -1362,12 +1390,14 @@ bar_setup(struct swm_region *r)
 	if (bar_fs == NULL)
 		errx(1, "couldn't create font structure");
 
-	bar_height = bar_fs->ascent + bar_fs->descent + 1 + 2 * bar_border_width;
+	bar_height = bar_fs->ascent + bar_fs->descent + 1 +
+	    2 * bar_border_width;
 	x = X(r);
 	y = bar_at_bottom ? (Y(r) + HEIGHT(r) - bar_height) : Y(r);
 
 	r->bar_window = XCreateSimpleWindow(display,
-	    r->s->root, x, y, WIDTH(r) - 2 * bar_border_width, bar_height - 2 * bar_border_width,
+	    r->s->root, x, y, WIDTH(r) - 2 * bar_border_width,
+	    bar_height - 2 * bar_border_width,
 	    bar_border_width, r->s->c[SWM_S_COLOR_BAR_BORDER].color,
 	    r->s->c[SWM_S_COLOR_BAR].color);
 	bar_gc = XCreateGC(display, r->bar_window, 0, &bar_gcv);
@@ -1462,7 +1492,8 @@ config_win(struct ws_win *win, XConfigureRequestEvent  *ev)
 		return;
 
 	if (ev == NULL) {
-		DNPRINTF(SWM_D_MISC, "config_win: win %lu x %d y %d w %d h %d\n",
+		DNPRINTF(SWM_D_MISC,
+		    "config_win: win %lu x %d y %d w %d h %d\n",
 		    win->id, win->g.x, win->g.y, win->g.w, win->g.h);
 
 		ce.type = ConfigureNotify;
@@ -1477,7 +1508,8 @@ config_win(struct ws_win *win, XConfigureRequestEvent  *ev)
 		ce.above = None;
 		ce.override_redirect = False;
 	} else {
-		DNPRINTF(SWM_D_MISC, "config_win: ev win %lu x %d y %d w %d h %d\n",
+		DNPRINTF(SWM_D_MISC,
+		    "config_win: ev win %lu x %d y %d w %d h %d\n",
 		    ev->window, ev->x, ev->y, ev->width, ev->height);
 		ce.type = ConfigureNotify;
 		ce.display = ev->display;
@@ -1679,7 +1711,7 @@ find_window(Window id)
 }
 
 void
-spawn(struct swm_region *r, union arg *args, int close_fd)
+spawn(int ws_idx, union arg *args, int close_fd)
 {
 	int			fd;
 	char			*ret = NULL;
@@ -1691,7 +1723,7 @@ spawn(struct swm_region *r, union arg *args, int close_fd)
 
 	setenv("LD_PRELOAD", SWM_LIB, 1);
 
-	if (asprintf(&ret, "%d", r->ws->idx) == -1) {
+	if (asprintf(&ret, "%d", ws_idx) == -1) {
 		perror("_SWM_WS");
 		_exit(1);
 	}
@@ -1739,10 +1771,11 @@ spawnterm(struct swm_region *r, union arg *args)
 {
 	DNPRINTF(SWM_D_MISC, "spawnterm\n");
 
-	if (term_width)
-		setenv("_SWM_XTERM_FONTADJ", "", 1);
-	if (fork() == 0)
-		spawn(r, args, 1);
+	if (fork() == 0) {
+		if (term_width)
+			setenv("_SWM_XTERM_FONTADJ", "", 1);
+		spawn(r->ws->idx, args, 1);
+	}
 }
 
 void
@@ -1775,7 +1808,7 @@ validate_win(struct ws_win *testwin)
 	int			i, x, foundit = 0;
 
 	if (testwin == NULL)
-		return(0);
+		return (0);
 
 	for (i = 0, foundit = 0; i < ScreenCount(display); i++)
 		TAILQ_FOREACH(r, &screens[i].rl, entry)
@@ -1906,8 +1939,9 @@ focus_win(struct ws_win *win)
 	else {
 		/* use larger hammer since the window was killed somehow */
 		TAILQ_FOREACH(cfw, &win->ws->winlist, entry)
-			XSetWindowBorder(display, cfw->id,
-			    cfw->ws->r->s->c[SWM_S_COLOR_UNFOCUS].color);
+			if (cfw->ws && cfw->ws->r && cfw->ws->r->s)
+				XSetWindowBorder(display, cfw->id,
+				    cfw->ws->r->s->c[SWM_S_COLOR_UNFOCUS].color);
 	}
 
 	win->ws->focus = win;
@@ -2168,7 +2202,7 @@ swapwin(struct swm_region *r, union arg *args)
 				source = source->ws->focus_prev;
 			else
 				return;
-                }
+		}
 		if (target == NULL || source == NULL)
 			return;
 		source->ws->focus_prev = target;
@@ -2371,7 +2405,7 @@ stack_config(struct swm_region *r, union arg *args)
 	if (ws->cur_layout->l_config != NULL)
 		ws->cur_layout->l_config(ws, args->id);
 
-	if (args->id != SWM_ARG_ID_STACKINIT);
+	if (args->id != SWM_ARG_ID_STACKINIT)
 		stack();
 }
 
@@ -2472,8 +2506,10 @@ stack_floater(struct ws_win *win, struct swm_region *r)
 		 * floaters and transients are auto-centred unless moved
 		 * or resized
 		 */
-		win->g.x = r->g.x + (WIDTH(r) - win->g.w) / 2 - wc.border_width;
-		win->g.y = r->g.y + (HEIGHT(r) - win->g.h) / 2 - wc.border_width;
+		win->g.x = r->g.x + (WIDTH(r) - win->g.w) /
+		    2 - wc.border_width;
+		win->g.y = r->g.y + (HEIGHT(r) - win->g.h) /
+		    2 - wc.border_width;
 	}
 
 	/* win can be outside r if new r smaller than old r */
@@ -2563,7 +2599,8 @@ stack_master(struct workspace *ws, struct swm_geometry *g, int rot, int flip)
 		return;
 
 	TAILQ_FOREACH(win, &ws->winlist, entry)
-		if (win->transient == 0 && win->floating == 0 && win->iconic == 0)
+		if (win->transient == 0 && win->floating == 0
+		    && win->iconic == 0)
 			break;
 
 	if (win == NULL)
@@ -2612,7 +2649,8 @@ stack_master(struct workspace *ws, struct swm_geometry *g, int rot, int flip)
 	} else {
 		msize = -2;
 		colno = split = winno / stacks;
-		win_g.w = ((r_g.w - (stacks * 2 * border_width) + 2 * border_width) / stacks);
+		win_g.w = ((r_g.w - (stacks * 2 * border_width) +
+		    2 * border_width) / stacks);
 	}
 	hrh = r_g.h / colno;
 	extra = r_g.h - (colno * hrh);
@@ -2642,10 +2680,11 @@ stack_master(struct workspace *ws, struct swm_geometry *g, int rot, int flip)
 				win_g.x = r_g.x;
 			else
 				win_g.x += win_g.w + 2 * border_width;
-			win_g.w = (r_g.w - msize - (stacks * 2 * border_width)) / stacks;
+			win_g.w = (r_g.w - msize -
+			    (stacks * 2 * border_width)) / stacks;
 			if (s == 1)
-				win_g.w += (r_g.w - msize - (stacks * 2 * border_width)) %
-				    stacks;
+				win_g.w += (r_g.w - msize -
+				    (stacks * 2 * border_width)) % stacks;
 			s--;
 			j = 0;
 		}
@@ -3252,7 +3291,7 @@ resize(struct ws_win *win, union arg *args)
 	do {
 		XMaskEvent(display, MOUSEMASK | ExposureMask |
 		    SubstructureRedirectMask, &ev);
-		switch(ev.type) {
+		switch (ev.type) {
 		case ConfigureRequest:
 		case Expose:
 		case MapRequest:
@@ -3347,7 +3386,7 @@ move(struct ws_win *win, union arg *args)
 	do {
 		XMaskEvent(display, MOUSEMASK | ExposureMask |
 		    SubstructureRedirectMask, &ev);
-		switch(ev.type) {
+		switch (ev.type) {
 		case ConfigureRequest:
 		case Expose:
 		case MapRequest:
@@ -3664,7 +3703,7 @@ spawn_custom(struct swm_region *r, union arg *args, char *spawn_name)
 		return;
 	a.argv = real_args;
 	if (fork() == 0)
-		spawn(r, &a, 1);
+		spawn(r->ws->idx, &a, 1);
 
 	for (i = 0; i < spawn_argc; i++)
 		free(real_args[i]);
@@ -3700,7 +3739,7 @@ spawn_select(struct swm_region *r, union arg *args, char *spawn_name, int *pid)
 			errx(1, "dup2");
 		close(select_list_pipe[1]);
 		close(select_resp_pipe[0]);
-		spawn(r, &a, 0);
+		spawn(r->ws->idx, &a, 0);
 		break;
 	default: /* parent */
 		close(select_list_pipe[0]);
@@ -3821,8 +3860,9 @@ setconfspawn(char *selector, char *value, int flags)
 			cp += (long)strspn(cp, " \t");
 		if (strlen(word) > 0) {
 			prog->argc++;
-			prog->argv = realloc(prog->argv,
-			    prog->argc * sizeof(char *));
+			if ((prog->argv = realloc(prog->argv,
+			    prog->argc * sizeof(char *))) == NULL)
+				err(1, "setconfspawn: realloc");
 			if ((prog->argv[prog->argc - 1] = strdup(word)) == NULL)
 				err(1, "setconfspawn: strdup");
 		}
@@ -3921,7 +3961,8 @@ strdupsafe(char *str)
 }
 
 void
-setkeybinding(unsigned int mod, KeySym ks, enum keyfuncid kfid, char *spawn_name)
+setkeybinding(unsigned int mod, KeySym ks, enum keyfuncid kfid,
+    char *spawn_name)
 {
 	int			i, j;
 	DNPRINTF(SWM_D_KEY, "setkeybinding: enter %s [%s]\n",
@@ -3968,7 +4009,7 @@ setkeybinding(unsigned int mod, KeySym ks, enum keyfuncid kfid, char *spawn_name
 		keys_size = 4;
 		DNPRINTF(SWM_D_KEY, "setkeybinding: init list %d\n", keys_size);
 		keys = malloc((size_t)keys_size * sizeof(struct key));
-		if (!keys) {
+		if (keys == NULL) {
 			fprintf(stderr, "malloc failed\n");
 			perror(" failed");
 			quit(NULL, NULL);
@@ -3977,7 +4018,7 @@ setkeybinding(unsigned int mod, KeySym ks, enum keyfuncid kfid, char *spawn_name
 		keys_size *= 2;
 		DNPRINTF(SWM_D_KEY, "setkeybinding: grow list %d\n", keys_size);
 		keys = realloc(keys, (size_t)keys_size * sizeof(struct key));
-		if (!keys) {
+		if (keys == NULL) {
 			fprintf(stderr, "realloc failed\n");
 			perror(" failed");
 			quit(NULL, NULL);
@@ -3993,7 +4034,7 @@ setkeybinding(unsigned int mod, KeySym ks, enum keyfuncid kfid, char *spawn_name
 		keys[j].spawn_name = strdupsafe(spawn_name);
 	} else {
 		fprintf(stderr, "keys array problem?\n");
-		if (!keys) {
+		if (keys == NULL) {
 			fprintf(stderr, "keys array problem\n");
 			quit(NULL, NULL);
 		}
@@ -4124,7 +4165,7 @@ updatenumlockmask(void)
 	for (i = 0; i < 8; i++)
 		for (j = 0; j < modmap->max_keypermod; j++)
 			if (modmap->modifiermap[i * modmap->max_keypermod + j]
-			  == XKeysymToKeycode(display, XK_Num_Lock))
+			    == XKeysymToKeycode(display, XK_Num_Lock))
 				numlockmask = (1 << i);
 
 	XFreeModifiermap(modmap);
@@ -4207,7 +4248,8 @@ parsequirks(char *qstr, unsigned long *quirk)
 			cp += (long)strspn(cp, SWM_Q_WS);
 		for (i = 0; i < LENGTH(quirkname); i++) {
 			if (!strncasecmp(name, quirkname[i], SWM_QUIRK_LEN)) {
-				DNPRINTF(SWM_D_QUIRK, "parsequirks: %s\n", name);
+				DNPRINTF(SWM_D_QUIRK,
+				    "parsequirks: %s\n", name);
 				if (i == 0) {
 					*quirk = 0;
 					return (0);
@@ -4270,7 +4312,7 @@ setquirk(const char *class, const char *name, const int quirk)
 		quirks_size = 4;
 		DNPRINTF(SWM_D_QUIRK, "setquirk: init list %d\n", quirks_size);
 		quirks = malloc((size_t)quirks_size * sizeof(struct quirk));
-		if (!quirks) {
+		if (quirks == NULL) {
 			fprintf(stderr, "setquirk: malloc failed\n");
 			perror(" failed");
 			quit(NULL, NULL);
@@ -4278,8 +4320,9 @@ setquirk(const char *class, const char *name, const int quirk)
 	} else if (quirks_length == quirks_size) {
 		quirks_size *= 2;
 		DNPRINTF(SWM_D_QUIRK, "setquirk: grow list %d\n", quirks_size);
-		quirks = realloc(quirks, (size_t)quirks_size * sizeof(struct quirk));
-		if (!quirks) {
+		quirks = realloc(quirks,
+		    (size_t)quirks_size * sizeof(struct quirk));
+		if (quirks == NULL) {
 			fprintf(stderr, "setquirk: realloc failed\n");
 			perror(" failed");
 			quit(NULL, NULL);
@@ -4293,7 +4336,7 @@ setquirk(const char *class, const char *name, const int quirk)
 		quirks[j].quirk = quirk;
 	} else {
 		fprintf(stderr, "quirks array problem?\n");
-		if (!quirks) {
+		if (quirks == NULL) {
 			fprintf(stderr, "quirks array problem!\n");
 			quit(NULL, NULL);
 		}
@@ -4339,13 +4382,14 @@ setup_quirks(void)
 /* conf file stuff */
 #define SWM_CONF_FILE	"scrotwm.conf"
 
-enum	{ SWM_S_BAR_DELAY, SWM_S_BAR_ENABLED, SWM_S_BAR_BORDER_WIDTH, SWM_S_STACK_ENABLED,
-	  SWM_S_CLOCK_ENABLED, SWM_S_CLOCK_FORMAT, SWM_S_CYCLE_EMPTY,
-	  SWM_S_CYCLE_VISIBLE, SWM_S_SS_ENABLED, SWM_S_TERM_WIDTH,
-	  SWM_S_TITLE_CLASS_ENABLED, SWM_S_TITLE_NAME_ENABLED, SWM_S_WINDOW_NAME_ENABLED,
-	  SWM_S_FOCUS_MODE, SWM_S_DISABLE_BORDER, SWM_S_BORDER_WIDTH, SWM_S_BAR_FONT,
-	  SWM_S_BAR_ACTION, SWM_S_SPAWN_TERM, SWM_S_SS_APP, SWM_S_DIALOG_RATIO,
-	  SWM_S_BAR_AT_BOTTOM
+enum	{ SWM_S_BAR_DELAY, SWM_S_BAR_ENABLED, SWM_S_BAR_BORDER_WIDTH,
+	  SWM_S_STACK_ENABLED, SWM_S_CLOCK_ENABLED, SWM_S_CLOCK_FORMAT,
+	  SWM_S_CYCLE_EMPTY, SWM_S_CYCLE_VISIBLE, SWM_S_SS_ENABLED,
+	  SWM_S_TERM_WIDTH, SWM_S_TITLE_CLASS_ENABLED,
+	  SWM_S_TITLE_NAME_ENABLED, SWM_S_WINDOW_NAME_ENABLED,
+	  SWM_S_FOCUS_MODE, SWM_S_DISABLE_BORDER, SWM_S_BORDER_WIDTH,
+	  SWM_S_BAR_FONT, SWM_S_BAR_ACTION, SWM_S_SPAWN_TERM,
+	  SWM_S_SS_APP, SWM_S_DIALOG_RATIO, SWM_S_BAR_AT_BOTTOM
 	};
 
 int
@@ -4472,6 +4516,56 @@ setconfregion(char *selector, char *value, int flags)
 	return (0);
 }
 
+int
+setautorun(char *selector, char *value, int flags)
+{
+	int			ws_id;
+	char			s[1024];
+	union arg		a;
+	char			*real_args[] = { NULL, NULL };
+	long			pid;
+	struct pid_e		*p;
+
+	if (getenv("SWM_STARTED"))
+		return (0);
+
+	bzero(s, sizeof s);
+	if (sscanf(value, "ws[%d]:%1023s", &ws_id, s) != 2)
+		errx(1, "invalid autorun entry, should be 'ws:command'\n");
+	ws_id--;
+	if (ws_id < 0 || ws_id >= SWM_WS_MAX)
+		errx(1, "invalid workspace %d\n", ws_id + 1);
+
+	/*
+	 * This is a little intricate
+	 *
+	 * If the pid already exists we simply reuse it because it means it was
+	 * used before AND not claimed by manage_window.  We get away with
+	 * altering it in the parent after INSERT because this can not be a race
+	 */
+	real_args[0] = s;
+	a.argv = real_args; /* XXX this sucks and should have args for real */
+	if ((pid = fork()) == 0) {
+		spawn(ws_id, &a, 1);
+		/* NOTREACHED */
+		_exit(1);
+	}
+
+	/* parent */
+	p = find_pid(pid);
+	if (p == NULL) {
+		p = calloc(1, sizeof *p);
+		if (p == NULL)
+			return (1);
+		TAILQ_INSERT_TAIL(&pidlist, p, entry);
+	}
+
+	p->pid = pid;
+	p->ws = ws_id;
+
+	return (0);
+}
+
 /* config options */
 struct config_option {
 	char			*optname;
@@ -4482,7 +4576,7 @@ struct config_option configopt[] = {
 	{ "bar_enabled",		setconfvalue,	SWM_S_BAR_ENABLED },
 	{ "bar_at_bottom",		setconfvalue,	SWM_S_BAR_AT_BOTTOM },
 	{ "bar_border",			setconfcolor,	SWM_S_COLOR_BAR_BORDER },
-	{ "bar_border_width",			setconfvalue,	SWM_S_BAR_BORDER_WIDTH },
+	{ "bar_border_width",		setconfvalue,	SWM_S_BAR_BORDER_WIDTH },
 	{ "bar_color",			setconfcolor,	SWM_S_COLOR_BAR },
 	{ "bar_font_color",		setconfcolor,	SWM_S_COLOR_BAR_FONT },
 	{ "bar_font",			setconfvalue,	SWM_S_BAR_FONT },
@@ -4508,9 +4602,10 @@ struct config_option configopt[] = {
 	{ "term_width",			setconfvalue,	SWM_S_TERM_WIDTH },
 	{ "title_class_enabled",	setconfvalue,	SWM_S_TITLE_CLASS_ENABLED },
 	{ "title_name_enabled",		setconfvalue,	SWM_S_TITLE_NAME_ENABLED },
-	{ "focus_mode",			setconfvalue,   SWM_S_FOCUS_MODE },
-	{ "disable_border",		setconfvalue,   SWM_S_DISABLE_BORDER },
-	{ "border_width",		setconfvalue,   SWM_S_BORDER_WIDTH },
+	{ "focus_mode",			setconfvalue,	SWM_S_FOCUS_MODE },
+	{ "disable_border",		setconfvalue,	SWM_S_DISABLE_BORDER },
+	{ "border_width",		setconfvalue,	SWM_S_BORDER_WIDTH },
+	{ "autorun",			setautorun,	0 },
 };
 
 
@@ -4659,6 +4754,29 @@ set_child_transient(struct ws_win *win, Window *trans)
 		XFree(wmh);
 }
 
+long
+window_get_pid(Window win)
+{
+	Atom			actual_type_return;
+	int			actual_format_return = 0;
+	unsigned long		nitems_return = 0;
+	unsigned long		bytes_after_return = 0;
+	long			*pid = 0;
+	long			ret = 0;
+
+	if (XGetWindowProperty(display, win,
+	    XInternAtom(display, "_NET_WM_PID", False), 0, 1, False,
+	    XA_CARDINAL, &actual_type_return, &actual_format_return,
+	    &nitems_return, &bytes_after_return,
+	    (unsigned char**)(void*)&pid) != Success)
+		return (0);
+
+	ret = pid[0];
+	XFree(pid);
+
+	return (ret);
+}
+
 struct ws_win *
 manage_window(Window id)
 {
@@ -4674,6 +4792,7 @@ manage_window(Window id)
 	long			mask;
 	const char		*errstr;
 	XWindowChanges		wc;
+	struct pid_e		*p;
 
 	if ((win = find_window(id)) != NULL)
 		return (win);	/* already being managed */
@@ -4698,11 +4817,15 @@ manage_window(Window id)
 
 	win->id = id;
 
+	/* see if we need to override the workspace */
+	p = find_pid(window_get_pid(id));
+
 	/* Get all the window data in one shot */
 	ws_idx_atom = XInternAtom(display, "_SWM_WS", False);
-	if (ws_idx_atom)
+	if (ws_idx_atom) {
 		XGetWindowProperty(display, id, ws_idx_atom, 0, SWM_PROPLEN,
 		    False, XA_STRING, &type, &format, &nitems, &bytes, &prop);
+	}
 	XGetWindowAttributes(display, id, &win->wa);
 	XGetWMNormalHints(display, id, &win->sh, &mask);
 	win->hints = XGetWMHints(display, id);
@@ -4734,7 +4857,12 @@ manage_window(Window id)
 	 * transient, * put it in the same workspace
 	 */
 	r = root_to_region(win->wa.root);
-	if (prop && win->transient == 0) {
+	if (p) {
+		ws = &r->s->ws[p->ws];
+		TAILQ_REMOVE(&pidlist, p, entry);
+		free(p);
+		p = NULL;
+	} else if (prop && win->transient == 0) {
 		DNPRINTF(SWM_D_PROP, "got property _SWM_WS=%s\n", prop);
 		ws_idx = strtonum(prop, 0, 9, &errstr);
 		if (errstr) {
@@ -4964,8 +5092,8 @@ keypress(XEvent *e)
 	keysym = XKeycodeToKeysym(display, (KeyCode)ev->keycode, 0);
 	for (i = 0; i < keys_length; i++)
 		if (keysym == keys[i].keysym
-		   && CLEANMASK(keys[i].mod) == CLEANMASK(ev->state)
-		   && keyfuncs[keys[i].funcid].func) {
+		    && CLEANMASK(keys[i].mod) == CLEANMASK(ev->state)
+		    && keyfuncs[keys[i].funcid].func) {
 			if (keys[i].funcid == kf_spawn_custom)
 				spawn_custom(
 				    root_to_region(ev->root),
@@ -5409,7 +5537,8 @@ clientmessage(XEvent *e)
 			XKillClient(display, win->id);
 	}
 	if (ev->message_type == ewmh[_NET_MOVERESIZE_WINDOW].atom) {
-		DNPRINTF(SWM_D_EVENT, "clientmessage: _NET_MOVERESIZE_WINDOW \n");
+		DNPRINTF(SWM_D_EVENT,
+		    "clientmessage: _NET_MOVERESIZE_WINDOW \n");
 		if (win->floating) {
 			if (ev->data.l[0] & (1<<8)) /* x */
 				win->g.x = ev->data.l[1];
@@ -5429,7 +5558,8 @@ clientmessage(XEvent *e)
 		DNPRINTF(SWM_D_EVENT, "clientmessage: _NET_WM_STATE \n");
 		ewmh_update_win_state(win, ev->data.l[1], ev->data.l[0]);
 		if (ev->data.l[2])
-			ewmh_update_win_state(win, ev->data.l[2], ev->data.l[0]);
+			ewmh_update_win_state(win, ev->data.l[2],
+			    ev->data.l[0]);
 
 		stack();
 	}
@@ -5681,13 +5811,10 @@ setup_screens(void)
 	int			i, j, k;
 	int			errorbase, major, minor;
 	struct workspace	*ws;
-	int			ws_idx_atom;
 
 	if ((screens = calloc(ScreenCount(display),
 	     sizeof(struct swm_screen))) == NULL)
 		errx(1, "calloc: screens");
-
-	ws_idx_atom = XInternAtom(display, "_SWM_WS", False);
 
 	/* initial Xrandr setup */
 	xrandr_support = XRRQueryExtension(display,
@@ -5867,6 +5994,9 @@ main(int argc, char *argv[])
 
 	/* grab existing windows (before we build the bars) */
 	grab_windows();
+
+	if (getenv("SWM_STARTED") == NULL)
+		setenv("SWM_STARTED", "YES", 1);
 
 	/* setup all bars */
 	for (i = 0; i < ScreenCount(display); i++)
