@@ -1,4 +1,4 @@
-scrotwm (0.9.31-1) unstable; urgency=low
+scrotwm (0.9.32-1) unstable; urgency=low
 
   * New upstream release.
   * Install Portuguese man page.
@@ -8,7 +8,7 @@ scrotwm (0.9.31-1) unstable; urgency=low
   * Update Debian copyright file to DEP5 candidate version.
   * Bump Standards-Version to 3.9.2 (no changes needed).
 
- -- Andrea Bolognani <eof@kiyuko.org>  Mon, 04 Jul 2011 12:54:28 +0200
+ -- Andrea Bolognani <eof@kiyuko.org>  Mon, 04 Jul 2011 13:02:06 +0200
 
 scrotwm (0.9.20-1) unstable; urgency=low
 
