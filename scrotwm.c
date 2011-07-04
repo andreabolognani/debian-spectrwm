@@ -1,4 +1,4 @@
-/* $scrotwm: scrotwm.c,v 1.342 2011/06/23 03:05:19 marco Exp $ */
+/* $scrotwm: scrotwm.c,v 1.344 2011/06/23 12:13:19 marco Exp $ */
 /*
  * Copyright (c) 2009-2010-2011 Marco Peereboom <marco@peereboom.us>
  * Copyright (c) 2009-2010-2011 Ryan McBride <mcbride@countersiege.com>
@@ -52,9 +52,9 @@
  */
 
 static const char	*cvstag =
-    "$scrotwm: scrotwm.c,v 1.342 2011/06/23 03:05:19 marco Exp $";
+    "$scrotwm: scrotwm.c,v 1.344 2011/06/23 12:13:19 marco Exp $";
 
-#define	SWM_VERSION	"0.9.31"
+#define	SWM_VERSION	"0.9.32"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -1062,6 +1062,9 @@ find_pid(long pid)
 	struct pid_e		*p = NULL;
 
 	DNPRINTF(SWM_D_MISC, "find_pid: %lu\n", pid);
+
+	if (pid == 0)
+		return (NULL);
 
 	TAILQ_FOREACH(p, &pidlist, entry) {
 		if (p->pid == pid)
@@ -4761,18 +4764,41 @@ window_get_pid(Window win)
 	int			actual_format_return = 0;
 	unsigned long		nitems_return = 0;
 	unsigned long		bytes_after_return = 0;
-	long			*pid = 0;
+	long			*pid = NULL;
 	long			ret = 0;
+	const char		*errstr;
+	unsigned char		*prop = NULL;
 
 	if (XGetWindowProperty(display, win,
 	    XInternAtom(display, "_NET_WM_PID", False), 0, 1, False,
 	    XA_CARDINAL, &actual_type_return, &actual_format_return,
 	    &nitems_return, &bytes_after_return,
 	    (unsigned char**)(void*)&pid) != Success)
+		goto tryharder;
+	if (actual_type_return != XA_CARDINAL)
+		goto tryharder;
+	if (pid == NULL)
+		goto tryharder;
+
+	ret = *pid;
+	XFree(pid);
+
+	return (ret);
+
+tryharder:
+	if (XGetWindowProperty(display, win,
+	    XInternAtom(display, "_SWM_PID", False), 0, SWM_PROPLEN, False,
+	    XA_STRING, &actual_type_return, &actual_format_return,
+	    &nitems_return, &bytes_after_return, &prop) != Success)
+		return (0);
+	if (actual_type_return != XA_STRING)
+		return (0);
+	if (prop == NULL)
 		return (0);
 
-	ret = pid[0];
-	XFree(pid);
+	ret = strtonum(prop, 0, UINT_MAX, &errstr);
+	/* ignore error because strtonum returns 0 anyway */
+	XFree(prop);
 
 	return (ret);
 }
