@@ -2,6 +2,7 @@ scrotwm (0.9.31-1) unstable; urgency=low
 
   * New upstream release.
   * Install Portuguese man page.
+  * Drop .desktop file, it is now shipped upstream.
   * Update watch file to reflect new snapshot location.
   * Recommend suckless-tools, which replaces dwm-tools.
   * Update Debian copyright file to DEP5 candidate version.
