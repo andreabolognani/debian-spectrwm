@@ -1,4 +1,4 @@
-.\"	$scrotwm: scrotwm.1,v 1.41 2011/06/23 02:22:18 marco Exp $
+.\"	$scrotwm: scrotwm.1,v 1.49 2011/07/19 21:28:15 marco Exp $
 .\"
 .\" Copyright (c) 2009 Marco Peereboom <marco@peereboom.us>
 .\" Copyright (c) 2009 Darrin Chandler <dwchandler@stilyagin.com>
@@ -15,7 +15,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: June 23 2011 $
+.Dd $Mdocdate: July 19 2011 $
 .Dt SCROTWM 1
 .Os
 .Sh NAME
@@ -81,8 +81,6 @@ The file supports the following keywords:
 .Bl -tag -width "title_class_enabledXXX" -offset indent -compact
 .It Cm autorun
 Launch an application in a specified workspace at start-of-day.
-Currently this option does not support arguments so if those are required one
-must use a wrapper script.
 Defined in the format ws[<idx>]:application, e.g. ws[2]:xterm launches and
 xterm in workspace 2
 .It Cm color_focus
@@ -122,6 +120,35 @@ so a custom clock could be used in the bar_action script.
 Some applications have dialogue windows that are too small to be useful.
 This ratio is the screen size to what they will be resized.
 For example, 0.6 is 60% of the physical screen size.
+.It Cm layout
+select layout to use at start-of-day.
+Defined in the format
+ws[idx]:master_grow:master_add:stack_inc:layout:always_raise:stack_mode, e.g.
+ws[2]:-4:0:1:0:horizontal sets worskspace 2 to the horizontal stack mode and
+shrinks the master area by 4 ticks and adds one window to the stack, while
+maintaining default floating window behavior.
+Possible stack_mode values are
+.Pa vertical ,
+.Pa horizontal
+and
+.Pa fullscreen .
+.Pp
+See
+.Pa master_grow ,
+.Pa master_shrink ,
+.Pa master_add ,
+.Pa master_del ,
+.Pa stack_inc ,
+.Pa stack_del ,
+and
+.Pa always_raise
+for more information.
+Note that the stacking options are complicated and have side-effects.
+One should familiarize oneself with these commands before experimenting with the
+.Pa layout
+option.
+.Pp
+This setting is not retained at restart.
 .It Cm region
 Allocates a custom region, removing any autodetected regions which occupy the same
 space on the screen.
@@ -152,6 +179,10 @@ Enable or disable displaying the window title in the status bar.
 Enable by setting to 1
 .It Cm window_name_enabled
 Enable or disable displaying the window name in the status bar.
+Enable by setting to 1
+.It Cm verbose_layout
+Enable or disable displaying the current master and stack values in the status
+bar.
 Enable by setting to 1
 .It Cm modkey
 Change mod key.
@@ -366,6 +397,8 @@ initscr
 iconify
 .It Cm M-S-w
 uniconify
+.It Cm M-S-r
+toggle always_raised
 .El
 .Pp
 The action names and descriptions are listed below:
@@ -471,6 +504,8 @@ above)
 Minimize (unmap) currently focused window.
 .It Cm uniconify
 Maximize (map) window returned by dmenu selection.
+.It Cm always_raise
+When set tiled windows are allowed to obscure floating windows.
 .El
 .Pp
 Custom bindings in the configuration file are specified as follows:
@@ -578,10 +613,85 @@ In the example above the quirk entry would be:
 .Bd -literal -offset indent
 quirk[Firefox:Navigator] = FLOAT
 .Ed
+.Pp
+.Nm
+also automatically assigns quirks to windows based on the value 
+of the window's _NET_WM_WINDOW_TYPE property as follows:
+.Pp
+.Bl -tag -width "_NET_WM_WINDOW_TYPE_TOOLBAR<TAB>XXX" -offset indent -compact
+.It _NET_WM_WINDOW_TYPE_DOCK
+FLOAT + ANYWHERE
+.It _NET_WM_WINDOW_TYPE_TOOLBAR
+FLOAT + ANYWHERE
+.It _NET_WM_WINDOW_TYPE_UTILITY
+FLOAT + ANYWHERE
+.It _NET_WM_WINDOW_TYPE_SPLASH
+FLOAT
+.It _NET_WM_WINDOW_TYPE_DIALOG
+FLOAT
+.El
+.Pp
+In all other cases, no automatic quirks are assigned to the window. 
+Quirks specified in the configuration file override the automatic quirks.
+.Sh EWMH
+.Nm
+partially implements the Extended Window Manager Hints (EWMH) specification. 
+This enables controlling windows as well as
+.Nm
+itself from external scripts and programs. This is achieved by 
+.Nm
+responding to certain ClientMessage events. From the terminal these events 
+can be conveniently sent using tools such as wmctrl and xdotool. For the 
+actual format of these ClientMessage events, see the EWMH specification.
+.Pp
+The id of the currently focused window is stored in the _NET_ACTIVE_WINDOW 
+property of the root window. This can be used for example to retrieve the 
+title of the currently active window with xprop(1) and grep(1):
+.Bd -literal -offset indent
+$ WINDOWID=`xprop -root _NET_ACTIVE_WINDOW | grep -o "0x.*"`
+$ xprop -id $WINDOWID WM_NAME | grep -o "\\".*\\""
+.Ed
+.Pp
+A window can be focused by sending a _NET_ACTIVE_WINDOW client message 
+to the root window. For example, using wmctrl to send the message 
+(assuming 0x4a0000b is the id of the window to be focused):
+.Bd -literal -offset indent
+$ wmctrl -i -a 0x4a0000b
+.Ed
+.Pp
+Windows can be closed by sending a _NET_CLOSE_WINDOW client message 
+to the root window. For example, using wmctrl to send the message 
+(assuming 0x4a0000b is the id of the window to be closed):
+.Bd -literal -offset indent
+$ wmctrl -i -c 0x4a0000b
+.Ed
+.Pp
+Windows can be floated and un-floated by adding or removing the 
+_NET_WM_STATE_ABOVE atom from the _NET_WM_STATE property of the window. 
+This can be achieved by sending a _NET_WM_STATE client message to the 
+root window. For example, the following toggles the floating state of 
+a window using wmctrl to send the message (assuming 0x4a0000b is the 
+id of the window floated or un-floated):
+.Bd -literal -offset indent
+$ wmctrl -i -r 0x4a0000b -b toggle,_NET_WM_STATE_ABOVE
+.Ed
+.Pp
+Floating windows can also be resized and moved by sending a 
+_NET_MOVERESIZE_WINDOW client message to the root window. For example, 
+using wmctrl to send the message (assuming 0x4a0000b is the id of 
+the window to be resize/moved):
+.Bd -literal -offset indent
+$ wmctrl -i -r 0x4a0000b -e 0,100,50,640,480
+.Ed
+.Pp
+This moves the window to (100,50) and resizes it to 640x480.
+.Pp
+Any _NET_MOVERESIZE_WINDOW events received for stacked windows are ignored.
+.Pp
 .Sh SIGNALS
 Sending
 .Nm
-a HUP signal will retstart it.
+a HUP signal will restart it.
 .Sh FILES
 .Bl -tag -width "/etc/scrotwm.confXXX" -compact
 .It Pa ~/.scrotwm.conf
@@ -596,13 +706,17 @@ global settings.
 was inspired by xmonad & dwm.
 .Sh AUTHORS
 .An -nosplit
-.Pp
 .Nm
-was written by
-.An Marco Peereboom Aq marco@peereboom.us ,
-.An Ryan Thomas McBride Aq mcbride@countersiege.com
-and
-.An Darrin Chandler Aq dwchandler@stilyagin.com .
+was written by:
+.Pp
+.Bl -tag -width "Ryan Thomas McBride Aq mcbride@countersiege.com " -offset indent -compact
+.It Cm Marco Peereboom Aq marco@peereboom.us
+.It Cm Ryan Thomas McBride Aq mcbride@countersiege.com
+.It Cm Darrin Chandler Aq dwchandler@stilyagin.com
+.It Cm Pierre-Yves Ritschard Aq pyr@spootnik.org
+.It Cm Tuukka Kataja Aq stuge@xor.fi
+.It Cm Jason L. Wright Aq jason@thought.net
+.El
 .Sh BUGS
 Currently the menu, invoked with
 .Cm M-p ,
