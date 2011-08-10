@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# $scrotwm: baraction.sh,v 1.17 2010/07/01 19:49:37 marco Exp $
+# $scrotwm: baraction.sh,v 1.18 2011/07/18 16:19:29 marco Exp $
 
 print_date() {
 	# The date is printed to the status bar by default.
@@ -12,7 +12,7 @@ print_date() {
 }
 
 print_mem() {
-	MEM=`/usr/bin/top | grep Free: | cut -d " " -f7`
+	MEM=`/usr/bin/top | grep Free: | cut -d " " -f6`
 	echo -n "Free mem: $MEM  "
 }
 

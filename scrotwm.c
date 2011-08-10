@@ -1,9 +1,10 @@
-/* $scrotwm: scrotwm.c,v 1.344 2011/06/23 12:13:19 marco Exp $ */
+/* $scrotwm: scrotwm.c,v 1.351 2011/08/02 13:22:34 marco Exp $ */
 /*
  * Copyright (c) 2009-2010-2011 Marco Peereboom <marco@peereboom.us>
  * Copyright (c) 2009-2010-2011 Ryan McBride <mcbride@countersiege.com>
  * Copyright (c) 2009 Darrin Chandler <dwchandler@stilyagin.com>
  * Copyright (c) 2009 Pierre-Yves Ritschard <pyr@spootnik.org>
+ * Copyright (c) 2010 Tuukka Kataja <stuge@xor.fi>
  * Copyright (c) 2011 Jason L. Wright <jason@thought.net>
  *
  * Permission to use, copy, modify, and distribute this software for any
@@ -52,9 +53,9 @@
  */
 
 static const char	*cvstag =
-    "$scrotwm: scrotwm.c,v 1.344 2011/06/23 12:13:19 marco Exp $";
+    "$scrotwm: scrotwm.c,v 1.351 2011/08/02 13:22:34 marco Exp $";
 
-#define	SWM_VERSION	"0.9.32"
+#define	SWM_VERSION	"0.9.33"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -226,6 +227,7 @@ int			window_name_enabled = 0;
 int			focus_mode = SWM_FOCUS_DEFAULT;
 int			disable_border = 0;
 int			border_width = 1;
+int			verbose_layout = 0;
 pid_t			bar_pid;
 GC			bar_gc;
 XGCValues		bar_gcv;
@@ -308,6 +310,8 @@ void	vertical_stack(struct workspace *, struct swm_geometry *);
 void	horizontal_config(struct workspace *, int);
 void	horizontal_stack(struct workspace *, struct swm_geometry *);
 void	max_stack(struct workspace *, struct swm_geometry *);
+void	plain_stacker(struct workspace *);
+void	fancy_stacker(struct workspace *);
 
 struct ws_win *find_window(Window);
 
@@ -322,18 +326,20 @@ struct layout {
 	u_int32_t	flags;
 #define SWM_L_FOCUSPREV		(1<<0)
 #define SWM_L_MAPONFOCUS	(1<<1)
-	char		*name;
+	void		(*l_string)(struct workspace *);
 } layouts[] =  {
 	/* stack,		configure */
-	{ vertical_stack,	vertical_config,	0,	"[|]" },
-	{ horizontal_stack,	horizontal_config,	0,	"[-]" },
+	{ vertical_stack,	vertical_config,	0,	fancy_stacker },
+	{ horizontal_stack,	horizontal_config,	0,	fancy_stacker },
 	{ max_stack,		NULL,
-	  SWM_L_MAPONFOCUS | SWM_L_FOCUSPREV,			"[ ]" },
+	  SWM_L_MAPONFOCUS | SWM_L_FOCUSPREV,			fancy_stacker },
 	{ NULL,			NULL,			0,	NULL  },
 };
 
-/* position of max_stack mode in the layouts array */
-#define SWM_MAX_STACK		2
+/* position of max_stack mode in the layouts array, index into layouts! */
+#define SWM_V_STACK		(0)
+#define SWM_H_STACK		(1)
+#define SWM_MAX_STACK		(2)
 
 #define SWM_H_SLICE		(32)
 #define SWM_V_SLICE		(32)
@@ -341,6 +347,7 @@ struct layout {
 /* define work spaces */
 struct workspace {
 	int			idx;		/* workspace index */
+	int			always_raise;	/* raise windows on focus */
 	struct layout		*cur_layout;	/* current layout handlers */
 	struct ws_win		*focus;		/* may be NULL */
 	struct ws_win		*focus_prev;	/* may be NULL */
@@ -348,6 +355,7 @@ struct workspace {
 	struct swm_region	*old_r;		/* may be NULL */
 	struct ws_win_list	winlist;	/* list of windows in ws */
 	struct ws_win_list	unmanagedlist;	/* list of dead windows in ws */
+	char			stacker[10];	/* display stacker and layout */
 
 	/* stacker state */
 	struct {
@@ -1120,6 +1128,28 @@ setscreencolor(char *val, int i, int c)
 }
 
 void
+fancy_stacker(struct workspace *ws)
+{
+	strcpy(ws->stacker, "[   ]");
+	if (ws->cur_layout->l_stack == vertical_stack)
+		snprintf(ws->stacker, sizeof ws->stacker, "[%d|%d]",
+		    ws->l_state.vertical_mwin, ws->l_state.vertical_stacks);
+	if (ws->cur_layout->l_stack == horizontal_stack)
+		snprintf(ws->stacker, sizeof ws->stacker, "[%d-%d]",
+		    ws->l_state.horizontal_mwin, ws->l_state.horizontal_stacks);
+}
+
+void
+plain_stacker(struct workspace *ws)
+{
+	strcpy(ws->stacker, "[ ]");
+	if (ws->cur_layout->l_stack == vertical_stack)
+		strcpy(ws->stacker, "[|]");
+	if (ws->cur_layout->l_stack == horizontal_stack)
+		strcpy(ws->stacker, "[-]");
+}
+
+void
 custom_region(char *val)
 {
 	unsigned int			sidx, x, y, w, h;
@@ -1243,7 +1273,6 @@ bar_update(void)
 	char			cn[SWM_BAR_MAX];
 	char			loc[SWM_BAR_MAX];
 	char			*b;
-	char			*stack = "";
 
 	if (bar_enabled == 0)
 		return;
@@ -1280,11 +1309,8 @@ bar_update(void)
 				bar_window_name(cn, sizeof cn, r->ws->focus);
 			}
 
-			if (stack_enabled)
-				stack = r->ws->cur_layout->name;
-
 			snprintf(loc, sizeof loc, "%d:%d %s   %s%s    %s    %s",
-			    x++, r->ws->idx + 1, stack, s, cn, bar_ext,
+			    x++, r->ws->idx + 1, r->ws->stacker, s, cn, bar_ext,
 			    bar_vertext);
 			bar_print(r, loc);
 		}
@@ -1957,11 +1983,11 @@ focus_win(struct ws_win *win)
 		if (win->java == 0)
 			XSetInputFocus(display, win->id,
 			    RevertToParent, CurrentTime);
-		XMapRaised(display, win->id);
 		grabbuttons(win, 1);
 		XSetWindowBorder(display, win->id,
 		    win->ws->r->s->c[SWM_S_COLOR_FOCUS].color);
-		if (win->ws->cur_layout->flags & SWM_L_MAPONFOCUS)
+		if (win->ws->cur_layout->flags & SWM_L_MAPONFOCUS ||
+		    win->ws->always_raise)
 			XMapRaised(display, win->id);
 
 		XChangeProperty(display, win->s->root,
@@ -2410,6 +2436,7 @@ stack_config(struct swm_region *r, union arg *args)
 
 	if (args->id != SWM_ARG_ID_STACKINIT)
 		stack();
+	bar_update();
 }
 
 void
@@ -2436,6 +2463,7 @@ stack(void) {
 				g.h -= bar_height;
 			}
 			r->ws->cur_layout->l_stack(r->ws, &g);
+			r->ws->cur_layout->l_string(r->ws);
 			/* save r so we can track region changes */
 			r->ws->old_r = r;
 		}
@@ -3000,6 +3028,19 @@ send_to_ws(struct swm_region *r, union arg *args)
 }
 
 void
+raise_toggle(struct swm_region *r, union arg *args)
+{
+	if (r && r->ws == NULL)
+		return;
+
+	r->ws->always_raise = !r->ws->always_raise;
+
+	/* bring floaters back to top */
+	if (r->ws->always_raise == 0)
+		stack();
+}
+
+void
 iconify(struct swm_region *r, union arg *args)
 {
 	union arg a;
@@ -3484,6 +3525,7 @@ enum keyfuncid {
 	kf_spawn_custom,
 	kf_iconify,
 	kf_uniconify,
+	kf_raise_toggle,
 	kf_dumpwins, /* MUST BE LAST */
 	kf_invalid
 };
@@ -3560,6 +3602,7 @@ struct keyfunc {
 	{ "spawn_custom",	dummykeyfunc,	{0} },
 	{ "iconify",		iconify,	{0} },
 	{ "uniconify",		uniconify,	{0} },
+	{ "raise_toggle",	raise_toggle,	{0} },
 	{ "dumpwins",		dumpwins,	{0} }, /* MUST BE LAST */
 	{ "invalid key func",	NULL,		{0} },
 };
@@ -4151,6 +4194,7 @@ setup_keys(void)
 	setkeybinding(MODKEY|ShiftMask,	XK_i,		kf_spawn_custom,	"initscr");
 	setkeybinding(MODKEY,		XK_w,		kf_iconify,	NULL);
 	setkeybinding(MODKEY|ShiftMask,	XK_w,		kf_uniconify,	NULL);
+	setkeybinding(MODKEY|ShiftMask,	XK_r,		kf_raise_toggle,NULL);
 #ifdef SWM_DEBUG
 	setkeybinding(MODKEY|ShiftMask,	XK_d,		kf_dumpwins,	NULL);
 #endif
@@ -4392,12 +4436,14 @@ enum	{ SWM_S_BAR_DELAY, SWM_S_BAR_ENABLED, SWM_S_BAR_BORDER_WIDTH,
 	  SWM_S_TITLE_NAME_ENABLED, SWM_S_WINDOW_NAME_ENABLED,
 	  SWM_S_FOCUS_MODE, SWM_S_DISABLE_BORDER, SWM_S_BORDER_WIDTH,
 	  SWM_S_BAR_FONT, SWM_S_BAR_ACTION, SWM_S_SPAWN_TERM,
-	  SWM_S_SS_APP, SWM_S_DIALOG_RATIO, SWM_S_BAR_AT_BOTTOM
+	  SWM_S_SS_APP, SWM_S_DIALOG_RATIO, SWM_S_BAR_AT_BOTTOM,
+	  SWM_S_VERBOSE_LAYOUT
 	};
 
 int
 setconfvalue(char *selector, char *value, int flags)
 {
+	int i;
 	switch (flags) {
 	case SWM_S_BAR_DELAY:
 		bar_delay = atoi(value);
@@ -4483,6 +4529,15 @@ setconfvalue(char *selector, char *value, int flags)
 		if (dialog_ratio > 1.0 || dialog_ratio <= .3)
 			dialog_ratio = .6;
 		break;
+	case SWM_S_VERBOSE_LAYOUT:
+		verbose_layout = atoi(value);
+		for (i=0; layouts[i].l_stack != NULL; i++) {
+			if (verbose_layout)
+				layouts[i].l_string = fancy_stacker;
+			else
+				layouts[i].l_string = plain_stacker;
+		}
+		break;
 	default:
 		return (1);
 	}
@@ -4524,8 +4579,9 @@ setautorun(char *selector, char *value, int flags)
 {
 	int			ws_id;
 	char			s[1024];
+	char			*ap, *sp = s;
 	union arg		a;
-	char			*real_args[] = { NULL, NULL };
+	int			argc = 0;
 	long			pid;
 	struct pid_e		*p;
 
@@ -4533,11 +4589,11 @@ setautorun(char *selector, char *value, int flags)
 		return (0);
 
 	bzero(s, sizeof s);
-	if (sscanf(value, "ws[%d]:%1023s", &ws_id, s) != 2)
-		errx(1, "invalid autorun entry, should be 'ws:command'\n");
+	if (sscanf(value, "ws[%d]:%1023c", &ws_id, s) != 2)
+		errx(1, "invalid autorun entry, should be 'ws[<idx>]:command'\n");
 	ws_id--;
 	if (ws_id < 0 || ws_id >= SWM_WS_MAX)
-		errx(1, "invalid workspace %d\n", ws_id + 1);
+		errx(1, "autorun: invalid workspace %d\n", ws_id + 1);
 
 	/*
 	 * This is a little intricate
@@ -4546,13 +4602,27 @@ setautorun(char *selector, char *value, int flags)
 	 * used before AND not claimed by manage_window.  We get away with
 	 * altering it in the parent after INSERT because this can not be a race
 	 */
-	real_args[0] = s;
-	a.argv = real_args; /* XXX this sucks and should have args for real */
+	a.argv = NULL;
+	while ((ap = strsep(&sp, " \t")) != NULL) {
+		if (*ap == '\0')
+			continue;
+		DNPRINTF(SWM_D_SPAWN, "setautorun: arg [%s]\n", ap);
+		argc++;
+		if ((a.argv = realloc(a.argv, argc * sizeof(char *))) == NULL)
+			err(1, "setautorun: realloc");
+		a.argv[argc - 1] = ap;
+	}
+
+	if ((a.argv = realloc(a.argv, (argc + 1) * sizeof(char *))) == NULL)
+		err(1, "setautorun: realloc");
+	a.argv[argc] = NULL;
+
 	if ((pid = fork()) == 0) {
 		spawn(ws_id, &a, 1);
 		/* NOTREACHED */
 		_exit(1);
 	}
+	free(a.argv);
 
 	/* parent */
 	p = find_pid(pid);
@@ -4569,11 +4639,76 @@ setautorun(char *selector, char *value, int flags)
 	return (0);
 }
 
+int
+setlayout(char *selector, char *value, int flags)
+{
+	int			ws_id, st, i, x, mg, ma, si, raise;
+	char			s[1024];
+	struct workspace	*ws;
+
+	if (getenv("SWM_STARTED"))
+		return (0);
+
+	bzero(s, sizeof s);
+	if (sscanf(value, "ws[%d]:%d:%d:%d:%d:%1023c",
+	    &ws_id, &mg, &ma, &si, &raise, s) != 6)
+		errx(1, "invalid layout entry, should be 'ws[<idx>]:"
+		    "<master_grow>:<master_add>:<stack_inc>:<always_raise>:"
+		    "<type>'\n");
+	ws_id--;
+	if (ws_id < 0 || ws_id >= SWM_WS_MAX)
+		errx(1, "layout: invalid workspace %d\n", ws_id + 1);
+
+	if (!strcasecmp(s, "vertical"))
+		st = SWM_V_STACK;
+	else if (!strcasecmp(s, "horizontal"))
+		st = SWM_H_STACK;
+	else if (!strcasecmp(s, "fullscreen"))
+		st = SWM_MAX_STACK;
+	else
+		errx(1, "invalid layout entry, should be 'ws[<idx>]:"
+		    "<master_grow>:<master_add>:<stack_inc>:<always_raise>:"
+		    "<type>'\n");
+
+	for (i = 0; i < ScreenCount(display); i++) {
+		ws = (struct workspace *)&screens[i].ws;
+		ws[ws_id].cur_layout = &layouts[st];
+
+		ws[ws_id].always_raise = raise;
+		if (st == SWM_MAX_STACK)
+			continue;
+
+		/* master grow */
+		for (x = 0; x < abs(mg); x++) {
+			ws[ws_id].cur_layout->l_config(&ws[ws_id],
+			    mg >= 0 ?  SWM_ARG_ID_MASTERGROW :
+			    SWM_ARG_ID_MASTERSHRINK);
+			stack();
+		}
+		/* master add */
+		for (x = 0; x < abs(ma); x++) {
+			ws[ws_id].cur_layout->l_config(&ws[ws_id],
+			    ma >= 0 ?  SWM_ARG_ID_MASTERADD :
+			    SWM_ARG_ID_MASTERDEL);
+			stack();
+		}
+		/* stack inc */
+		for (x = 0; x < abs(si); x++) {
+			ws[ws_id].cur_layout->l_config(&ws[ws_id],
+			    si >= 0 ?  SWM_ARG_ID_STACKINC :
+			    SWM_ARG_ID_STACKDEC);
+			stack();
+		}
+	}
+
+	return (0);
+}
+
 /* config options */
 struct config_option {
 	char			*optname;
-	int (*func)(char*, char*, int);
-	int funcflags;
+	int			(*func)(char*, char*, int);
+	int			funcflags;
 };
 struct config_option configopt[] = {
 	{ "bar_enabled",		setconfvalue,	SWM_S_BAR_ENABLED },
@@ -4594,6 +4729,7 @@ struct config_option configopt[] = {
 	{ "cycle_empty",		setconfvalue,	SWM_S_CYCLE_EMPTY },
 	{ "cycle_visible",		setconfvalue,	SWM_S_CYCLE_VISIBLE },
 	{ "dialog_ratio",		setconfvalue,	SWM_S_DIALOG_RATIO },
+	{ "verbose_layout",		setconfvalue,	SWM_S_VERBOSE_LAYOUT },
 	{ "modkey",			setconfmodkey,	0 },
 	{ "program",			setconfspawn,	0 },
 	{ "quirk",			setconfquirk,	0 },
@@ -4609,6 +4745,7 @@ struct config_option configopt[] = {
 	{ "disable_border",		setconfvalue,	SWM_S_DISABLE_BORDER },
 	{ "border_width",		setconfvalue,	SWM_S_BORDER_WIDTH },
 	{ "autorun",			setautorun,	0 },
+	{ "layout",			setlayout,	0 },
 };
 
 
@@ -5884,6 +6021,7 @@ setup_screens(void)
 					layouts[k].l_config(ws,
 					    SWM_ARG_ID_STACKINIT);
 			ws->cur_layout = &layouts[0];
+			ws->cur_layout->l_string(ws);
 		}
 
 		scan_xrandr(i);
