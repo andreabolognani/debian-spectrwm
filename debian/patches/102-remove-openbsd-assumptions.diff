@@ -11,8 +11,8 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2010-07-21
 Index: scrotwm.git/baraction.sh
 ===================================================================
---- scrotwm.git.orig/baraction.sh	2011-09-13 20:24:00.408118264 +0200
-+++ scrotwm.git/baraction.sh	2011-09-13 20:24:11.884287997 +0200
+--- scrotwm.git.orig/baraction.sh	2011-09-13 20:25:29.449435199 +0200
++++ scrotwm.git/baraction.sh	2011-09-13 20:25:50.237742663 +0200
 @@ -2,9 +2,9 @@
  #
  # $scrotwm: baraction.sh,v 1.18 2011/07/18 16:19:29 marco Exp $
@@ -31,7 +31,7 @@ Index: scrotwm.git/baraction.sh
  
  print_mem() {
 -	MEM=`${TOP} | grep Free: | cut -d " " -f6`
-+	MEM=`${TOP} | grep '^Mem:' | cut -d ' ' -f 11`
++	MEM=`${TOP} | grep '^Mem:' | sed 's/[^0-9,k]//g' | cut -d ',' -f 3`
  	echo -n "Free mem: $MEM  "
  }
  
