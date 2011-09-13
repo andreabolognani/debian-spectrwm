@@ -11,11 +11,11 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2010-07-21
 Index: scrotwm.git/baraction.sh
 ===================================================================
---- scrotwm.git.orig/baraction.sh	2010-07-21 18:22:22.235816084 +0200
-+++ scrotwm.git/baraction.sh	2010-07-21 18:28:12.519816695 +0200
+--- scrotwm.git.orig/baraction.sh	2011-09-13 19:44:21.000000000 +0200
++++ scrotwm.git/baraction.sh	2011-09-13 19:49:55.755180690 +0200
 @@ -2,9 +2,9 @@
  #
- # $scrotwm: baraction.sh,v 1.17 2010/07/01 19:49:37 marco Exp $
+ # $scrotwm: baraction.sh,v 1.18 2011/07/18 16:19:29 marco Exp $
  
 -APM="/usr/sbin/apm -alb"
 -IOSTAT="/usr/sbin/iostat -c -C 3600"   # wish infinity was an option
@@ -30,8 +30,8 @@ Index: scrotwm.git/baraction.sh
  }
  
  print_mem() {
--	MEM=`${TOP} | grep Free: | cut -d " " -f7`
-+	MEM=`${TOP} | grep '^Mem:' | cut -d ' ' -f 14`
+-	MEM=`${TOP} | grep Free: | cut -d " " -f6`
++	MEM=`${TOP} | grep '^Mem:' | cut -d ' ' -f 11`
  	echo -n "Free mem: $MEM  "
  }
  
