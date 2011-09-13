@@ -11,8 +11,8 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2010-07-21
 Index: scrotwm.git/baraction.sh
 ===================================================================
---- scrotwm.git.orig/baraction.sh	2011-09-13 19:44:21.000000000 +0200
-+++ scrotwm.git/baraction.sh	2011-09-13 19:49:55.755180690 +0200
+--- scrotwm.git.orig/baraction.sh	2011-09-13 20:24:00.408118264 +0200
++++ scrotwm.git/baraction.sh	2011-09-13 20:24:11.884287997 +0200
 @@ -2,9 +2,9 @@
  #
  # $scrotwm: baraction.sh,v 1.18 2011/07/18 16:19:29 marco Exp $
@@ -26,7 +26,7 @@ Index: scrotwm.git/baraction.sh
  
  print_date() {
  	# The date is printed to the status bar by default.
-@@ -16,78 +16,47 @@
+@@ -16,78 +16,48 @@
  }
  
  print_mem() {
@@ -119,6 +119,7 @@ Index: scrotwm.git/baraction.sh
 +		FULL="(battery unknown)"
 +		;;
 +	esac;
++	echo -n "${FULL}"
  }
  
  while :; do
@@ -128,7 +129,7 @@ Index: scrotwm.git/baraction.sh
  	I=0
  	${IOSTAT} 2>&1 |
  	while read IOSTAT_DATA; do
-@@ -96,14 +65,13 @@
+@@ -96,14 +66,13 @@
  			trap "kill $PID; exit" TERM
  		fi
  		if [ $(( ${I} % 10 )) -eq 0 ]; then
