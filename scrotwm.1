@@ -1,4 +1,4 @@
-.\"	$scrotwm: scrotwm.1,v 1.49 2011/07/19 21:28:15 marco Exp $
+.\"	$scrotwm: scrotwm.1,v 1.51 2011/08/08 22:41:51 marco Exp $
 .\"
 .\" Copyright (c) 2009 Marco Peereboom <marco@peereboom.us>
 .\" Copyright (c) 2009 Darrin Chandler <dwchandler@stilyagin.com>
@@ -15,7 +15,7 @@
 .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 .\"
-.Dd $Mdocdate: July 19 2011 $
+.Dd $Mdocdate: August 8 2011 $
 .Dt SCROTWM 1
 .Os
 .Sh NAME
@@ -177,6 +177,13 @@ Enable by setting to 1
 .It Cm title_name_enabled
 Enable or disable displaying the window title in the status bar.
 Enable by setting to 1
+.It Cm urgent_enabled
+Enable or disable the urgency hint.
+Note that many terminal emulators require this to be enabled for it to
+propagate.  In xterm, for example, one needs to add the following line
+.Pa xterm.urgentOnBell: true
+to
+.Pa .Xdefaults .
 .It Cm window_name_enabled
 Enable or disable displaying the window name in the status bar.
 Enable by setting to 1
@@ -398,7 +405,9 @@ iconify
 .It Cm M-S-w
 uniconify
 .It Cm M-S-r
-toggle always_raised
+always_raise
+.It Cm M-v
+button2
 .El
 .Pp
 The action names and descriptions are listed below:
@@ -506,6 +515,8 @@ Minimize (unmap) currently focused window.
 Maximize (map) window returned by dmenu selection.
 .It Cm always_raise
 When set tiled windows are allowed to obscure floating windows.
+.It Cm button2
+Fake a middle mouse button click (mouse button 2).
 .El
 .Pp
 Custom bindings in the configuration file are specified as follows:

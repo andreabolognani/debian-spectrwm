@@ -1,4 +1,4 @@
-/* $scrotwm: scrotwm.c,v 1.351 2011/08/02 13:22:34 marco Exp $ */
+/* $scrotwm: scrotwm.c,v 1.356 2011/08/13 20:26:02 marco Exp $ */
 /*
  * Copyright (c) 2009-2010-2011 Marco Peereboom <marco@peereboom.us>
  * Copyright (c) 2009-2010-2011 Ryan McBride <mcbride@countersiege.com>
@@ -53,9 +53,9 @@
  */
 
 static const char	*cvstag =
-    "$scrotwm: scrotwm.c,v 1.351 2011/08/02 13:22:34 marco Exp $";
+    "$scrotwm: scrotwm.c,v 1.356 2011/08/13 20:26:02 marco Exp $";
 
-#define	SWM_VERSION	"0.9.33"
+#define	SWM_VERSION	"0.9.34"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -87,6 +87,7 @@ static const char	*cvstag =
 #include <X11/Xproto.h>
 #include <X11/Xutil.h>
 #include <X11/extensions/Xrandr.h>
+#include <X11/extensions/XTest.h>
 
 #ifdef __OSX__
 #include <osx.h>
@@ -220,6 +221,7 @@ int			bar_verbose = 1;
 int			bar_height = 0;
 int			stack_enabled = 1;
 int			clock_enabled = 1;
+int			urgent_enabled = 0;
 char			*clock_format = NULL;
 int			title_name_enabled = 0;
 int			title_class_enabled = 0;
@@ -329,10 +331,10 @@ struct layout {
 	void		(*l_string)(struct workspace *);
 } layouts[] =  {
 	/* stack,		configure */
-	{ vertical_stack,	vertical_config,	0,	fancy_stacker },
-	{ horizontal_stack,	horizontal_config,	0,	fancy_stacker },
+	{ vertical_stack,	vertical_config,	0,	plain_stacker },
+	{ horizontal_stack,	horizontal_config,	0,	plain_stacker },
 	{ max_stack,		NULL,
-	  SWM_L_MAPONFOCUS | SWM_L_FOCUSPREV,			fancy_stacker },
+	  SWM_L_MAPONFOCUS | SWM_L_FOCUSPREV,			plain_stacker },
 	{ NULL,			NULL,			0,	NULL  },
 };
 
@@ -1261,6 +1263,44 @@ bar_window_name(char *s, ssize_t sz, struct ws_win *cur_focus)
 	}
 }
 
+int		urgent[SWM_WS_MAX];
+void
+bar_urgent(char *s, ssize_t sz)
+{
+	XWMHints		*wmh = NULL;
+	struct ws_win		*win;
+	int			i, j;
+	char			b[8];
+
+	if (urgent_enabled == 0)
+		return;
+
+	for (i = 0; i < SWM_WS_MAX; i++)
+		urgent[i] = 0;
+
+	for (i = 0; i < ScreenCount(display); i++)
+		for (j = 0; j < SWM_WS_MAX; j++)
+			TAILQ_FOREACH(win, &screens[i].ws[j].winlist, entry) {
+				wmh = XGetWMHints(display, win->id);
+				if (wmh == NULL)
+					continue;
+
+				if (wmh->flags & XUrgencyHint)
+					urgent[j] = 1;
+				XFree(wmh);
+			}
+
+	strlcat(s, "* ", sz);
+	for (i = 0; i < SWM_WS_MAX; i++) {
+		if (urgent[i])
+			snprintf(b, sizeof b, "%d ", i + 1);
+		else
+			snprintf(b, sizeof b, "- ");
+		strlcat(s, b, sz);
+	}
+	strlcat(s, "*    ", sz);
+}
+
 void
 bar_update(void)
 {
@@ -1305,6 +1345,7 @@ bar_update(void)
 		TAILQ_FOREACH(r, &screens[i].rl, entry) {
 			strlcpy(cn, "", sizeof cn);
 			if (r && r->ws) {
+				bar_urgent(cn, sizeof cn);
 				bar_class_name(cn, sizeof cn, r->ws->focus);
 				bar_window_name(cn, sizeof cn, r->ws->focus);
 			}
@@ -3028,6 +3069,13 @@ send_to_ws(struct swm_region *r, union arg *args)
 }
 
 void
+pressbutton(struct swm_region *r, union arg *args)
+{
+	XTestFakeButtonEvent(display, args->id, True, CurrentTime);
+	XTestFakeButtonEvent(display, args->id, False, CurrentTime);
+}
+
+void
 raise_toggle(struct swm_region *r, union arg *args)
 {
 	if (r && r->ws == NULL)
@@ -3526,6 +3574,7 @@ enum keyfuncid {
 	kf_iconify,
 	kf_uniconify,
 	kf_raise_toggle,
+	kf_button2,
 	kf_dumpwins, /* MUST BE LAST */
 	kf_invalid
 };
@@ -3603,6 +3652,7 @@ struct keyfunc {
 	{ "iconify",		iconify,	{0} },
 	{ "uniconify",		uniconify,	{0} },
 	{ "raise_toggle",	raise_toggle,	{0} },
+	{ "button2",		pressbutton,	{2} },
 	{ "dumpwins",		dumpwins,	{0} }, /* MUST BE LAST */
 	{ "invalid key func",	NULL,		{0} },
 };
@@ -4195,6 +4245,7 @@ setup_keys(void)
 	setkeybinding(MODKEY,		XK_w,		kf_iconify,	NULL);
 	setkeybinding(MODKEY|ShiftMask,	XK_w,		kf_uniconify,	NULL);
 	setkeybinding(MODKEY|ShiftMask,	XK_r,		kf_raise_toggle,NULL);
+	setkeybinding(MODKEY,		XK_v,		kf_button2,	NULL);
 #ifdef SWM_DEBUG
 	setkeybinding(MODKEY|ShiftMask,	XK_d,		kf_dumpwins,	NULL);
 #endif
@@ -4433,7 +4484,7 @@ enum	{ SWM_S_BAR_DELAY, SWM_S_BAR_ENABLED, SWM_S_BAR_BORDER_WIDTH,
 	  SWM_S_STACK_ENABLED, SWM_S_CLOCK_ENABLED, SWM_S_CLOCK_FORMAT,
 	  SWM_S_CYCLE_EMPTY, SWM_S_CYCLE_VISIBLE, SWM_S_SS_ENABLED,
 	  SWM_S_TERM_WIDTH, SWM_S_TITLE_CLASS_ENABLED,
-	  SWM_S_TITLE_NAME_ENABLED, SWM_S_WINDOW_NAME_ENABLED,
+	  SWM_S_TITLE_NAME_ENABLED, SWM_S_WINDOW_NAME_ENABLED, SWM_S_URGENT_ENABLED,
 	  SWM_S_FOCUS_MODE, SWM_S_DISABLE_BORDER, SWM_S_BORDER_WIDTH,
 	  SWM_S_BAR_FONT, SWM_S_BAR_ACTION, SWM_S_SPAWN_TERM,
 	  SWM_S_SS_APP, SWM_S_DIALOG_RATIO, SWM_S_BAR_AT_BOTTOM,
@@ -4491,6 +4542,9 @@ setconfvalue(char *selector, char *value, int flags)
 	case SWM_S_TITLE_NAME_ENABLED:
 		title_name_enabled = atoi(value);
 		break;
+	case SWM_S_URGENT_ENABLED:
+		urgent_enabled = atoi(value);
+		break;
 	case SWM_S_FOCUS_MODE:
 		if (!strcmp(value, "default"))
 			focus_mode = SWM_FOCUS_DEFAULT;
@@ -4531,7 +4585,7 @@ setconfvalue(char *selector, char *value, int flags)
 		break;
 	case SWM_S_VERBOSE_LAYOUT:
 		verbose_layout = atoi(value);
-		for (i=0; layouts[i].l_stack != NULL; i++) {
+		for (i = 0; layouts[i].l_stack != NULL; i++) {
 			if (verbose_layout)
 				layouts[i].l_string = fancy_stacker;
 			else
@@ -4738,6 +4792,7 @@ struct config_option configopt[] = {
 	{ "screenshot_enabled",		setconfvalue,	SWM_S_SS_ENABLED },
 	{ "screenshot_app",		setconfvalue,	SWM_S_SS_APP },
 	{ "window_name_enabled",	setconfvalue,	SWM_S_WINDOW_NAME_ENABLED },
+	{ "urgent_enabled",		setconfvalue,	SWM_S_URGENT_ENABLED },
 	{ "term_width",			setconfvalue,	SWM_S_TERM_WIDTH },
 	{ "title_class_enabled",	setconfvalue,	SWM_S_TITLE_CLASS_ENABLED },
 	{ "title_name_enabled",		setconfvalue,	SWM_S_TITLE_NAME_ENABLED },
@@ -6155,7 +6210,6 @@ main(int argc, char *argv[])
 	setup_ewmh();
 	/* set some values to work around bad programs */
 	workaround();
-
 	/* grab existing windows (before we build the bars) */
 	grab_windows();
 
