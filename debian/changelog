@@ -5,6 +5,7 @@ scrotwm (0.9.33-1) unstable; urgency=low
   * Drop .desktop file, it is now shipped upstream.
   * Update watch file to reflect new snapshot location.
   * Recommend suckless-tools, which replaces dwm-tools.
+  * Add Depends: on libxtst-dev.
   * Update Debian copyright file to DEP5 candidate version.
   * Bump Standards-Version to 3.9.2 (no changes needed).
 
