@@ -1,8 +1,8 @@
-# $scrotwm: Makefile,v 1.5 2010/09/16 02:00:51 marco Exp $ 
+# $scrotwm: Makefile,v 1.6 2011/08/10 13:44:36 marco Exp $ 
 
 CFLAGS+= -Wall -ggdb -D_GNU_SOURCE -I.
 CFLAGS+= -DSWM_LIB=\"$(LIBDIR)/libswmhack.so.$(LVERS)\"
-LDADD+= -lX11 -lXrandr
+LDADD+= -lX11 -lXrandr -lXtst
 
 PREFIX?= /usr/local
 BINDIR?= $(PREFIX)/bin
