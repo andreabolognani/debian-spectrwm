@@ -1,12 +1,14 @@
 scrotwm (0.9.34-1) unstable; urgency=low
 
   * New upstream release.
-  * Install Portuguese man page.
   * 002-improve-man-page.diff:
     - improve English man page. Closes: #531844 (please allow one
       workspace to span multiple monitors).
   * 003-update-italian-man-page.diff:
     - bring Italian man page up-to-date.
+  * Add README.Debian file. Closes: #552647 (suggest or recommend
+    acpi and iostat).
+  * Install Portuguese man page.
   * Drop .desktop file, it is now shipped upstream.
   * Update watch file to reflect new snapshot location.
   * Recommend suckless-tools, which replaces dwm-tools.
@@ -14,7 +16,7 @@ scrotwm (0.9.34-1) unstable; urgency=low
   * Update Debian copyright file to DEP5 candidate version.
   * Bump Standards-Version to 3.9.2 (no changes needed).
 
- -- Andrea Bolognani <eof@kiyuko.org>  Wed, 14 Sep 2011 15:46:07 +0200
+ -- Andrea Bolognani <eof@kiyuko.org>  Thu, 15 Sep 2011 15:59:17 +0200
 
 scrotwm (0.9.20-1) unstable; urgency=low
 
