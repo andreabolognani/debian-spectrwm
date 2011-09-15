@@ -5,6 +5,8 @@ scrotwm (0.9.34-1) unstable; urgency=low
   * 002-improve-man-page.diff:
     - improve English man page. Closes: #531844 (please allow one
       workspace to span multiple monitors).
+  * 003-update-italian-man-page.diff:
+    - bring Italian man page up-to-date.
   * Drop .desktop file, it is now shipped upstream.
   * Update watch file to reflect new snapshot location.
   * Recommend suckless-tools, which replaces dwm-tools.

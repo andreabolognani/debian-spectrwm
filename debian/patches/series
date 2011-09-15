@@ -1,5 +1,6 @@
 001-remove-bash-assumptions.diff
 002-improve-man-page.diff
+003-update-italian-man-page.diff
 101-use-x-terminal-emulator-instead-of-xterm.diff
 102-remove-openbsd-assumptions.diff
 103-try-versioned-dlopen.diff
