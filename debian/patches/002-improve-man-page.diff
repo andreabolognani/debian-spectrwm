@@ -10,8 +10,8 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2011-09-15
 Index: scrotwm.git/scrotwm.1
 ===================================================================
---- scrotwm.git.orig/scrotwm.1	2011-09-15 14:00:49.833333586 +0200
-+++ scrotwm.git/scrotwm.1	2011-09-15 14:07:07.626486013 +0200
+--- scrotwm.git.orig/scrotwm.1	2011-09-15 14:53:28.814635688 +0200
++++ scrotwm.git/scrotwm.1	2011-09-15 15:11:30.857392812 +0200
 @@ -81,8 +81,8 @@
  .Bl -tag -width "title_class_enabledXXX" -offset indent -compact
  .It Cm autorun
@@ -261,7 +261,7 @@ Index: scrotwm.git/scrotwm.1
  .It Cm iconify
  Minimize (unmap) currently focused window.
  .It Cm uniconify
-@@ -652,26 +660,37 @@
+@@ -652,47 +660,62 @@
  itself from external scripts and programs. This is achieved by 
  .Nm
  responding to certain ClientMessage events. From the terminal these events 
@@ -281,8 +281,10 @@ Index: scrotwm.git/scrotwm.1
 +and
 +.Xr grep 1 :
  .Bd -literal -offset indent
- $ WINDOWID=`xprop -root _NET_ACTIVE_WINDOW | grep -o "0x.*"`
- $ xprop -id $WINDOWID WM_NAME | grep -o "\\".*\\""
+-$ WINDOWID=`xprop -root _NET_ACTIVE_WINDOW | grep -o "0x.*"`
+-$ xprop -id $WINDOWID WM_NAME | grep -o "\\".*\\""
++$ WINDOWID=`xprop \-root _NET_ACTIVE_WINDOW | grep \-o "0x.*"`
++$ xprop \-id $WINDOWID WM_NAME | grep \-o "\\".*\\""
  .Ed
  .Pp
  A window can be focused by sending a _NET_ACTIVE_WINDOW client message 
@@ -292,7 +294,8 @@ Index: scrotwm.git/scrotwm.1
 +to send the message
  (assuming 0x4a0000b is the id of the window to be focused):
  .Bd -literal -offset indent
- $ wmctrl -i -a 0x4a0000b
+-$ wmctrl -i -a 0x4a0000b
++$ wmctrl \-i \-a 0x4a0000b
  .Ed
  .Pp
  Windows can be closed by sending a _NET_CLOSE_WINDOW client message 
@@ -302,8 +305,11 @@ Index: scrotwm.git/scrotwm.1
 +to send the message
  (assuming 0x4a0000b is the id of the window to be closed):
  .Bd -literal -offset indent
- $ wmctrl -i -c 0x4a0000b
-@@ -681,15 +700,19 @@
+-$ wmctrl -i -c 0x4a0000b
++$ wmctrl \-i \-c 0x4a0000b
+ .Ed
+ .Pp
+ Windows can be floated and un-floated by adding or removing the 
  _NET_WM_STATE_ABOVE atom from the _NET_WM_STATE property of the window. 
  This can be achieved by sending a _NET_WM_STATE client message to the 
  root window. For example, the following toggles the floating state of 
@@ -314,7 +320,8 @@ Index: scrotwm.git/scrotwm.1
 +to send the message (assuming 0x4a0000b is the  id of the window floated
 +or un-floated):
  .Bd -literal -offset indent
- $ wmctrl -i -r 0x4a0000b -b toggle,_NET_WM_STATE_ABOVE
+-$ wmctrl -i -r 0x4a0000b -b toggle,_NET_WM_STATE_ABOVE
++$ wmctrl \-i \-r 0x4a0000b \-b toggle,_NET_WM_STATE_ABOVE
  .Ed
  .Pp
  Floating windows can also be resized and moved by sending a 
@@ -325,4 +332,8 @@ Index: scrotwm.git/scrotwm.1
 +to send the message (assuming 0x4a0000b is the id of
  the window to be resize/moved):
  .Bd -literal -offset indent
- $ wmctrl -i -r 0x4a0000b -e 0,100,50,640,480
+-$ wmctrl -i -r 0x4a0000b -e 0,100,50,640,480
++$ wmctrl \-i \-r 0x4a0000b \-e 0,100,50,640,480
+ .Ed
+ .Pp
+ This moves the window to (100,50) and resizes it to 640x480.
