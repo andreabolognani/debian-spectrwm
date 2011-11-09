@@ -1,4 +1,4 @@
-Format: http://dep.debian.net/deps/dep5/
+Format: http://anonscm.debian.org/viewvc/dep/web/deps/dep5.mdwn?revision=202
 Upstream-Name: Scrotwm
 Upstream-Contact: Marco Peereboom <marco@peereboom.us>
 Source: http://opensource.conformal.com/wiki/Scrotwm
@@ -19,21 +19,21 @@ Copyright: 2009-2011, Marco Peereboom <marco@peereboom.us>
            2007-2008, Enno Gottox Boland <gottox@s01.de>
            2007-2008, Peter Hartlich <sgkkr@hartlich.com>
            2008, Martin Hurton <martin.hurton@gmail.com>
-License: ISC and MIT
+License: ISC and Expat
 
 Files: lib/swm_hack.c
 Copyright: 2009, Marco Peereboom <marco@peereboom.us>
            2009, Ryan McBride <mcbride@countersiege.com>
            2005-2007, Carsten Haitzler
            2006-2007, Kim Woelders
-License: ISC and MIT
+License: ISC and Expat
 
 Files: linux/linux.c
 Copyright: 1998, Todd C. Miller <todd.miller@courtesan.com>
            1998, The NetBSD Foundation, Inc.
            1997, Christos Zoulas
            2004, Ted Unangst and Todd Miller
-License: MIT and BSD-BY-LC-NE and BSD-BY-LC-NE-AD
+License: Expat and BSD-3-clause and BSD-4-clause
 
 Files: debian/*
 Copyright: 2009-2011, Andrea Bolognani <eof@kiyuko.org>
@@ -53,7 +53,7 @@ License: ISC
  ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-License: MIT
+License: Expat
  Permission is hereby granted, free of charge, to any person obtaining a
  copy of this software and associated documentation files (the "Software"),
  to deal in the Software without restriction, including without limitation
@@ -72,7 +72,7 @@ License: MIT
  FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
  DEALINGS IN THE SOFTWARE.
 
-License: BSD-BY-LC-NE
+License: BSD-3-clause
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions
  are met:
@@ -91,8 +91,13 @@ License: BSD-BY-LC-NE
  PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE FOUNDATION OR CONTRIBUTORS
  BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
  CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ POSSIBILITY OF SUCH DAMAGE.
 
-License: BSD-BY-LC-NE-AD
+License: BSD-4-clause
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions
  are met:
