@@ -8,17 +8,17 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2011-11-11
 Index: scrotwm.git/linux/Makefile
 ===================================================================
---- scrotwm.git.orig/linux/Makefile	2011-11-11 00:04:44.299682303 +0100
-+++ scrotwm.git/linux/Makefile	2011-11-11 00:05:34.374180835 +0100
+--- scrotwm.git.orig/linux/Makefile	2011-11-11 00:12:23.898735506 +0100
++++ scrotwm.git/linux/Makefile	2011-11-11 00:12:37.538181081 +0100
 @@ -1,8 +1,8 @@
  # $scrotwm: Makefile,v 1.6 2011/08/10 13:44:36 marco Exp $ 
  
 -CFLAGS+= -Wall -ggdb -I.
 -CPPFLAGS+= -D_GNU_SOURCE -DSWM_LIB=\"$(LIBDIR)/libswmhack.so.$(LVERS)\"
 -LIBS+= -lX11 -lXrandr -lXtst
-+CFLAGS= -Wall -ggdb -I. $(CFLAGS)
-+CPPFLAGS= -D_GNU_SOURCE -DSWM_LIB=\"$(LIBDIR)/libswmhack.so.$(LVERS)\" $(CPPFLAGS)
-+LIBS= -lX11 -lXrandr -lXtst $(LIBS)
++CFLAGS:= -Wall -ggdb -I. $(CFLAGS)
++CPPFLAGS:= -D_GNU_SOURCE -DSWM_LIB=\"$(LIBDIR)/libswmhack.so.$(LVERS)\" $(CPPFLAGS)
++LIBS:= -lX11 -lXrandr -lXtst $(LIBS)
  
  PREFIX?= /usr/local
  BINDIR?= $(PREFIX)/bin
