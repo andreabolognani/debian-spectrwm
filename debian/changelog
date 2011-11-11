@@ -13,10 +13,11 @@ scrotwm (0.9.34-1) unstable; urgency=low
   * Update watch file to reflect new snapshot location.
   * Recommend suckless-tools, which replaces dwm-tools.
   * Add Depends: on libxtst-dev.
+  * Use hardening build flags, as provided by dpkg-buildflags.
   * Update Debian copyright file to DEP5 candidate version.
   * Bump Standards-Version to 3.9.2 (no changes needed).
 
- -- Andrea Bolognani <eof@kiyuko.org>  Thu, 15 Sep 2011 15:59:17 +0200
+ -- Andrea Bolognani <eof@kiyuko.org>  Fri, 11 Nov 2011 10:06:03 +0100
 
 scrotwm (0.9.20-1) unstable; urgency=low
 
