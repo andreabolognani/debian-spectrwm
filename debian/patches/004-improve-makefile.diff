@@ -6,9 +6,9 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2011-11-11
 Index: scrotwm.git/linux/Makefile
 ===================================================================
---- scrotwm.git.orig/linux/Makefile	2011-11-11 10:31:37.618058806 +0100
-+++ scrotwm.git/linux/Makefile	2011-11-11 10:31:50.224560311 +0100
-@@ -1,17 +1,15 @@
+--- scrotwm.git.orig/linux/Makefile	2011-11-11 10:32:01.262059605 +0100
++++ scrotwm.git/linux/Makefile	2011-11-11 10:44:10.215728507 +0100
+@@ -1,34 +1,35 @@
  # $scrotwm: Makefile,v 1.6 2011/08/10 13:44:36 marco Exp $ 
  
 -CFLAGS+= -Wall -ggdb -D_GNU_SOURCE -I.
@@ -35,20 +35,32 @@ Index: scrotwm.git/linux/Makefile
  
  all: scrotwm libswmhack.so.$(LVERS)
  
-@@ -22,13 +20,13 @@
- 	ln -sf ../lib/swm_hack.c
- 
- scrotwm: scrotwm.o linux.o
--	$(CC) $(LDFLAGS) -o $@ $+ $(LDADD)
+-scrotwm.c:
+-	ln -sf ../scrotwm.c
++scrotwm: scrotwm.o linux.o
 +	$(CC) $(MAINT_LDFLAGS) $(LDFLAGS) $+ -o $@ $(MAINT_LDLIBS) $(LDLIBS)
+ 
+-swm_hack.c:
+-	ln -sf ../lib/swm_hack.c
++libswmhack.so.$(LVERS): swm_hack.so
++	$(CC) $(MAINT_LDFLAGS) $(LDFLAGS) -shared -fpic $+ -o $@ $(MAINT_LDLIBS) $(LDLIBS)
+ 
+-scrotwm: scrotwm.o linux.o
+-	$(CC) $(LDFLAGS) -o $@ $+ $(LDADD)
++%.o: %.c
++	$(CC) $(MAINT_CFLAGS) $(CFLAGS) $(MAINT_CPPFLAGS) $(CPPFLAGS) -c $< -o $@
  
  %.so: %.c
 -	$(CC) $(CFLAGS) -c -fpic -DPIC $+ -o $@
-+	$(CC) $(MAINT_CFLAGS) $(CFLAGS) $(MAINT_CPPFLAGS) $(CPPFLAGS) -c -fpic -DPIC $+ -o $@
++	$(CC) $(MAINT_CFLAGS) $(CFLAGS) $(MAINT_CPPFLAGS) $(CPPFLAGS) -c -fpic -DPIC $< -o $@
  
- libswmhack.so.$(LVERS): swm_hack.so
+-libswmhack.so.$(LVERS): swm_hack.so
 -	$(CC) -shared -fpic -o libswmhack.so.$(LVERS) swm_hack.so $(LDADD)
-+	$(CC) $(MAINT_LDFLAGS) $(LDFLAGS) -shared -fpic $+ -o $@ $(MAINT_LDLIBS) $(LDLIBS)
++scrotwm.c:
++	ln -sf ../scrotwm.c
++
++swm_hack.c:
++	ln -sf ../lib/swm_hack.c
  
  install: all
  	install -m 755 -d $(DESTDIR)$(BINDIR)
