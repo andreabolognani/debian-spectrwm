@@ -1,4 +1,3 @@
-/* $scrotwm: swm_hack.c,v 1.3 2011/06/03 22:51:54 mcbride Exp $ */
 /*
  * Copyright (c) 2009 Marco Peereboom <marco@peereboom.us>
  * Copyright (c) 2009 Ryan McBride <mcbride@countersiege.com>
@@ -91,9 +90,8 @@ set_property(Display *dpy, Window id, char *name, char *val)
 {
 	Atom			atom = 0;
 	char			prop[SWM_PROPLEN];
-
-	static XIA         	*xia = NULL;
-	static XCP         	*xcp = NULL;
+	static XIA		*xia = NULL;
+	static XCP		*xcp = NULL;
 
 	/* find the real Xlib and the real X function */
 	if (!lib_xlib)
@@ -105,10 +103,10 @@ set_property(Display *dpy, Window id, char *name, char *val)
 
 	/* Try to update the window's workspace property */
 	atom = (*xia)(dpy, name, False);
-	if (atom) 
+	if (atom)
 		if (snprintf(prop, SWM_PROPLEN, "%s", val) < SWM_PROPLEN)
 			(*xcp)(dpy, id, atom, XA_STRING,
-			    8, PropModeReplace, prop, SWM_PROPLEN);
+			    8, PropModeReplace, (unsigned char *)prop, SWM_PROPLEN);
 }
 
 typedef             Window(CWF) (Display * _display, Window _parent, int _x,

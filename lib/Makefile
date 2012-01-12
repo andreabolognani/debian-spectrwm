@@ -1,5 +1,3 @@
-#	$scrotwm: Makefile,v 1.3 2009/10/02 19:23:48 marco Exp $
-
 .include <bsd.xconf.mk>
 
 PREFIX?=/usr/local
@@ -12,7 +10,7 @@ LIBDIR= ${X11BASE}/lib
 DEBUGLIBS= no
 NOPROFILE= yes
 
-CFLAGS+=-Wall -Wno-uninitialized -ggdb3
+CFLAGS+=-Wall -Wno-uninitialized -ggdb3 -fPIC
 CFLAGS+= -I${X11BASE}/include
 
 install:

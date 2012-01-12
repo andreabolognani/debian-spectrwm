@@ -1,6 +1,5 @@
 #!/bin/sh
 #
-# $scrotwm: baraction.sh,v 1.18 2011/07/18 16:19:29 marco Exp $
 
 print_date() {
 	# The date is printed to the status bar by default.
