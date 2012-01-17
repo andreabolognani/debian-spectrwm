@@ -1,3 +1,9 @@
+scrotwm (0.10.0-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Andrea Bolognani <eof@kiyuko.org>  Tue, 17 Jan 2012 22:28:06 +0100
+
 scrotwm (0.9.34-1) unstable; urgency=low
 
   * New upstream release.
