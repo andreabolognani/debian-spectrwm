@@ -11,11 +11,11 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2010-07-21
 Index: scrotwm.git/baraction.sh
 ===================================================================
---- scrotwm.git.orig/baraction.sh	2011-09-13 20:25:29.449435199 +0200
-+++ scrotwm.git/baraction.sh	2011-09-13 20:25:50.237742663 +0200
-@@ -2,9 +2,9 @@
+--- scrotwm.git.orig/baraction.sh	2012-01-12 22:29:04.170284596 +0100
++++ scrotwm.git/baraction.sh	2012-01-12 22:32:49.296772037 +0100
+@@ -1,9 +1,9 @@
+ #!/bin/sh
  #
- # $scrotwm: baraction.sh,v 1.18 2011/07/18 16:19:29 marco Exp $
  
 -APM="/usr/sbin/apm -alb"
 -IOSTAT="/usr/sbin/iostat -c -C 3600"   # wish infinity was an option
@@ -26,7 +26,7 @@ Index: scrotwm.git/baraction.sh
  
  print_date() {
  	# The date is printed to the status bar by default.
-@@ -16,78 +16,48 @@
+@@ -15,78 +15,48 @@
  }
  
  print_mem() {
@@ -129,7 +129,7 @@ Index: scrotwm.git/baraction.sh
  	I=0
  	${IOSTAT} 2>&1 |
  	while read IOSTAT_DATA; do
-@@ -96,14 +66,13 @@
+@@ -95,14 +65,13 @@
  			trap "kill $PID; exit" TERM
  		fi
  		if [ $(( ${I} % 10 )) -eq 0 ]; then

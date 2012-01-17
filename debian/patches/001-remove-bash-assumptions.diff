@@ -11,11 +11,11 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2010-07-21
 Index: scrotwm.git/baraction.sh
 ===================================================================
---- scrotwm.git.orig/baraction.sh	2011-09-12 18:31:47.000000000 +0200
-+++ scrotwm.git/baraction.sh	2011-09-12 18:39:33.857953866 +0200
-@@ -2,6 +2,10 @@
+--- scrotwm.git.orig/baraction.sh	2012-01-12 21:45:53.010435224 +0100
++++ scrotwm.git/baraction.sh	2012-01-12 21:56:09.988993318 +0100
+@@ -1,6 +1,10 @@
+ #!/bin/sh
  #
- # $scrotwm: baraction.sh,v 1.18 2011/07/18 16:19:29 marco Exp $
  
 +APM="/usr/sbin/apm -alb"
 +IOSTAT="/usr/sbin/iostat -c -C 3600"   # wish infinity was an option
@@ -24,7 +24,7 @@ Index: scrotwm.git/baraction.sh
  print_date() {
  	# The date is printed to the status bar by default.
  	# To print the date through this script, set clock_enabled to 0
-@@ -12,7 +16,7 @@
+@@ -11,7 +15,7 @@
  }
  
  print_mem() {
@@ -33,7 +33,7 @@ Index: scrotwm.git/baraction.sh
  	echo -n "Free mem: $MEM  "
  }
  
-@@ -84,19 +88,20 @@
+@@ -83,19 +87,20 @@
  while :; do
  	# instead of sleeping, use iostat as the update timer.
  	# cache the output of apm(8), no need to call that every second.

@@ -6,9 +6,9 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2009-09-23
 Index: scrotwm.git/scrotwm.conf
 ===================================================================
---- scrotwm.git.orig/scrotwm.conf	2011-09-14 15:26:37.668447822 +0200
-+++ scrotwm.git/scrotwm.conf	2011-09-14 15:26:47.084583887 +0200
-@@ -31,13 +31,13 @@
+--- scrotwm.git.orig/scrotwm.conf	2012-01-12 21:45:53.030435437 +0100
++++ scrotwm.git/scrotwm.conf	2012-01-12 22:32:43.860712017 +0100
+@@ -30,13 +30,13 @@
  #urgent_enabled		= 1
  
  # spawn app
@@ -26,9 +26,9 @@ Index: scrotwm.git/scrotwm.conf
  dialog_ratio		= 0.6
 Index: scrotwm.git/scrotwm.c
 ===================================================================
---- scrotwm.git.orig/scrotwm.c	2011-09-14 15:26:37.668447822 +0200
-+++ scrotwm.git/scrotwm.c	2011-09-14 15:26:47.088583945 +0200
-@@ -3974,7 +3974,7 @@
+--- scrotwm.git.orig/scrotwm.c	2012-01-12 21:45:53.030435437 +0100
++++ scrotwm.git/scrotwm.c	2012-01-12 22:32:43.864712061 +0100
+@@ -4464,7 +4464,7 @@
  void
  setup_spawn(void)
  {
@@ -37,7 +37,7 @@ Index: scrotwm.git/scrotwm.c
  	setconfspawn("screenshot_all",	"screenshot.sh full",	0);
  	setconfspawn("screenshot_wind",	"screenshot.sh window",	0);
  	setconfspawn("lock",		"xlock",		0);
-@@ -6099,7 +6099,7 @@
+@@ -6665,7 +6665,7 @@
  	if ((bar_fonts[2] = strdup("-misc-fixed-medium-r-*-*-*-*-*-*-*-*-*-*"))
  	    == NULL)
  		err(1, "setup_globals: strdup");
@@ -45,4 +45,4 @@ Index: scrotwm.git/scrotwm.c
 +	if ((spawn_term[0] = strdup("x-terminal-emulator")) == NULL)
  		err(1, "setup_globals: strdup");
  	if ((clock_format = strdup("%a %b %d %R %Z %Y")) == NULL)
- 		errx(1, "strdup");
+ 		err(1, "strdup");
