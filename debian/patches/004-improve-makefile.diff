@@ -10,8 +10,8 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2012-01-24
 Index: scrotwm.git/linux/Makefile
 ===================================================================
---- scrotwm.git.orig/linux/Makefile	2012-01-24 21:55:48.336881446 +0100
-+++ scrotwm.git/linux/Makefile	2012-01-24 21:58:22.014619861 +0100
+--- scrotwm.git.orig/linux/Makefile	2012-01-24 22:08:25.481433007 +0100
++++ scrotwm.git/linux/Makefile	2012-01-24 22:17:37.263533393 +0100
 @@ -1,47 +1,54 @@
 -CFLAGS+= -Wall -ggdb -D_GNU_SOURCE -I.
 -CFLAGS+= -DSWM_LIB=\"$(LIBDIR)/libswmhack.so.$(LVERS)\"
@@ -34,8 +34,8 @@ Index: scrotwm.git/linux/Makefile
 +
 +LVERS = $(shell . ../lib/shlib_version; echo $$major.$$minor)
 +
-+MAINT_CFLAGS   = -Wall -ggdb -I.
-+MAINT_CPPFLAGS = -D_GNU_SOURCE -DSWM_LIB=\"$(LIBDIR)/libswmhack.so.$(LVERS)\"
++MAINT_CFLAGS   = -Wall -ggdb
++MAINT_CPPFLAGS = -I. -D_GNU_SOURCE -DSWM_LIB=\"$(LIBDIR)/libswmhack.so.$(LVERS)\"
 +MAINT_LDLIBS   = -lX11 -lXrandr -lXtst
  
  all: scrotwm libswmhack.so.$(LVERS)
