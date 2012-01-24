@@ -1,14 +1,15 @@
-Description: Improve Makefile
+Description: Improve GNU/Linux Makefile
  Make sure to use all the build flags that can be expected in the
- environment, overriding the upstream build flags if necessary; split
- the build flags among the variables in the standard way.
+ environment, overriding the maintainer build flags if necessary;
+ split the build flags among the variables in the standard way;
+ correctly declare all dependencies; get rid of symlink hackery.
 Author: Andrea Bolognani <eof@kiyuko.org>
-Last-Update: 2011-11-11
+Last-Update: 2012-01-24
 Index: scrotwm.git/linux/Makefile
 ===================================================================
---- scrotwm.git.orig/linux/Makefile	2012-01-12 22:19:23.000000000 +0100
-+++ scrotwm.git/linux/Makefile	2012-01-12 22:32:28.136538392 +0100
-@@ -1,18 +1,28 @@
+--- scrotwm.git.orig/linux/Makefile	2012-01-24 18:36:46.619944323 +0100
++++ scrotwm.git/linux/Makefile	2012-01-24 19:12:20.313769565 +0100
+@@ -1,33 +1,30 @@
 -CFLAGS+= -Wall -ggdb -D_GNU_SOURCE -I.
 -CFLAGS+= -DSWM_LIB=\"$(LIBDIR)/libswmhack.so.$(LVERS)\"
 -LDADD+= -lX11 -lXrandr -lXtst
@@ -33,34 +34,39 @@ Index: scrotwm.git/linux/Makefile
  
  all: scrotwm libswmhack.so.$(LVERS)
  
-+scrotwm: scrotwm.o linux.o
-+	$(CC) $(MAINT_LDFLAGS) $(LDFLAGS) $+ -o $@ $(MAINT_LDLIBS) $(LDLIBS)
-+
-+libswmhack.so.$(LVERS): swm_hack.so
-+	$(CC) $(MAINT_LDFLAGS) $(LDFLAGS) -shared -fpic $+ -o $@ $(MAINT_LDLIBS) $(LDLIBS)
-+
-+%.o: %.c
-+	$(CC) $(MAINT_CFLAGS) $(CFLAGS) $(MAINT_CPPFLAGS) $(CPPFLAGS) -c $< -o $@
-+
-+%.so: %.c
-+	$(CC) $(MAINT_CFLAGS) $(CFLAGS) $(MAINT_CPPFLAGS) $(CPPFLAGS) -c -fpic -DPIC $< -o $@
-+
- scrotwm.c:
- 	ln -sf ../scrotwm.c
- 	ln -sf ../version.h
-@@ -20,15 +30,6 @@
- swm_hack.c:
- 	ln -sf ../lib/swm_hack.c
- 
--scrotwm: scrotwm.o linux.o
--	$(CC) $(LDFLAGS) -o $@ $+ $(LDADD)
+-scrotwm.c:
+-	ln -sf ../scrotwm.c
+-	ln -sf ../version.h
 -
+-swm_hack.c:
+-	ln -sf ../lib/swm_hack.c
+-
+ scrotwm: scrotwm.o linux.o
+-	$(CC) $(LDFLAGS) -o $@ $+ $(LDADD)
++	$(CC) $(MAINT_LDFLAGS) $(LDFLAGS) $+ -o $@ $(MAINT_LDLIBS) $(LDLIBS)
+ 
 -%.so: %.c
 -	$(CC) $(CFLAGS) -c -fpic -DPIC $+ -o $@
--
--libswmhack.so.$(LVERS): swm_hack.so
++scrotwm.o: ../scrotwm.c ../version.h
++	$(CC) $(MAINT_CFLAGS) $(CFLAGS) $(MAINT_CPPFLAGS) $(CPPFLAGS) -c $< -o $@
++
++linux.o: linux.c util.h
++	$(CC) $(MAINT_CFLAGS) $(CFLAGS) $(MAINT_CPPFLAGS) $(CPPFLAGS) -c $< -o $@
+ 
+ libswmhack.so.$(LVERS): swm_hack.so
 -	$(CC) -shared -fpic -o libswmhack.so.$(LVERS) swm_hack.so $(LDADD)
--
++	$(CC) $(MAINT_LDFLAGS) $(LDFLAGS) -shared -fpic $+ -o $@ $(MAINT_LDLIBS) $(LDLIBS)
++
++swm_hack.so: ../lib/swm_hack.c
++	$(CC) $(MAINT_CFLAGS) $(CFLAGS) $(MAINT_CPPFLAGS) $(CPPFLAGS) -c -fpic -DPIC $< -o $@
+ 
  install: all
  	install -m 755 -d $(DESTDIR)$(BINDIR)
- 	install -m 755 -d $(DESTDIR)$(LIBDIR)
+@@ -42,6 +39,6 @@
+ 	install -m 644 ../scrotwm_ru.1 $(DESTDIR)$(MANDIR)/man1/scrotwm_ru.1
+ 
+ clean:
+-	rm -f scrotwm *.o *.so libswmhack.so.* scrotwm.c swm_hack.c
++	rm -f scrotwm *.o libswmhack.so.* *.so
+ 
+ .PHONY: all install clean
