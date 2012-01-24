@@ -10,9 +10,9 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2012-01-24
 Index: scrotwm.git/linux/Makefile
 ===================================================================
---- scrotwm.git.orig/linux/Makefile	2012-01-24 22:08:25.481433007 +0100
-+++ scrotwm.git/linux/Makefile	2012-01-24 22:17:37.263533393 +0100
-@@ -1,47 +1,54 @@
+--- scrotwm.git.orig/linux/Makefile	2012-01-24 22:49:31.709553412 +0100
++++ scrotwm.git/linux/Makefile	2012-01-24 22:50:15.818056739 +0100
+@@ -1,47 +1,62 @@
 -CFLAGS+= -Wall -ggdb -D_GNU_SOURCE -I.
 -CFLAGS+= -DSWM_LIB=\"$(LIBDIR)/libswmhack.so.$(LVERS)\"
 -LDADD+= -lX11 -lXrandr -lXtst
@@ -65,12 +65,13 @@ Index: scrotwm.git/linux/Makefile
 +
 +swm_hack.so: ../lib/swm_hack.c
 +	$(CC) $(MAINT_CFLAGS) $(CFLAGS) $(MAINT_CPPFLAGS) $(CPPFLAGS) -c -fpic -DPIC $< -o $@
++
++clean:
++	rm -f scrotwm *.o libswmhack.so.* *.so
  
  install: all
  	install -m 755 -d $(DESTDIR)$(BINDIR)
  	install -m 755 -d $(DESTDIR)$(LIBDIR)
-+	install -m 755 -d $(DESTDIR)$(DATAROOTDIR)
-+	install -m 755 -d $(DESTDIR)$(MANDIR)
  	install -m 755 -d $(DESTDIR)$(MANDIR)/man1
 -	install -m 755 scrotwm $(DESTDIR)$(BINDIR)
 -	install -m 755 libswmhack.so.$(LVERS) $(DESTDIR)$(LIBDIR)
@@ -79,6 +80,9 @@ Index: scrotwm.git/linux/Makefile
 -	install -m 644 ../scrotwm_it.1 $(DESTDIR)$(MANDIR)/man1/scrotwm_it.1
 -	install -m 644 ../scrotwm_pt.1 $(DESTDIR)$(MANDIR)/man1/scrotwm_pt.1
 -	install -m 644 ../scrotwm_ru.1 $(DESTDIR)$(MANDIR)/man1/scrotwm_ru.1
+-
+-clean:
+-	rm -f scrotwm *.o *.so libswmhack.so.* scrotwm.c swm_hack.c
 +	install -m 755 -d $(DESTDIR)$(MANDIR)/es/man1
 +	install -m 755 -d $(DESTDIR)$(MANDIR)/it/man1
 +	install -m 755 -d $(DESTDIR)$(MANDIR)/pt/man1
@@ -92,9 +96,16 @@ Index: scrotwm.git/linux/Makefile
 +	install -m 644 ../scrotwm_pt.1        $(DESTDIR)$(MANDIR)/pt/man1/scrotwm.1
 +	install -m 644 ../scrotwm_ru.1        $(DESTDIR)$(MANDIR)/ru/man1/scrotwm.1
 +	install -m 644 scrotwm.desktop        $(DESTDIR)$(XSESSIONSDIR)
++
++uninstall:
++	rm -f $(DESTDIR)$(BINDIR)/scrotwm
++	rm -f $(DESTDIR)$(LIBDIR)/libswmhack.so.$(LVERS)
++	rm -f $(DESTDIR)$(MANDIR)/man1/scrotwm.1
++	rm -f $(DESTDIR)$(MANDIR)/es/man1/scrotwm.1
++	rm -f $(DESTDIR)$(MANDIR)/it/man1/scrotwm.1
++	rm -f $(DESTDIR)$(MANDIR)/pt/man1/scrotwm.1
++	rm -f $(DESTDIR)$(MANDIR)/ru/man1/scrotwm.1
++	rm -f $(DESTDIR)$(XSESSIONSDIR)/scrotwm.desktop
  
- clean:
--	rm -f scrotwm *.o *.so libswmhack.so.* scrotwm.c swm_hack.c
-+	rm -f scrotwm *.o libswmhack.so.* *.so
- 
- .PHONY: all install clean
+-.PHONY: all install clean
++.PHONY: all clean install uninstall
