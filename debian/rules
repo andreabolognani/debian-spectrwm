@@ -31,18 +31,9 @@ binary-arch: build
 	                          LIBDIR=/usr/lib/scrotwm \
 	                          DESTDIR=$(DESTDIR)
 	dh_install
-	dh_installdirs
 	dh_installexamples
 	dh_installchangelogs 
 	dh_installdocs
-	mv $(DESTDIR)/usr/share/man/man1/scrotwm_es.1 \
-	   $(DESTDIR)/usr/share/man/es/man1/scrotwm.1
-	mv $(DESTDIR)/usr/share/man/man1/scrotwm_it.1 \
-	   $(DESTDIR)/usr/share/man/it/man1/scrotwm.1
-	mv $(DESTDIR)/usr/share/man/man1/scrotwm_pt.1 \
-	   $(DESTDIR)/usr/share/man/pt/man1/scrotwm.1
-	mv $(DESTDIR)/usr/share/man/man1/scrotwm_ru.1 \
-	   $(DESTDIR)/usr/share/man/ru/man1/scrotwm.1
 	dh_installwm scrotwm
 	dh_strip
 	dh_compress
