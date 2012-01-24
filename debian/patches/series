@@ -1,5 +1,6 @@
 001-remove-bash-assumptions.diff
-#003-update-italian-man-page.diff
+002-improve-man-page.diff
+003-update-italian-man-page.diff
 004-improve-makefile.diff
 101-use-x-terminal-emulator-instead-of-xterm.diff
 102-remove-openbsd-assumptions.diff

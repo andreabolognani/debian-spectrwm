@@ -1,0 +1,29 @@
+Description: Improve manual page
+ Fixes and improvements to the English manual page.
+Forwarded: Marco Peereboom <marco@peereboom.us>
+Author: Andrea Bolognani <eof@kiyuko.org>
+Last-Update: 2012-01-24
+Index: scrotwm.git/scrotwm.1
+===================================================================
+--- scrotwm.git.orig/scrotwm.1	2012-01-24 18:22:06.678223140 +0100
++++ scrotwm.git/scrotwm.1	2012-01-24 18:25:43.020613191 +0100
+@@ -434,7 +434,7 @@
+ width_shrink
+ .It Cm M-=
+ width_grow
+-.It Cm M-S-
++.It Cm M-S--
+ height_shrink
+ .It Cm M-S-=
+ height_grow
+@@ -704,7 +704,9 @@
+ .Aq class
+ and
+ .Aq name
+-by running xprop(1) and then clicking on the desired window.
++by running
++.Xr xprop 1
++and then clicking on the desired window.
+ In the following example the main window of Firefox was clicked:
+ .Bd -literal -offset indent
+ $ xprop | grep WM_CLASS

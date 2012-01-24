@@ -1,8 +1,6 @@
 scrotwm (0.10.0-1) unstable; urgency=low
 
   * New upstream release.
-  * 002-improve-man-page.diff:
-    - merged upstream; dropped.
 
  -- Andrea Bolognani <eof@kiyuko.org>  Tue, 17 Jan 2012 22:28:06 +0100
 
