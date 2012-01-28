@@ -21,6 +21,10 @@ Copyright: 2009-2011, Marco Peereboom <marco@peereboom.us>
            2008, Martin Hurton <martin.hurton@gmail.com>
 License: ISC and Expat
 
+Files: version.h
+Copyright: 2011 Conformal Systems LLC <info@conformal.com>
+License: ISC
+
 Files: lib/swm_hack.c
 Copyright: 2009, Marco Peereboom <marco@peereboom.us>
            2009, Ryan McBride <mcbride@countersiege.com>
@@ -36,7 +40,7 @@ Copyright: 1998, Todd C. Miller <todd.miller@courtesan.com>
 License: Expat and BSD-3-clause and BSD-4-clause
 
 Files: debian/*
-Copyright: 2009-2011, Andrea Bolognani <eof@kiyuko.org>
+Copyright: 2009-2012, Andrea Bolognani <eof@kiyuko.org>
 License: ISC
 
 
