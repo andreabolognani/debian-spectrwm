@@ -5,8 +5,17 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2012-01-24
 Index: scrotwm.git/scrotwm.1
 ===================================================================
---- scrotwm.git.orig/scrotwm.1	2012-02-10 23:22:00.519045501 +0100
-+++ scrotwm.git/scrotwm.1	2012-02-10 23:27:55.499410936 +0100
+--- scrotwm.git.orig/scrotwm.1	2012-02-11 00:01:04.668141359 +0100
++++ scrotwm.git/scrotwm.1	2012-02-11 00:12:16.196436952 +0100
+@@ -354,7 +354,7 @@
+ restart
+ .It Cm M- Ns Aq Cm Space
+ cycle_layout
+-.It Cm M-S- Ns Aq Cm \e
++.It Cm M-S-\e
+ flip_layout
+ .It Cm M-S- Ns Aq Cm Space
+ stack_reset
 @@ -436,7 +436,7 @@
  width_shrink
  .It Cm M-=

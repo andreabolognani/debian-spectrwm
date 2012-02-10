@@ -5,8 +5,8 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2012-01-24
 Index: scrotwm.git/scrotwm_it.1
 ===================================================================
---- scrotwm.git.orig/scrotwm_it.1	2012-02-10 23:38:28.843303320 +0100
-+++ scrotwm.git/scrotwm_it.1	2012-02-10 23:59:52.807252246 +0100
+--- scrotwm.git.orig/scrotwm_it.1	2012-02-11 00:11:39.615985631 +0100
++++ scrotwm.git/scrotwm_it.1	2012-02-11 00:13:21.797246159 +0100
 @@ -23,10 +23,10 @@
  .Nm scrotwm
  .Sh DESCRIZIONE
@@ -385,16 +385,19 @@ Index: scrotwm.git/scrotwm_it.1
  .It Cm M-M1
  Muove la finestra
  .It Cm M-M3
-@@ -345,7 +364,7 @@
+@@ -344,8 +363,10 @@
+ restart
  .It Cm M- Ns Aq Cm Space
  cycle_layout
++.It Cm M-S-\e
++flip_layout
  .It Cm M-S- Ns Aq Cm Space
 -reset_layout
 +stack_reset
  .It Cm M-h
  master_shrink
  .It Cm M-l
-@@ -357,7 +376,7 @@
+@@ -357,7 +378,7 @@
  .It Cm M-S-,
  stack_inc
  .It Cm M-S-.
@@ -403,7 +406,7 @@ Index: scrotwm.git/scrotwm_it.1
  .It Cm M- Ns Aq Cm Return
  swap_main
  .It Xo
-@@ -390,6 +409,10 @@
+@@ -390,6 +411,10 @@
  ws_next
  .It Cm M- Ns Aq Cm Left
  ws_prev
@@ -414,7 +417,7 @@ Index: scrotwm.git/scrotwm_it.1
  .It Cm M-a
  ws_prior
  .It Cm M-S- Ns Aq Cm Right
-@@ -416,6 +439,28 @@
+@@ -416,6 +441,28 @@
  always_raise
  .It Cm M-v
  button2
@@ -443,7 +446,7 @@ Index: scrotwm.git/scrotwm_it.1
  .El
  .Pp
  I nomi delle azioni e le relative descrizioni sono le seguenti:
-@@ -425,12 +470,12 @@
+@@ -425,12 +472,12 @@
  Lancia un nuovo terminale
  (vedi
  .Sx PROGRAMMI
@@ -458,16 +461,18 @@ Index: scrotwm.git/scrotwm_it.1
  .It Cm quit
  Chiude
  .Nm .
-@@ -439,7 +484,7 @@
+@@ -439,7 +486,9 @@
  .Nm .
  .It Cm cycle_layout
  Cambia layout.
 -.It Cm reset_layout
++.It Cm flip_layout
++Inverti l'area principale e l'area di stacking.
 +.It Cm stack_reset
  Re-inizializza il layout.
  .It Cm master_shrink
  Restringe l'area principale.
-@@ -450,17 +495,17 @@
+@@ -450,17 +499,17 @@
  .It Cm master_del
  Rimuove finestre dall'area principale.
  .It Cm stack_inc
@@ -491,7 +496,7 @@ Index: scrotwm.git/scrotwm_it.1
  .It Cm swap_next
  Scambia con la finestra successiva dell'area di lavoro.
  .It Cm swap_prev
-@@ -476,17 +521,21 @@
+@@ -476,17 +525,21 @@
  .Ar n ,
  dove
  .Ar n
@@ -515,7 +520,7 @@ Index: scrotwm.git/scrotwm_it.1
  .It Cm ws_prior
  Passa all'ultima area di lavoro visitata.
  .It Cm screen_next
-@@ -496,12 +545,12 @@
+@@ -496,12 +549,12 @@
  .It Cm screenshot_all
  Cattura uno screenshot dell'intero schermo, se abilitato (vedere la sezione
  .Sx PROGRAMMI
@@ -530,7 +535,7 @@ Index: scrotwm.git/scrotwm_it.1
  .It Cm version
  Abilita/disabilita il numero di versione nella barra di stato.
  .It Cm float_toggle
-@@ -509,20 +558,42 @@
+@@ -509,20 +562,42 @@
  .It Cm lock
  Blocca lo schermo (vedere la sezione
  .Sx PROGRAMMI
@@ -576,7 +581,7 @@ Index: scrotwm.git/scrotwm_it.1
  .El
  .Pp
  Le scorciatoie personalizzate sono specificate nel file di configurazione
-@@ -531,9 +602,9 @@
+@@ -531,9 +606,9 @@
  .Dl bind[<azione>] = <tasti>
  .Pp
  .Aq azione
@@ -588,7 +593,7 @@ Index: scrotwm.git/scrotwm_it.1
  tasti normali (b, space, ecc.), separati da "+".
  Per esempio:
  .Bd -literal -offset indent
-@@ -541,10 +612,31 @@
+@@ -541,10 +616,31 @@
  bind[] = Mod1+q # rimuovi l'assegnazione di Alt + q
  .Ed
  .Pp
@@ -622,7 +627,7 @@ Index: scrotwm.git/scrotwm_it.1
  finestre che devono subire un trattamento speciale da un gestore di finestre
  tiling, come ad esempio alcune finestre di dialogo e applicazioni a
  schermo intero.
-@@ -597,8 +689,8 @@
+@@ -597,8 +693,8 @@
  Rimuove i bordi, consentendo alla finestra di usare l'intera dimensione
  dello schermo.
  .It FOCUSPREV
@@ -633,7 +638,7 @@ Index: scrotwm.git/scrotwm_it.1
  .El
  .Pp
  I quirk personalizzati vanno specificati nel file di configurazione come
-@@ -611,35 +703,38 @@
+@@ -611,35 +707,38 @@
  .Aq nome
  specificano a quali finestre i quirk vanno applicati, e
  .Aq quirk
@@ -680,7 +685,7 @@ Index: scrotwm.git/scrotwm_it.1
  .Pp
  .Bl -tag -width "_NET_WM_WINDOW_TYPE_TOOLBAR<TAB>XXX" -offset indent -compact
  .It _NET_WM_WINDOW_TYPE_DOCK
-@@ -654,25 +749,25 @@
+@@ -654,25 +753,25 @@
  FLOAT
  .El
  .Pp
@@ -711,7 +716,7 @@ Index: scrotwm.git/scrotwm_it.1
  della finestra attiva usando
  .Xr xprop 1
  e
-@@ -682,7 +777,7 @@
+@@ -682,7 +781,7 @@
  $ xprop \-id $WINDOWID WM_NAME | grep \-o "\\".*\\""
  .Ed
  .Pp
@@ -720,7 +725,7 @@ Index: scrotwm.git/scrotwm_it.1
  _NET_ACTIVE_WINDOW alla root window. Ad esempio, usando
  .Xr wmctrl 1
  (supponendo che 0x4a0000b sia l'id della finestra a cui dare il focus):
-@@ -690,7 +785,7 @@
+@@ -690,7 +789,7 @@
  $ wmctrl \-i \-c 0x4a0000b
  .Ed
  .Pp
@@ -729,7 +734,7 @@ Index: scrotwm.git/scrotwm_it.1
  alla root window. Ad esempio, usando
  .Xr wmctrl 1
  (supponendo che 0x4a0000b sia l'id della finestra da chiudere):
-@@ -698,8 +793,8 @@
+@@ -698,8 +797,8 @@
  $ wmctrl \-i \-c 0x4a0000b
  .Ed
  .Pp
@@ -740,7 +745,7 @@ Index: scrotwm.git/scrotwm_it.1
  inviando il messaggio _NET_WM_STATE alla root window. Ad esempio, usando
  .Xr wmctrl 1
  (supponendo che 0x4a0000b sia l'id della finestra):
-@@ -719,7 +814,7 @@
+@@ -719,7 +818,7 @@
  .Pp
  I messaggi _NET_MOVERESIZE_WINDOW vengono ignorati per le finestre stacked.
  .Sh SEGNALI
@@ -749,7 +754,7 @@ Index: scrotwm.git/scrotwm_it.1
  .Nm
  inviandogli il segnale HUP.
  .Sh FILE
-@@ -739,7 +834,7 @@
+@@ -739,7 +838,7 @@
  .An -nosplit
  .Pp
  .Nm
@@ -758,7 +763,7 @@ Index: scrotwm.git/scrotwm_it.1
  .Pp
  .Bl -tag -width "Ryan Thomas McBride Aq mcbride@countersiege.com " -offset indent -compact
  .It Cm Marco Peereboom Aq marco@peereboom.us
-@@ -748,8 +843,5 @@
+@@ -748,8 +847,5 @@
  .It Cm Pierre-Yves Ritschard Aq pyr@spootnik.org
  .It Cm Tuukka Kataja Aq stuge@xor.fi
  .It Cm Jason L. Wright Aq jason@thought.net
