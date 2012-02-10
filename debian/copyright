@@ -4,12 +4,13 @@ Upstream-Contact: Marco Peereboom <marco@peereboom.us>
 Source: http://opensource.conformal.com/wiki/Scrotwm
 
 Files: scrotwm.c
-Copyright: 2009-2011, Marco Peereboom <marco@peereboom.us>
+Copyright: 2009-2012, Marco Peereboom <marco@peereboom.us>
            2009-2011, Ryan McBride <mcbride@countersiege.com>
            2009, Darrin Chandler <dwchandler@stilyagin.com>
            2009, Pierre-Yves Ritschard <pyr@spootnik.org>
            2010, Tuukka Kataja <stuge@xor.fi>
            2011, Jason L. Wright <jason@thought.net>
+           2011-2012 Reginald Kennedy <rk@rejii.com>
            2006-2008, Anselm R Garbe <garbeam@gmail.com>
            2006-2007, Sander van Dijk <a.h.vandijk@gmail.com>
            2006-2007, Jukka Salmi <jukka@salmi.ch>
