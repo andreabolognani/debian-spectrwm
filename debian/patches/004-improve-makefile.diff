@@ -10,8 +10,8 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2012-01-24
 Index: scrotwm.git/linux/Makefile
 ===================================================================
---- scrotwm.git.orig/linux/Makefile	2012-01-24 22:49:31.709553412 +0100
-+++ scrotwm.git/linux/Makefile	2012-01-24 22:50:15.818056739 +0100
+--- scrotwm.git.orig/linux/Makefile	2012-02-10 23:30:28.000000000 +0100
++++ scrotwm.git/linux/Makefile	2012-02-10 23:31:07.189803053 +0100
 @@ -1,47 +1,62 @@
 -CFLAGS+= -Wall -ggdb -D_GNU_SOURCE -I.
 -CFLAGS+= -DSWM_LIB=\"$(LIBDIR)/libswmhack.so.$(LVERS)\"
@@ -82,7 +82,7 @@ Index: scrotwm.git/linux/Makefile
 -	install -m 644 ../scrotwm_ru.1 $(DESTDIR)$(MANDIR)/man1/scrotwm_ru.1
 -
 -clean:
--	rm -f scrotwm *.o *.so libswmhack.so.* scrotwm.c swm_hack.c
+-	rm -f scrotwm *.o *.so libswmhack.so.* scrotwm.c swm_hack.c version.h
 +	install -m 755 -d $(DESTDIR)$(MANDIR)/es/man1
 +	install -m 755 -d $(DESTDIR)$(MANDIR)/it/man1
 +	install -m 755 -d $(DESTDIR)$(MANDIR)/pt/man1

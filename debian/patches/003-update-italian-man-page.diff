@@ -5,8 +5,8 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2012-01-24
 Index: scrotwm.git/scrotwm_it.1
 ===================================================================
---- scrotwm.git.orig/scrotwm_it.1	2012-01-17 22:34:58.166208458 +0100
-+++ scrotwm.git/scrotwm_it.1	2012-01-24 18:22:05.818213640 +0100
+--- scrotwm.git.orig/scrotwm_it.1	2012-02-10 23:38:28.843303320 +0100
++++ scrotwm.git/scrotwm_it.1	2012-02-10 23:59:52.807252246 +0100
 @@ -23,10 +23,10 @@
  .Nm scrotwm
  .Sh DESCRIZIONE
@@ -56,7 +56,7 @@ Index: scrotwm.git/scrotwm_it.1
  Per esempio:
  .Pp
  .Dl color_focus = red
-@@ -77,64 +77,83 @@
+@@ -77,64 +77,97 @@
  .Pp
  Il file supporta le seguenti chiavi:
  .Pp
@@ -68,15 +68,17 @@ Index: scrotwm.git/scrotwm_it.1
  Definito nel formato ws[<idx>]:applicazione, eg. ws[2]:xterm esegue un
  xterm nell'area di lavoro 2.
 -.It Cm color_focus
-+.It Ic color_focus
- Colore del bordo della finestra che ha il focus.
+-Colore del bordo della finestra che ha il focus.
 -.It Cm color_unfocus
-+.It Ic color_unfocus
- Colore del bordo delle finestre che non hanno il focus.
+-Colore del bordo delle finestre che non hanno il focus.
 -.It Cm bar_enabled
-+.It Ic bar_enabled
- Abilita o disabilita la barra di stato.
+-Abilita o disabilita la barra di stato.
 -.It Cm bar_border Ns Bq Ar x
++.It Ic bar_action
++Script esterno che aggiunge informazioni come la carica della batteria alla
++barra di stato.
++.It Ic bar_at_bottom
++Posiziona la barra di stato sul fondo dello schermo anziché in cima.
 +.It Ic bar_border Ns Bq Ar x
  Colore del bordo della barra di stato nello schermo
  .Ar x .
@@ -90,16 +92,13 @@ Index: scrotwm.git/scrotwm_it.1
  Colore della barra di stato nello schermo
  .Ar x .
 -.It Cm bar_font_color Ns Bq Ar x
-+.It Ic bar_font_color Ns Bq Ar x
- Colore del testo della barra di stato nello schermo
- .Ar x .
+-Colore del testo della barra di stato nello schermo
+-.Ar x .
 -.It Cm bar_font
-+.It Ic bar_font
- Font della barra di stato.
+-Font della barra di stato.
 -.It Cm bar_action
-+.It Ic bar_action
- Script esterno che aggiunge informazioni come la carica della batteria alla
- barra di stato.
+-Script esterno che aggiunge informazioni come la carica della batteria alla
+-barra di stato.
 -.It Cm bar_delay
 +.It Ic bar_delay
  Frequenza di aggiornamento, in secondi, dello script esterno che aggiunge
@@ -107,8 +106,16 @@ Index: scrotwm.git/scrotwm_it.1
 -.It Cm bar_at_bottom
 -Posiziona la barra di stato sul fondo dello schermo anzich? in cima.
 -.It Cm stack_enabled
-+.It Ic bar_at_bottom
-+Posiziona la barra di stato sul fondo dello schermo anziché in cima.
+-Abilita o disabilita la visualizzazione dell'algoritmo di stacking
+-corrente nella barra di stato.
+-.It Cm clock_enabled
++.It Ic bar_enabled
++Abilita o disabilita la barra di stato.
++.It Ic bar_font
++Font della barra di stato.
++.It Ic bar_font_color Ns Bq Ar x
++Colore del testo della barra di stato nello schermo
++.Ar x .
 +.It Ic bar_justify
 +Giustifica il testo nella barra di stato. I valori possibili sono
 +.Pa left
@@ -118,10 +125,14 @@ Index: scrotwm.git/scrotwm_it.1
 +e
 +.Pa right
 +(destra).
-+.It Ic stack_enabled
- Abilita o disabilita la visualizzazione dell'algoritmo di stacking
- corrente nella barra di stato.
--.It Cm clock_enabled
++.It Ic bind Ns Bq Ar x
++Assegna una combinazione di tasti all'azione
++.Ar x .
++Vedere la sezione
++.Sx SCORCIATOIE
++più sotto.
++.It Ic border_width
++Spessore del bordo delle finestre in pixel. Il valore 0 disabilita il bordo.
 +.It Ic clock_enabled
  Abilita o disabilita l'orologio nella barra di stato. Se disabilitato,
 -usando il valore 0, ? possibile usare un orologio personalizzato nello
@@ -129,6 +140,10 @@ Index: scrotwm.git/scrotwm_it.1
  script specificato in
  .Pa bar_action .
 -.It Cm dialog_ratio
++.It Ic color_focus
++Colore del bordo della finestra che ha il focus.
++.It Ic color_unfocus
++Colore del bordo delle finestre che non hanno il focus.
 +.It Ic dialog_ratio
  Alcune applicazioni hanno finestre di dialogo troppo piccole per risultare
 -utili. Questa ? la percentuale dello schermo che verr? usata per le finestre
@@ -136,6 +151,15 @@ Index: scrotwm.git/scrotwm_it.1
  di dialogo: ad esempio, 0.6 indica il 60% della dimensione fisica dello
  schermo.
 -.It Cm layout
++.It Ic disable_border
++Rimuovi il bordo dalle finestre se la barra di stato è nascosta e c'è
++una sola finestra sullo schermo.
++.It Ic focus_mode
++Se viene usato il valore
++.Pa follow_cursor
++(segui il cursore),
++il gestore di finestre darà il focus alla finestra sotto il puntatore
++quando si cambia area di lavoro o si creano finestre.
 +.It Ic keyboard_mapping
 +Ignora tutte le scorciatoie esistenti e carica delle nuove scorciatoie dal
 +file specificato.
@@ -164,7 +188,7 @@ Index: scrotwm.git/scrotwm_it.1
  .Pp
  Fare riferimento a
  .Pa master_grow ,
-@@ -146,90 +165,91 @@
+@@ -146,90 +179,77 @@
  e
  .Pa always_raise
  per ulteriori informazioni.
@@ -175,6 +199,23 @@ Index: scrotwm.git/scrotwm_it.1
  .Pp
  Questa impostazione non viene applicata dopo il restart.
 -.It Cm region
++.It Ic modkey
++Cambia il tasto modificatore.
++Solitamente Mod1 è il tasto ALT e Mod4 è il tasto Windows su un PC.
++.It Ic program Ns Bq Ar p
++Definisce una nuova azione per lanciare il programma
++.Ar p .
++Vedere la sezione
++.Sx PROGRAMMI
++più sotto.
++.It Cm quirk Ns Bq Ar c:n
++Aggiunge un "quirk" per le finestre di classe
++.Ar c
++e nome
++.Ar n .
++Vedere la sezione
++.Sx QUIRK
++più sotto.
 +.It Ic region
  Alloca una regione personalizzata, rimuovendo qualsiasi regione
  automaticamente rilevata stia occupando lo stesso spazio sullo schermo.
@@ -188,6 +229,9 @@ Index: scrotwm.git/scrotwm_it.1
  eg. screen[1]:2048x760+0+0 unisce due monitor con risoluzione 1024x768
  posizionati uno di fianco all'altro.
 -.It Cm term_width
++.It Ic stack_enabled
++Abilita o disabilita la visualizzazione dell'algoritmo di stacking
++corrente nella barra di stato.
 +.It Ic term_width
  Imposta la dimensione minima preferita per il terminale. Se questo valore
 -? maggiore di 0,
@@ -229,61 +273,48 @@ Index: scrotwm.git/scrotwm_it.1
  al file
  .Pa .Xdefaults .
 -.It Cm window_name_enabled
-+.It Ic window_name_enabled
- Abilita o disabilita la visualizzazione del nome della finestra nella
- barra di stato. Impostare a 1 per abilitare.
+-Abilita o disabilita la visualizzazione del nome della finestra nella
+-barra di stato. Impostare a 1 per abilitare.
 -.It Cm verbose_layout
 +.It Ic verbose_layout
  Abilita o disabilita la visualizzazione dei valori correnti di master e
  stack nella barra di stato. Impostare a 1 per abilitare.
 -.It Cm modkey
-+.It Ic modkey
- Cambia il tasto modificatore.
+-Cambia il tasto modificatore.
 -Solitamente Mod1 ? il tasto ALT e Mod4 ? il tasto Windows su un PC.
 -.It Cm focus_mode
-+Solitamente Mod1 è il tasto ALT e Mod4 è il tasto Windows su un PC.
-+.It Ic focus_mode
- Se viene usato il valore
+-Se viene usato il valore
 -.Pa follow_cursor ,
 -il gestore di finestre dar? il focus alla finestra sotto il puntatore
-+.Pa follow_cursor
-+(segui il cursore),
-+il gestore di finestre darà il focus alla finestra sotto il puntatore
- quando si cambia area di lavoro o si creano finestre.
+-quando si cambia area di lavoro o si creano finestre.
 -.It Cm disable_border
 -Rimuovi il bordo dalle finestre se la barra di stato ? nascosta e c'?
-+.It Ic disable_border
-+Rimuovi il bordo dalle finestre se la barra di stato è nascosta e c'è
- una sola finestra sullo schermo.
+-una sola finestra sullo schermo.
 -.It Cm border_width
-+.It Ic border_width
- Spessore del bordo delle finestre in pixel. Il valore 0 disabilita il bordo.
+-Spessore del bordo delle finestre in pixel. Il valore 0 disabilita il bordo.
 -.It Cm program Ns Bq Ar p
-+.It Ic program Ns Bq Ar p
- Definisce una nuova azione per lanciare il programma
- .Ar p .
- Vedere la sezione
- .Sx PROGRAMMI
+-Definisce una nuova azione per lanciare il programma
+-.Ar p .
+-Vedere la sezione
+-.Sx PROGRAMMI
 -pi? sotto.
 -.It Cm bind Ns Bq Ar x
-+più sotto.
-+.It Ic bind Ns Bq Ar x
- Assegna una combinazione di tasti all'azione
- .Ar x .
- Vedere la sezione
- .Sx SCORCIATOIE
+-Assegna una combinazione di tasti all'azione
+-.Ar x .
+-Vedere la sezione
+-.Sx SCORCIATOIE
 -pi? sotto.
-+più sotto.
- .It Cm quirk Ns Bq Ar c:n
- Aggiunge un "quirk" per le finestre di classe
- .Ar c
- e nome
- .Ar n .
- Vedere la sezione
+-.It Cm quirk Ns Bq Ar c:n
+-Aggiunge un "quirk" per le finestre di classe
+-.Ar c
+-e nome
+-.Ar n .
+-Vedere la sezione
 -.Sx QUIRKS
 -pi? sotto.
-+.Sx QUIRK
-+più sotto.
++.It Ic window_name_enabled
++Abilita o disabilita la visualizzazione del nome della finestra nella
++barra di stato. Impostare a 1 per abilitare.
  .El
  .Pp
  I colori devono essere specificati nel formato usato da
@@ -727,9 +758,11 @@ Index: scrotwm.git/scrotwm_it.1
  .Pp
  .Bl -tag -width "Ryan Thomas McBride Aq mcbride@countersiege.com " -offset indent -compact
  .It Cm Marco Peereboom Aq marco@peereboom.us
-@@ -749,7 +844,3 @@
+@@ -748,8 +843,5 @@
+ .It Cm Pierre-Yves Ritschard Aq pyr@spootnik.org
  .It Cm Tuukka Kataja Aq stuge@xor.fi
  .It Cm Jason L. Wright Aq jason@thought.net
++.It Cm Reginald Kennedy Aq rk@rejii.com
  .El
 -.Sh BUGS
 -Al momento il menu, invocato usando
