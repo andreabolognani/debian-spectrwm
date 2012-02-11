@@ -1,0 +1,19 @@
+Description: Use consistent naming
+ The name of the software is consistently spelled "scrotwm" everywhere
+ except in the .desktop file.
+Author: Andrea Bolognani <eof@kiyuko.org>
+Last-Update: 2012-02-11
+Index: scrotwm.git/linux/scrotwm.desktop
+===================================================================
+--- scrotwm.git.orig/linux/scrotwm.desktop	2011-11-14 11:52:24.541439708 +0100
++++ scrotwm.git/linux/scrotwm.desktop	2012-02-11 17:34:53.873981617 +0100
+@@ -1,7 +1,7 @@
+ 
+ [Desktop Entry]
+-Name=ScrotWM
+-Comment=The ScrotWM window manager
++Name=scrotwm
++Comment=The scrotwm window manager
+ Type=Application
+ Exec=/usr/bin/scrotwm
+ TryExec=/usr/bin/scrotwm
