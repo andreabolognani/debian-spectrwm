@@ -1,15 +1,15 @@
-scrotwm for Debian
+spectrwm for Debian
 ------------------
 
-This file explains what are the differences between scrotwm as released
+This file explains what are the differences between spectrwm as released
 by the author and the Debian version. I try hard to keep the Debian version
 as close as possible to the upstream version, however a certain number of
 changes couldn't be avoided.
 
 	* x-terminal-emulator is used instead of xterm as the default
-	  terminal emulator, making scrotwm play nice with Debian's
+	  terminal emulator, making spectrwm play nice with Debian's
 	  alternatives system. Choosing another terminal emulator via
-	  scrotwm.conf is still possible;
+	  spectrwm.conf is still possible;
 
 	* the baraction.sh example script has been patched to weed out all
 	  non Policy compliant shell constructs; apm usage has been removed

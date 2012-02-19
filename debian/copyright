@@ -1,9 +1,9 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: scrotwm
+Upstream-Name: spectrwm
 Upstream-Contact: Marco Peereboom <marco@peereboom.us>
-Source: http://opensource.conformal.com/wiki/scrotwm
+Source: http://opensource.conformal.com/wiki/spectrwm
 
-Files: scrotwm.c
+Files: spectrwm.c
 Copyright: 2009-2012, Marco Peereboom <marco@peereboom.us>
            2009-2011, Ryan McBride <mcbride@countersiege.com>
            2009, Darrin Chandler <dwchandler@stilyagin.com>

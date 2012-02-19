@@ -3,7 +3,7 @@
 DPKG_EXPORT_BUILDFLAGS=1
 include /usr/share/dpkg/buildflags.mk
 
-DESTDIR=$(CURDIR)/debian/scrotwm
+DESTDIR=$(CURDIR)/debian/spectrwm
 
 build: build-indep build-arch
 build-indep: build-stamp
@@ -11,7 +11,7 @@ build-arch: build-stamp
 build-stamp:
 	dh_testdir
 	$(MAKE) -C linux/ PREFIX=/usr \
-	                  LIBDIR=/usr/lib/scrotwm
+	                  LIBDIR=/usr/lib/spectrwm
 	touch $@
 
 clean:
@@ -28,13 +28,13 @@ binary-arch: build
 	dh_testroot
 	dh_prep
 	$(MAKE) -C linux/ install PREFIX=/usr \
-	                          LIBDIR=/usr/lib/scrotwm \
+	                          LIBDIR=/usr/lib/spectrwm \
 	                          DESTDIR=$(DESTDIR)
 	dh_install
 	dh_installexamples
 	dh_installchangelogs 
 	dh_installdocs
-	dh_installwm scrotwm
+	dh_installwm spectrwm
 	dh_strip
 	dh_compress
 	dh_fixperms

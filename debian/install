@@ -1,2 +1,2 @@
-scrotwm.conf etc
-linux/scrotwm.desktop usr/share/xsessions
+spectrwm.conf etc
+linux/spectrwm.desktop usr/share/xsessions
