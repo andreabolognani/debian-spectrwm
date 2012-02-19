@@ -35,6 +35,7 @@ binary-arch: build
 	dh_installchangelogs 
 	dh_installdocs
 	dh_installwm spectrwm
+	dh_link
 	dh_strip
 	dh_compress
 	dh_fixperms
