@@ -10,8 +10,8 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2012-02-19
 Index: spectrwm.git/linux/Makefile
 ===================================================================
---- spectrwm.git.orig/linux/Makefile	2012-02-19 21:45:56.712437363 +0100
-+++ spectrwm.git/linux/Makefile	2012-02-19 21:48:32.302582574 +0100
+--- spectrwm.git.orig/linux/Makefile	2012-02-19 22:41:22.682294347 +0100
++++ spectrwm.git/linux/Makefile	2012-02-19 22:44:36.968973087 +0100
 @@ -1,53 +1,69 @@
 -CFLAGS+= -Wall -ggdb -D_GNU_SOURCE -I.
 -CFLAGS+= -DSWM_LIB=\"$(LIBDIR)/libswmhack.so.$(LVERS)\"
@@ -98,7 +98,7 @@ Index: spectrwm.git/linux/Makefile
 +	install -m 755 -d $(DESTDIR)$(MANDIR)/ru/man1
 +	install -m 755 -d $(DESTDIR)$(XSESSIONSDIR)
 +	install -m 755 spectrwm                    $(DESTDIR)$(BINDIR)
-+	ln -sf ../spectrwm                         $(DESTDIR)$(BINDIR)/scrotwm
++	ln -sf spectrwm                            $(DESTDIR)$(BINDIR)/scrotwm
 +	install -m 644 libswmhack.so.$(LIBVERSION) $(DESTDIR)$(LIBDIR)
 +	install -m 644 ../spectrwm.1               $(DESTDIR)$(MANDIR)/man1/spectrwm.1
 +	install -m 644 ../spectrwm_es.1            $(DESTDIR)$(MANDIR)/es/man1/spectrwm.1
