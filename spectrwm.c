@@ -6,6 +6,8 @@
  * Copyright (c) 2010 Tuukka Kataja <stuge@xor.fi>
  * Copyright (c) 2011 Jason L. Wright <jason@thought.net>
  * Copyright (c) 2011-2012 Reginald Kennedy <rk@rejii.com>
+ * Copyright (c) 2011-2012 Lawrence Teo <lteo@lteo.net>
+ * Copyright (c) 2011-2012 Tiago Cunha <tcunha@gmx.com>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -74,6 +76,15 @@
 #include <sys/queue.h>
 #include <sys/param.h>
 #include <sys/select.h>
+#if defined(__linux__)
+#include "tree.h"
+#elif defined(__OpenBSD__)
+#include <sys/tree.h>
+#elif defined(__FreeBSD__)
+#include <sys/tree.h>
+#else
+#include "tree.h"
+#endif
 
 #include <X11/cursorfont.h>
 #include <X11/keysym.h>
@@ -90,10 +101,10 @@
 
 #include "version.h"
 
-#ifdef SCROTWM_BUILDSTR
-static const char	*buildstr = SCROTWM_BUILDSTR;
+#ifdef SPECTRWM_BUILDSTR
+static const char	*buildstr = SPECTRWM_BUILDSTR;
 #else
-static const char	*buildstr = SCROTWM_VERSION;
+static const char	*buildstr = SPECTRWM_VERSION;
 #endif
 
 #if RANDR_MAJOR < 1
@@ -110,15 +121,15 @@ static const char	*buildstr = SCROTWM_VERSION;
 #ifdef SWM_DEBUG
 #define DPRINTF(x...)		do { if (swm_debug) fprintf(stderr, x); } while (0)
 #define DNPRINTF(n,x...)	do { if (swm_debug & n) fprintf(stderr, x); } while (0)
-#define	SWM_D_MISC		0x0001
-#define	SWM_D_EVENT		0x0002
-#define	SWM_D_WS		0x0004
-#define	SWM_D_FOCUS		0x0008
-#define	SWM_D_MOVE		0x0010
-#define	SWM_D_STACK		0x0020
-#define	SWM_D_MOUSE		0x0040
-#define	SWM_D_PROP		0x0080
-#define	SWM_D_CLASS		0x0100
+#define SWM_D_MISC		0x0001
+#define SWM_D_EVENT		0x0002
+#define SWM_D_WS		0x0004
+#define SWM_D_FOCUS		0x0008
+#define SWM_D_MOVE		0x0010
+#define SWM_D_STACK		0x0020
+#define SWM_D_MOUSE		0x0040
+#define SWM_D_PROP		0x0080
+#define SWM_D_CLASS		0x0100
 #define SWM_D_KEY		0x0200
 #define SWM_D_QUIRK		0x0400
 #define SWM_D_SPAWN		0x0800
@@ -1308,7 +1319,7 @@ bar_print(struct swm_region *r, char *s)
 		x = SWM_BAR_OFFSET;
 
 	DRAWSTRING(display, r->bar_window, bar_fs, r->s->bar_gc,
-	    x, (bar_fs_extents->max_logical_extent.height - lbox.height) / 2 - 
+	    x, (bar_fs_extents->max_logical_extent.height - lbox.height) / 2 -
 	    lbox.y, s, len);
 }
 
@@ -1471,17 +1482,25 @@ bar_update(void)
 				if (r->ws->name)
 					snprintf(ws, sizeof ws, "<%s>",
 					    r->ws->name);
-			}
-			if (stack_enabled)
-				stack = r->ws->stacker;
+				if (stack_enabled)
+					stack = r->ws->stacker;
 
-			snprintf(loc, sizeof loc, "%d:%d %s %s   %s%s    %s    "
-			    "%s", x++, r->ws->idx + 1, stack, ws, s, cn,
-			    bar_ext, bar_vertext);
-			bar_print(r, loc);
+				snprintf(loc, sizeof loc, 
+				    "%d:%d %s %s   %s%s    %s    %s",
+				    x++, r->ws->idx + 1, stack, ws, s, cn,
+				    bar_ext, bar_vertext);
+				bar_print(r, loc);
+			}
 		}
 	}
 	alarm(bar_delay);
+}
+
+void
+bar_check_opts(void)
+{
+	if (title_class_enabled || title_name_enabled || window_name_enabled)
+		bar_update();
 }
 
 void
@@ -1673,7 +1692,7 @@ version(struct swm_region *r, union arg *args)
 	bar_version = !bar_version;
 	if (bar_version)
 		snprintf(bar_vertext, sizeof bar_vertext,
-		    "Version: %s Build: %s", SCROTWM_VERSION, buildstr);
+		    "Version: %s Build: %s", SPECTRWM_VERSION, buildstr);
 	else
 		strlcpy(bar_vertext, "", sizeof bar_vertext);
 	bar_update();
@@ -2215,8 +2234,7 @@ focus_win(struct ws_win *win)
 		    PropModeReplace, (unsigned char *)&win->id,1);
 	}
 
-	if (window_name_enabled || title_class_enabled || title_name_enabled)
-		bar_update();
+	bar_check_opts();
 }
 
 void
@@ -2481,7 +2499,7 @@ swapwin(struct swm_region *r, union arg *args)
 void
 focus_prev(struct ws_win *win)
 {
-	struct ws_win		*winfocus = NULL, *winlostfocus = NULL;
+	struct ws_win		*winfocus = NULL;
 	struct ws_win		*cur_focus = NULL;
 	struct ws_win_list	*wl = NULL;
 	struct workspace	*ws = NULL;
@@ -2494,7 +2512,6 @@ focus_prev(struct ws_win *win)
 	ws = win->ws;
 	wl = &ws->winlist;
 	cur_focus = ws->focus;
-	winlostfocus = cur_focus;
 
 	/* pickle, just focus on whatever */
 	if (cur_focus == NULL) {
@@ -2518,8 +2535,6 @@ focus_prev(struct ws_win *win)
 	    (ws->cur_layout->flags & SWM_L_FOCUSPREV)) {
 		if (cur_focus != ws->focus_prev)
 			winfocus = ws->focus_prev;
-		else if (cur_focus != ws->focus)
-			winfocus = ws->focus;
 		else
 			winfocus = TAILQ_PREV(win, ws_win_list, entry);
 		if (winfocus)
@@ -2532,22 +2547,15 @@ focus_prev(struct ws_win *win)
 		winfocus = TAILQ_LAST(wl, ws_win_list);
 	if (winfocus == NULL || winfocus == win)
 		winfocus = TAILQ_NEXT(cur_focus, entry);
-done:
-	if (winfocus == winlostfocus || winfocus == NULL) {
-		/* update the bar so that title/class/name will be cleared. */
-		if (window_name_enabled || title_name_enabled ||
-		    title_class_enabled)
-			bar_update();
-		return;
-	}
 
+done:
 	focus_magic(winfocus);
 }
 
 void
 focus(struct swm_region *r, union arg *args)
 {
-	struct ws_win		*winfocus = NULL, *winlostfocus = NULL, *head;
+	struct ws_win		*winfocus = NULL, *head;
 	struct ws_win		*cur_focus = NULL;
 	struct ws_win_list	*wl = NULL;
 	struct workspace	*ws = NULL;
@@ -2588,8 +2596,6 @@ focus(struct swm_region *r, union arg *args)
 		}
 	if (all_iconics)
 		return;
-
-	winlostfocus = cur_focus;
 
 	switch (args->id) {
 	case SWM_ARG_ID_FOCUSPREV:
@@ -2642,14 +2648,6 @@ focus(struct swm_region *r, union arg *args)
 		break;
 
 	default:
-		return;
-	}
-	if (winfocus == winlostfocus || winfocus == NULL) {
-		/* update the bar so that title/class/name will be cleared. */
-		if (window_name_enabled || title_name_enabled ||
-		    title_class_enabled)
-			bar_update();
-
 		return;
 	}
 
@@ -2920,9 +2918,7 @@ stack_master(struct workspace *ws, struct swm_geometry *g, int rot, int flip)
 		if (w_inc > 1 && w_inc < v_slice) {
 			/* adjust for window's requested size increment */
 			remain = (win_g.w - w_base) % w_inc;
-			missing = w_inc - remain;
 			win_g.w -= remain;
-			extra += remain;
 		}
 
 		msize = win_g.w;
@@ -3283,7 +3279,7 @@ send_to_ws(struct swm_region *r, union arg *args)
 		DNPRINTF(SWM_D_PROP, "send_to_ws: set property: _SWM_WS: %s\n",
 		    ws_idx_str);
 		XChangeProperty(display, win->id, ws_idx_atom, XA_STRING, 8,
-		    PropModeReplace, ws_idx_str, SWM_PROPLEN);
+		    PropModeReplace, ws_idx_str, strlen((char *)ws_idx_str));
 	}
 
 	stack();
@@ -3299,7 +3295,7 @@ pressbutton(struct swm_region *r, union arg *args)
 void
 raise_toggle(struct swm_region *r, union arg *args)
 {
-	if (r && r->ws == NULL)
+	if (r == NULL || r->ws == NULL)
 		return;
 
 	r->ws->always_raise = !r->ws->always_raise;
@@ -3361,7 +3357,7 @@ uniconify(struct swm_region *r, union arg *args)
 
 	DNPRINTF(SWM_D_MISC, "uniconify\n");
 
-	if (r && r->ws == NULL)
+	if (r == NULL || r->ws == NULL)
 		return;
 
 	/* make sure we have anything to uniconify */
@@ -3976,7 +3972,7 @@ resize(struct ws_win *win, union arg *args)
 			}
 
 			/* horizontal */
-			if (left) 
+			if (left)
 				dx = -dx;
 
 			if (args->id == SWM_ARG_ID_CENTER) {
@@ -4326,14 +4322,32 @@ struct keyfunc {
 	{ "invalid key func",	NULL,		{0} },
 };
 struct key {
-	TAILQ_ENTRY(key)	entry;
+	RB_ENTRY(key)		entry;
 	unsigned int		mod;
 	KeySym			keysym;
 	enum keyfuncid		funcid;
 	char			*spawn_name;
 };
-TAILQ_HEAD(key_list, key);
-struct key_list			keys = TAILQ_HEAD_INITIALIZER(keys);
+RB_HEAD(key_list, key);
+
+int
+key_cmp(struct key *kp1, struct key *kp2)
+{
+	if (kp1->keysym < kp2->keysym)
+		return (-1);
+	if (kp1->keysym > kp2->keysym)
+		return (1);
+
+	if (kp1->mod < kp2->mod)
+		return (-1);
+	if (kp1->mod > kp2->mod)
+		return (1);
+
+	return (0);
+}
+
+RB_GENERATE_STATIC(key_list, key, entry, key_cmp);
+struct key_list			keys;
 
 /* mouse */
 enum { client_click, root_click };
@@ -4357,7 +4371,7 @@ update_modkey(unsigned int mod)
 	struct key		*kp;
 
 	mod_key = mod;
-	TAILQ_FOREACH(kp, &keys, entry)
+	RB_FOREACH(kp, key_list, &keys)
 		if (kp->mod & ShiftMask)
 			kp->mod = mod | ShiftMask;
 		else
@@ -4725,9 +4739,20 @@ key_insert(unsigned int mod, KeySym ks, enum keyfuncid kfid, char *spawn_name)
 	kp->keysym = ks;
 	kp->funcid = kfid;
 	kp->spawn_name = strdupsafe(spawn_name);
-	TAILQ_INSERT_TAIL(&keys, kp, entry);
+	RB_INSERT(key_list, &keys, kp);
 
 	DNPRINTF(SWM_D_KEY, "key_insert: leave\n");
+}
+
+struct key *
+key_lookup(unsigned int mod, KeySym ks)
+{
+	struct key		kp;
+
+	kp.keysym = ks;
+	kp.mod = mod;
+
+	return (RB_FIND(key_list, &keys, &kp));
 }
 
 void
@@ -4735,7 +4760,7 @@ key_remove(struct key *kp)
 {
 	DNPRINTF(SWM_D_KEY, "key_remove: %s\n", keyfuncs[kp->funcid].name);
 
-	TAILQ_REMOVE(&keys, kp, entry);
+	RB_REMOVE(key_list, &keys, kp);
 	free(kp->spawn_name);
 	free(kp);
 
@@ -4764,15 +4789,13 @@ setkeybinding(unsigned int mod, KeySym ks, enum keyfuncid kfid,
 	DNPRINTF(SWM_D_KEY, "setkeybinding: enter %s [%s]\n",
 	    keyfuncs[kfid].name, spawn_name);
 
-	TAILQ_FOREACH(kp, &keys, entry) {
-		if (kp->mod == mod && kp->keysym == ks) {
-			if (kfid == kf_invalid)
-				key_remove(kp);
-			else
-				key_replace(kp, mod, ks, kfid, spawn_name);
-			DNPRINTF(SWM_D_KEY, "setkeybinding: leave\n");
-			return;
-		}
+	if ((kp = key_lookup(mod, ks)) != NULL) {
+		if (kfid == kf_invalid)
+			key_remove(kp);
+		else
+			key_replace(kp, mod, ks, kfid, spawn_name);
+		DNPRINTF(SWM_D_KEY, "setkeybinding: leave\n");
+		return;
 	}
 	if (kfid == kf_invalid) {
 		warnx("error: setkeybinding: cannot find mod/key combination");
@@ -4914,13 +4937,11 @@ setup_keys(void)
 void
 clear_keys(void)
 {
-	struct key		*kp_loop, *kp_next;
+	struct key		*kp;
 
-	kp_loop = TAILQ_FIRST(&keys);
-	while (kp_loop != NULL) {
-		kp_next = TAILQ_NEXT(kp_loop, entry);
-		key_remove(kp_loop);
-		kp_loop = kp_next;
+	while (RB_EMPTY(&keys) == 0) {
+		kp = RB_ROOT(&keys);
+		key_remove(kp);
 	}
 }
 
@@ -4978,7 +4999,7 @@ grabkeys(void)
 		if (TAILQ_EMPTY(&screens[k].rl))
 			continue;
 		XUngrabKey(display, AnyKey, AnyModifier, screens[k].root);
-		TAILQ_FOREACH(kp, &keys, entry) {
+		RB_FOREACH(kp, key_list, &keys) {
 			if ((code = XKeysymToKeycode(display, kp->keysym)))
 				for (j = 0; j < LENGTH(modifiers); j++)
 					XGrabKey(display, code,
@@ -5171,7 +5192,8 @@ setup_quirks(void)
 }
 
 /* conf file stuff */
-#define SWM_CONF_FILE	"scrotwm.conf"
+#define SWM_CONF_FILE		"spectrwm.conf"
+#define SWM_CONF_FILE_OLD	"scrotwm.conf"
 
 enum	{ SWM_S_BAR_DELAY, SWM_S_BAR_ENABLED, SWM_S_BAR_BORDER_WIDTH,
 	  SWM_S_STACK_ENABLED, SWM_S_CLOCK_ENABLED, SWM_S_CLOCK_FORMAT,
@@ -5733,7 +5755,7 @@ manage_window(Window id)
 	Atom			*prot = NULL, *pp;
 	unsigned char		ws_idx_str[SWM_PROPLEN], *prop = NULL;
 	struct swm_region	*r;
-	long			mask;
+	long			mask = 0;
 	const char		*errstr;
 	XWindowChanges		wc;
 	struct pid_e		*p;
@@ -5856,7 +5878,7 @@ manage_window(Window id)
 		DNPRINTF(SWM_D_PROP, "manage_window: set _SWM_WS: %s\n",
 		    ws_idx_str);
 		XChangeProperty(display, win->id, ws_idx_atom, XA_STRING, 8,
-		    PropModeReplace, ws_idx_str, SWM_PROPLEN);
+		    PropModeReplace, ws_idx_str, strlen((char *)ws_idx_str));
 	}
 	if (prop)
 		XFree(prop);
@@ -5920,7 +5942,7 @@ manage_window(Window id)
 	if (border_me) {
 		bzero(&wc, sizeof wc);
 		wc.border_width = border_width;
-		mask = CWBorderWidth;
+		mask |= CWBorderWidth;
 		XConfigureWindow(display, win->id, mask, &wc);
 	}
 
@@ -5997,8 +6019,11 @@ focus_magic(struct ws_win *win)
 {
 	DNPRINTF(SWM_D_FOCUS, "focus_magic: window: 0x%lx\n", WINID(win));
 
-	if (win == NULL)
+	if (win == NULL) {
+		/* if there are no windows clear the status-bar */
+		bar_check_opts();
 		return;
+	}
 
 	if (win->child_trans) {
 		/* win = parent & has a transient so focus on that */
@@ -6007,7 +6032,7 @@ focus_magic(struct ws_win *win)
 			if (win->child_trans->take_focus)
 				client_msg(win, takefocus);
 		} else {
-			/* make sure transient hasn't dissapeared */
+			/* make sure transient hasn't disappeared */
 			if (validate_win(win->child_trans) == 0) {
 				focus_win(win->child_trans);
 				if (win->child_trans->take_focus)
@@ -6039,24 +6064,19 @@ keypress(XEvent *e)
 	KeySym			keysym;
 	XKeyEvent		*ev = &e->xkey;
 	struct key		*kp;
+	struct swm_region	*r;
 
 	keysym = XKeycodeToKeysym(display, (KeyCode)ev->keycode, 0);
-	TAILQ_FOREACH(kp, &keys, entry)
-		if (keysym == kp->keysym
-		    && CLEANMASK(kp->mod) == CLEANMASK(ev->state)
-		    && keyfuncs[kp->funcid].func) {
-			if (kp->funcid == kf_spawn_custom)
-				spawn_custom(
-				    root_to_region(ev->root),
-				    &(keyfuncs[kp->funcid].args),
-				    kp->spawn_name
-				    );
-			else
-				keyfuncs[kp->funcid].func(
-				    root_to_region(ev->root),
-				    &(keyfuncs[kp->funcid].args)
-				    );
-		}
+	if ((kp = key_lookup(CLEANMASK(ev->state), keysym)) == NULL)
+		return;
+	if (keyfuncs[kp->funcid].func == NULL)
+		return;
+
+	r = root_to_region(ev->root);
+	if (kp->funcid == kf_spawn_custom)
+		spawn_custom(r, &(keyfuncs[kp->funcid].args), kp->spawn_name);
+	else
+		keyfuncs[kp->funcid].func(r, &(keyfuncs[kp->funcid].args));
 }
 
 void
@@ -6195,7 +6215,7 @@ enternotify(XEvent *e)
 	 * the window or a subwindow already has focus (occurs during restart).
 	 *
 	 * Only honor the focus flag if last_focus_event is not FocusOut,
-	 * this allows scrotwm to continue to control focus when another
+	 * this allows spectrwm to continue to control focus when another
 	 * program is also playing with it.
 	 */
 	if (ev->state || (ev->focus && last_focus_event != FocusOut)) {
@@ -6898,7 +6918,7 @@ main(int argc, char *argv[])
 	struct sigaction	sact;
 
 	start_argv = argv;
-	warnx("Welcome to scrotwm V%s Build: %s", SCROTWM_VERSION, buildstr);
+	warnx("Welcome to spectrwm V%s Build: %s", SPECTRWM_VERSION, buildstr);
 	if (!setlocale(LC_CTYPE, "") || !setlocale(LC_TIME, "") ||
 	    !XSupportsLocale())
 		warnx("no locale support");
@@ -6948,17 +6968,40 @@ main(int argc, char *argv[])
 	setup_spawn();
 
 	/* load config */
-	snprintf(conf, sizeof conf, "%s/.%s", pwd->pw_dir, SWM_CONF_FILE);
-	if (stat(conf, &sb) != -1) {
-		if (S_ISREG(sb.st_mode))
-			cfile = conf;
-	} else {
-		/* try global conf file */
-		snprintf(conf, sizeof conf, "/etc/%s", SWM_CONF_FILE);
-		if (!stat(conf, &sb))
-			if (S_ISREG(sb.st_mode))
+	for (i = 0; ; i++) {
+		conf[0] = '\0';
+		switch (i) {
+		case 0:
+			/* ~ */
+			snprintf(conf, sizeof conf, "%s/.%s",
+			    pwd->pw_dir, SWM_CONF_FILE);
+			break;
+		case 1:
+			/* global */
+			snprintf(conf, sizeof conf, "/etc/%s",
+			    SWM_CONF_FILE);
+			break;
+		case 2:
+			/* ~ compat */
+			snprintf(conf, sizeof conf, "%s/.%s",
+			    pwd->pw_dir, SWM_CONF_FILE_OLD);
+			break;
+		case 3:
+			/* global compat */
+			snprintf(conf, sizeof conf, "/etc/%s",
+			    SWM_CONF_FILE_OLD);
+			break;
+		default:
+			goto noconfig;
+		}
+
+		if (strlen(conf) && stat(conf, &sb) != -1)
+			if (S_ISREG(sb.st_mode)) {
 				cfile = conf;
+				break;
+			}
 	}
+noconfig:
 
 	/* load conf (if any) and refresh font color in bar graphics contexts */
 	if (cfile && conf_load(cfile, SWM_CONF_DEFAULT) == 0)
