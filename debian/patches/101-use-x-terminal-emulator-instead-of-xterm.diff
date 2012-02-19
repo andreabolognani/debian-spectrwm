@@ -3,21 +3,21 @@ Description: use x-terminal-emulator instead of xterm
  use it instead of xterm in the default configuration.
 Forwarded: not-needed
 Author: Andrea Bolognani <eof@kiyuko.org>
-Last-Update: 2009-09-23
-Index: scrotwm.git/scrotwm.c
+Last-Update: 2012-02-19
+Index: spectrwm.git/spectrwm.c
 ===================================================================
---- scrotwm.git.orig/scrotwm.c	2012-02-10 23:32:08.550568138 +0100
-+++ scrotwm.git/scrotwm.c	2012-02-10 23:36:14.225628397 +0100
-@@ -4621,7 +4621,7 @@
+--- spectrwm.git.orig/spectrwm.c	2012-02-19 21:41:48.961021479 +0100
++++ spectrwm.git/spectrwm.c	2012-02-19 21:44:48.155492134 +0100
+@@ -4635,7 +4635,7 @@
  void
  setup_spawn(void)
  {
 -	setconfspawn("term",		"xterm",		0);
-+	setconfspawn("term",		"x-terminal-emulator",	0);
++	setconfspawn("term",		"x-terminal-emulator",		0);
  	setconfspawn("screenshot_all",	"screenshot.sh full",	0);
  	setconfspawn("screenshot_wind",	"screenshot.sh window",	0);
  	setconfspawn("lock",		"xlock",		0);
-@@ -6850,7 +6850,7 @@
+@@ -6870,7 +6870,7 @@
  	if ((bar_fonts = strdup(SWM_BAR_FONTS)) == NULL)
  		err(1, "setup_globals: strdup: failed to allocate memory.");
  
@@ -26,12 +26,12 @@ Index: scrotwm.git/scrotwm.c
  		err(1, "setup_globals: strdup: failed to allocate memory.");
  
  	if ((clock_format = strdup("%a %b %d %R %Z %Y")) == NULL)
-Index: scrotwm.git/scrotwm.conf
+Index: spectrwm.git/spectrwm.conf
 ===================================================================
---- scrotwm.git.orig/scrotwm.conf	2012-01-24 22:56:50.000000000 +0100
-+++ scrotwm.git/scrotwm.conf	2012-02-10 23:36:43.565993568 +0100
+--- spectrwm.git.orig/spectrwm.conf	2012-02-19 21:41:48.929021038 +0100
++++ spectrwm.git/spectrwm.conf	2012-02-19 21:45:10.699802963 +0100
 @@ -30,13 +30,13 @@
- #urgent_enabled		= 1
+ # urgent_enabled		= 1
  
  # spawn app
 -# program[term]		= xterm
@@ -41,11 +41,11 @@ Index: scrotwm.git/scrotwm.conf
  # program[lock]		= xlock
  # program[initscr]	= initscreen.sh
  # program[menu]		= dmenu_run -fn $bar_font -nb $bar_color -nf $bar_font_color -sb $bar_border -sf $bar_color
--spawn_term		= xterm
-+spawn_term		= x-terminal-emulator
+-# spawn_term		= xterm
++# spawn_term		= x-terminal-emulator
  
  # dialog box size ratio .3 >= r < 1
- dialog_ratio		= 0.6
+ # dialog_ratio		= 0.6
 @@ -47,7 +47,7 @@
  # region		= screen[1]:1280x1024+1280+0
  

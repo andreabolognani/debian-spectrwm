@@ -7,16 +7,29 @@ Description: Improve GNU/Linux Makefile
  symlink hackery.
 Forwarded: Marco Peereboom <marco@peereboom.us>
 Author: Andrea Bolognani <eof@kiyuko.org>
-Last-Update: 2012-01-24
-Index: scrotwm.git/linux/Makefile
+Last-Update: 2012-02-19
+Index: spectrwm.git/linux/Makefile
 ===================================================================
---- scrotwm.git.orig/linux/Makefile	2012-02-10 23:30:28.000000000 +0100
-+++ scrotwm.git/linux/Makefile	2012-02-10 23:31:07.189803053 +0100
-@@ -1,47 +1,62 @@
+--- spectrwm.git.orig/linux/Makefile	2012-02-19 21:45:56.712437363 +0100
++++ spectrwm.git/linux/Makefile	2012-02-19 21:48:32.302582574 +0100
+@@ -1,53 +1,69 @@
 -CFLAGS+= -Wall -ggdb -D_GNU_SOURCE -I.
 -CFLAGS+= -DSWM_LIB=\"$(LIBDIR)/libswmhack.so.$(LVERS)\"
 -LDADD+= -lX11 -lXrandr -lXtst
--
++PREFIX       ?= /usr/local
++BINDIR       ?= $(PREFIX)/bin
++LIBDIR       ?= $(PREFIX)/lib
++DATAROOTDIR  ?= $(PREFIX)/share
++MANDIR       ?= $(DATAROOTDIR)/man
++XSESSIONSDIR ?= $(DATAROOTDIR)/xsessions
++
++BUILDVERSION = $(shell sh $(CURDIR)/../buildver.sh)
++LIBVERSION   = $(shell . $(CURDIR)/../lib/shlib_version; echo $$major.$$minor)
++
++MAINT_CFLAGS   = -Wall -ggdb
++MAINT_CPPFLAGS = -I. -D_GNU_SOURCE -DSWM_LIB=\"$(LIBDIR)/libswmhack.so.$(LIBVERSION)\"
++MAINT_LDLIBS   = -lX11 -lXrandr -lXtst
+ 
 -PREFIX?= /usr/local
 -BINDIR?= $(PREFIX)/bin
 -LIBDIR?= $(PREFIX)/lib
@@ -25,87 +38,85 @@ Index: scrotwm.git/linux/Makefile
 -CC= gcc
 -
 -LVERS= $(shell . ../lib/shlib_version; echo $$major.$$minor)
-+PREFIX       ?= /usr/local
-+BINDIR       ?= $(PREFIX)/bin
-+LIBDIR       ?= $(PREFIX)/lib
-+DATAROOTDIR  ?= $(PREFIX)/share
-+MANDIR       ?= $(DATAROOTDIR)/man
-+XSESSIONSDIR ?= $(DATAROOTDIR)/xsessions
-+
-+LVERS = $(shell . ../lib/shlib_version; echo $$major.$$minor)
-+
-+MAINT_CFLAGS   = -Wall -ggdb
-+MAINT_CPPFLAGS = -I. -D_GNU_SOURCE -DSWM_LIB=\"$(LIBDIR)/libswmhack.so.$(LVERS)\"
-+MAINT_LDLIBS   = -lX11 -lXrandr -lXtst
- 
- all: scrotwm libswmhack.so.$(LVERS)
- 
--scrotwm.c:
--	ln -sf ../scrotwm.c
--	ln -sf ../version.h
 -
+-BUILDVERSION= $(shell sh $(CURDIR)/../buildver.sh)
+ ifneq ("${BUILDVERSION}", "")
+-CFLAGS+= -DSPECTRWM_BUILDSTR=\"$(BUILDVERSION)\"
++MAINT_CPPFLAGS += -DSPECTRWM_BUILDSTR=\"$(BUILDVERSION)\"
+ endif
+ 
+-all: spectrwm libswmhack.so.$(LVERS)
++all: spectrwm libswmhack.so.$(LIBVERSION)
+ 
+-spectrwm.c:
+-	ln -sf ../spectrwm.c
+-	ln -sf ../version.h
++spectrwm: spectrwm.o linux.o
++	$(CC) $(MAINT_LDFLAGS) $(LDFLAGS) -o $@ $+ $(MAINT_LDLIBS) $(LDLIBS)
+ 
 -swm_hack.c:
 -	ln -sf ../lib/swm_hack.c
--
- scrotwm: scrotwm.o linux.o
++spectrwm.o: ../spectrwm.c ../version.h tree.h util.h
++	$(CC) $(MAINT_CFLAGS) $(CFLAGS) $(MAINT_CPPFLAGS) $(CPPFLAGS) -c $< -o $@
+ 
+-spectrwm: spectrwm.o linux.o
 -	$(CC) $(LDFLAGS) -o $@ $+ $(LDADD)
-+	$(CC) $(MAINT_LDFLAGS) $(LDFLAGS) $+ -o $@ $(MAINT_LDLIBS) $(LDLIBS)
-+
-+scrotwm.o: ../scrotwm.c ../version.h
++linux.o: linux.c util.h
 +	$(CC) $(MAINT_CFLAGS) $(CFLAGS) $(MAINT_CPPFLAGS) $(CPPFLAGS) -c $< -o $@
  
 -%.so: %.c
 -	$(CC) $(CFLAGS) -c -fpic -DPIC $+ -o $@
-+linux.o: linux.c util.h
-+	$(CC) $(MAINT_CFLAGS) $(CFLAGS) $(MAINT_CPPFLAGS) $(CPPFLAGS) -c $< -o $@
- 
- libswmhack.so.$(LVERS): swm_hack.so
--	$(CC) -shared -fpic -o libswmhack.so.$(LVERS) swm_hack.so $(LDADD)
++libswmhack.so.$(LIBVERSION): swm_hack.so
 +	$(CC) $(MAINT_LDFLAGS) $(LDFLAGS) -shared -fpic $+ -o $@ $(MAINT_LDLIBS) $(LDLIBS)
-+
+ 
+-libswmhack.so.$(LVERS): swm_hack.so
+-	$(CC) -shared -fpic -o libswmhack.so.$(LVERS) swm_hack.so $(LDADD)
 +swm_hack.so: ../lib/swm_hack.c
 +	$(CC) $(MAINT_CFLAGS) $(CFLAGS) $(MAINT_CPPFLAGS) $(CPPFLAGS) -c -fpic -DPIC $< -o $@
 +
 +clean:
-+	rm -f scrotwm *.o libswmhack.so.* *.so
++	rm -f spectrwm *.o libswmhack.so.* *.so
  
  install: all
  	install -m 755 -d $(DESTDIR)$(BINDIR)
  	install -m 755 -d $(DESTDIR)$(LIBDIR)
  	install -m 755 -d $(DESTDIR)$(MANDIR)/man1
--	install -m 755 scrotwm $(DESTDIR)$(BINDIR)
+-	install -m 755 spectrwm $(DESTDIR)$(BINDIR)
 -	install -m 755 libswmhack.so.$(LVERS) $(DESTDIR)$(LIBDIR)
--	install -m 644 ../scrotwm.1 $(DESTDIR)$(MANDIR)/man1/scrotwm.1
--	install -m 644 ../scrotwm_es.1 $(DESTDIR)$(MANDIR)/man1/scrotwm_es.1
--	install -m 644 ../scrotwm_it.1 $(DESTDIR)$(MANDIR)/man1/scrotwm_it.1
--	install -m 644 ../scrotwm_pt.1 $(DESTDIR)$(MANDIR)/man1/scrotwm_pt.1
--	install -m 644 ../scrotwm_ru.1 $(DESTDIR)$(MANDIR)/man1/scrotwm_ru.1
+-	install -m 644 ../spectrwm.1 $(DESTDIR)$(MANDIR)/man1/spectrwm.1
+-	install -m 644 ../spectrwm_es.1 $(DESTDIR)$(MANDIR)/man1/spectrwm_es.1
+-	install -m 644 ../spectrwm_it.1 $(DESTDIR)$(MANDIR)/man1/spectrwm_it.1
+-	install -m 644 ../spectrwm_pt.1 $(DESTDIR)$(MANDIR)/man1/spectrwm_pt.1
+-	install -m 644 ../spectrwm_ru.1 $(DESTDIR)$(MANDIR)/man1/spectrwm_ru.1
+-	ln -sf $(DESTDIR)$(BINDIR)/spectrwm $(DESTDIR)$(BINDIR)/scrotwm
 -
 -clean:
--	rm -f scrotwm *.o *.so libswmhack.so.* scrotwm.c swm_hack.c version.h
+-	rm -f spectrwm *.o *.so libswmhack.so.* spectrwm.c swm_hack.c version.h
 +	install -m 755 -d $(DESTDIR)$(MANDIR)/es/man1
 +	install -m 755 -d $(DESTDIR)$(MANDIR)/it/man1
 +	install -m 755 -d $(DESTDIR)$(MANDIR)/pt/man1
 +	install -m 755 -d $(DESTDIR)$(MANDIR)/ru/man1
 +	install -m 755 -d $(DESTDIR)$(XSESSIONSDIR)
-+	install -m 755 scrotwm                $(DESTDIR)$(BINDIR)
-+	install -m 644 libswmhack.so.$(LVERS) $(DESTDIR)$(LIBDIR)
-+	install -m 644 ../scrotwm.1           $(DESTDIR)$(MANDIR)/man1/scrotwm.1
-+	install -m 644 ../scrotwm_es.1        $(DESTDIR)$(MANDIR)/es/man1/scrotwm.1
-+	install -m 644 ../scrotwm_it.1        $(DESTDIR)$(MANDIR)/it/man1/scrotwm.1
-+	install -m 644 ../scrotwm_pt.1        $(DESTDIR)$(MANDIR)/pt/man1/scrotwm.1
-+	install -m 644 ../scrotwm_ru.1        $(DESTDIR)$(MANDIR)/ru/man1/scrotwm.1
-+	install -m 644 scrotwm.desktop        $(DESTDIR)$(XSESSIONSDIR)
++	install -m 755 spectrwm                    $(DESTDIR)$(BINDIR)
++	ln -sf ../spectrwm                         $(DESTDIR)$(BINDIR)/scrotwm
++	install -m 644 libswmhack.so.$(LIBVERSION) $(DESTDIR)$(LIBDIR)
++	install -m 644 ../spectrwm.1               $(DESTDIR)$(MANDIR)/man1/spectrwm.1
++	install -m 644 ../spectrwm_es.1            $(DESTDIR)$(MANDIR)/es/man1/spectrwm.1
++	install -m 644 ../spectrwm_it.1            $(DESTDIR)$(MANDIR)/it/man1/spectrwm.1
++	install -m 644 ../spectrwm_pt.1            $(DESTDIR)$(MANDIR)/pt/man1/spectrwm.1
++	install -m 644 ../spectrwm_ru.1            $(DESTDIR)$(MANDIR)/ru/man1/spectrwm.1
++	install -m 644 spectrwm.desktop            $(DESTDIR)$(XSESSIONSDIR)
 +
 +uninstall:
++	rm -f $(DESTDIR)$(BINDIR)/spectrwm
 +	rm -f $(DESTDIR)$(BINDIR)/scrotwm
-+	rm -f $(DESTDIR)$(LIBDIR)/libswmhack.so.$(LVERS)
-+	rm -f $(DESTDIR)$(MANDIR)/man1/scrotwm.1
-+	rm -f $(DESTDIR)$(MANDIR)/es/man1/scrotwm.1
-+	rm -f $(DESTDIR)$(MANDIR)/it/man1/scrotwm.1
-+	rm -f $(DESTDIR)$(MANDIR)/pt/man1/scrotwm.1
-+	rm -f $(DESTDIR)$(MANDIR)/ru/man1/scrotwm.1
-+	rm -f $(DESTDIR)$(XSESSIONSDIR)/scrotwm.desktop
++	rm -f $(DESTDIR)$(LIBDIR)/libswmhack.so.$(LIBVERSION)
++	rm -f $(DESTDIR)$(MANDIR)/man1/spectrwm.1
++	rm -f $(DESTDIR)$(MANDIR)/es/man1/spectrwm.1
++	rm -f $(DESTDIR)$(MANDIR)/it/man1/spectrwm.1
++	rm -f $(DESTDIR)$(MANDIR)/pt/man1/spectrwm.1
++	rm -f $(DESTDIR)$(MANDIR)/ru/man1/spectrwm.1
++	rm -f $(DESTDIR)$(XSESSIONSDIR)/spectrwm.desktop
  
 -.PHONY: all install clean
 +.PHONY: all clean install uninstall

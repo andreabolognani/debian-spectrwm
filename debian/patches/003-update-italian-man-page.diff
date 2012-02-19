@@ -2,13 +2,13 @@ Description: Update Italian manual page
  Bring Italian manual page up-to-date.
 Forwarded: Marco Peereboom <marco@peereboom.us>
 Author: Andrea Bolognani <eof@kiyuko.org>
-Last-Update: 2012-01-24
-Index: scrotwm.git/scrotwm_it.1
+Last-Update: 2012-02-19
+Index: spectrwm.git/spectrwm_it.1
 ===================================================================
---- scrotwm.git.orig/scrotwm_it.1	2012-02-11 00:11:39.615985631 +0100
-+++ scrotwm.git/scrotwm_it.1	2012-02-11 00:13:21.797246159 +0100
+--- spectrwm.git.orig/spectrwm_it.1	2012-02-19 20:22:40.015545145 +0100
++++ spectrwm.git/spectrwm_it.1	2012-02-19 20:29:54.689538238 +0100
 @@ -23,10 +23,10 @@
- .Nm scrotwm
+ .Nm spectrwm
  .Sh DESCRIZIONE
  .Nm
 -? un gestore di finestre minimale che cerca di stare in disparte, in modo
@@ -22,7 +22,7 @@ Index: scrotwm.git/scrotwm_it.1
  .Pp
  Quando
 @@ -35,7 +35,7 @@
- .Pa scrotwm.conf .
+ .Pa spectrwm.conf .
  Vedere la sezione
  .Sx FILE DI CONFIGURAZIONE
 -pi? sotto.
@@ -45,11 +45,11 @@ Index: scrotwm.git/scrotwm_it.1
  .Nm
  prova per prima cosa ad aprire il file di configurazione personale
  dell'utente,
- .Pa ~/.scrotwm.conf .
+ .Pa ~/.spectrwm.conf .
 -Se il file in questione non ? disponibile, prova ad usare il file di
 +Se il file in questione non è disponibile, prova ad usare il file di
  configurazione globale
- .Pa /etc/scrotwm.conf .
+ .Pa /etc/spectrwm.conf .
  .Pp
 -Il formato di questo file ? \*(Ltchiave\*(Gt = \*(Ltvalore\*(Gt.
 +Il formato di questo file è \*(Ltchiave\*(Gt = \*(Ltvalore\*(Gt.
@@ -243,16 +243,16 @@ Index: scrotwm.git/scrotwm_it.1
  viene ridimensionata. Al momento solo
  .Xr xterm 1
 -? supportato. Il binario di
-+è supportato. Il binario di
++è supportato. L'eseguibile di
  .Xr xterm 1
 -deve essere setuid o setgid perch? questo funzioni: nella maggior parte dei
 -sistemi, questo ? il default. L'utente potrebbe voler impostare
 +deve essere setuid o setgid perché questo funzioni: nella maggior parte dei
-+sistemi, questo è il default. L'utente potrebbe voler impostare
++sistemi, questo avviene di default. L'utente potrebbe voler impostare
  program[term] (vedere la sezione
  .Sx PROGRAMMI
 -pi? sotto) per usare una seconda copia del binario di
-+più sotto) per usare una seconda copia del binario di
++più sotto) per usare una seconda copia dell'eseguibile di
  .Xr xterm 1
  che non abbia il bit setgid impostato.
 -.It Cm title_class_enabled
@@ -361,9 +361,9 @@ Index: scrotwm.git/scrotwm_it.1
 @@ -304,15 +324,14 @@
  Esempio:
  .Bd -literal -offset indent
- program[ff] = /usr/local/bin/firefox http://scrotwm.org/
+ program[ff] = /usr/local/bin/firefox http://spectrwm.org/
 -bind[ff] = Mod+f # adesso Mod+F lancia firefox
-+bind[ff] = Mod+Shif+b # adesso Mod+Shift+b lancia Firefox
++bind[ff] = Mod+Shift+b # adesso Mod+Shift+b lancia firefox
  .Ed
  .Pp
  Per eliminare la combinazione precedente:
@@ -763,11 +763,13 @@ Index: scrotwm.git/scrotwm_it.1
  .Pp
  .Bl -tag -width "Ryan Thomas McBride Aq mcbride@countersiege.com " -offset indent -compact
  .It Cm Marco Peereboom Aq marco@peereboom.us
-@@ -748,8 +847,5 @@
+@@ -748,8 +847,7 @@
  .It Cm Pierre-Yves Ritschard Aq pyr@spootnik.org
  .It Cm Tuukka Kataja Aq stuge@xor.fi
  .It Cm Jason L. Wright Aq jason@thought.net
 +.It Cm Reginald Kennedy Aq rk@rejii.com
++.It Cm Lawrence Teo Aq lteo@lteo.net
++.It Cm Tiago Cunha Aq tcunha@gmx.com
  .El
 -.Sh BUGS
 -Al momento il menu, invocato usando

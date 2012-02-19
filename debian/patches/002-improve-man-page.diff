@@ -2,11 +2,11 @@ Description: Improve manual page
  Fixes and improvements to the English manual page.
 Forwarded: Marco Peereboom <marco@peereboom.us>
 Author: Andrea Bolognani <eof@kiyuko.org>
-Last-Update: 2012-01-24
-Index: scrotwm.git/scrotwm.1
+Last-Update: 2012-02-19
+Index: spectrwm.git/spectrwm.1
 ===================================================================
---- scrotwm.git.orig/scrotwm.1	2012-02-11 00:01:04.668141359 +0100
-+++ scrotwm.git/scrotwm.1	2012-02-11 00:12:16.196436952 +0100
+--- spectrwm.git.orig/spectrwm.1	2012-02-19 19:46:30.493632750 +0100
++++ spectrwm.git/spectrwm.1	2012-02-19 19:49:50.676392792 +0100
 @@ -354,7 +354,7 @@
  restart
  .It Cm M- Ns Aq Cm Space
@@ -16,23 +16,3 @@ Index: scrotwm.git/scrotwm.1
  flip_layout
  .It Cm M-S- Ns Aq Cm Space
  stack_reset
-@@ -436,7 +436,7 @@
- width_shrink
- .It Cm M-=
- width_grow
--.It Cm M-S-
-+.It Cm M-S--
- height_shrink
- .It Cm M-S-=
- height_grow
-@@ -712,7 +712,9 @@
- .Aq class
- and
- .Aq name
--by running xprop(1) and then clicking on the desired window.
-+by running
-+.Xr xprop 1
-+and then clicking on the desired window.
- In the following example the main window of Firefox was clicked:
- .Bd -literal -offset indent
- $ xprop | grep WM_CLASS

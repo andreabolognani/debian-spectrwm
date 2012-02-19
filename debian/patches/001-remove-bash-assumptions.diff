@@ -9,10 +9,10 @@ Bug-Debian: http://bugs.debian.org/530990
 Forwarded: Marco Peereboom <marco@peereboom.us>
 Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2010-07-21
-Index: scrotwm.git/baraction.sh
+Index: spectrwm.git/baraction.sh
 ===================================================================
---- scrotwm.git.orig/baraction.sh	2012-01-12 21:45:53.010435224 +0100
-+++ scrotwm.git/baraction.sh	2012-01-12 21:56:09.988993318 +0100
+--- spectrwm.git.orig/baraction.sh	2012-02-19 19:34:10.263426784 +0100
++++ spectrwm.git/baraction.sh	2012-02-19 19:44:08.263671744 +0100
 @@ -1,6 +1,10 @@
  #!/bin/sh
  #
