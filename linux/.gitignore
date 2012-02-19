@@ -1,6 +1,0 @@
-*.o
-*.so
-scrotwm.c
-swm_hack.c
-scrotwm
-libswmhack.so.0.0
