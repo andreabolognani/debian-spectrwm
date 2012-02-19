@@ -3,7 +3,7 @@
 DPKG_EXPORT_BUILDFLAGS=1
 include /usr/share/dpkg/buildflags.mk
 
-DESTDIR=$(CURDIR)/debian/spectrwm
+DESTDIR=$(CURDIR)/debian/tmp
 
 build: build-indep build-arch
 build-indep: build-stamp

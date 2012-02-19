@@ -1,11 +1,12 @@
 spectrwm (1.0.0-1) unstable; urgency=low
 
   * New upstream release.
-  * Change package name to be consistent with upstream.
+  * Change package name to be consistent with upstream. Provide a
+    transitional package with the old name for compatibility.
   * 005-use-consistent-naming.diff:
     - merged upstream; dropped.
 
- -- Andrea Bolognani <eof@kiyuko.org>  Sun, 19 Feb 2012 21:46:46 +0100
+ -- Andrea Bolognani <eof@kiyuko.org>  Sun, 19 Feb 2012 22:29:10 +0100
 
 scrotwm (0.11.0-1) unstable; urgency=low
 

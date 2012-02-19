@@ -1,0 +1,3 @@
+spectrwm.conf etc
+usr/bin/spectrwm usr/bin
+usr/lib/spectrwm/libswmhack.so.* usr/lib/spectrwm
