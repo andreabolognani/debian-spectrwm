@@ -1,3 +1,10 @@
+spectrwm (1.0.0-1) unstable; urgency=low
+
+  * New upstream release.
+  * Change package name to be consistent with upstream.
+
+ -- Andrea Bolognani <eof@kiyuko.org>  Sun, 19 Feb 2012 18:56:39 +0100
+
 scrotwm (0.11.0-1) unstable; urgency=low
 
   * New upstream release.
