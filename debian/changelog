@@ -3,6 +3,8 @@ spectrwm (1.0.0-1) unstable; urgency=low
   * New upstream release.
   * Change package name to be consistent with upstream. Provide a
     transitional package with the old name for compatibility.
+  * 104-skip-compatibility-symlinks.diff:
+    - don't let upstream's build system handle compatibility symlinks.
   * 005-use-consistent-naming.diff:
     - merged upstream; dropped.
 

@@ -1,0 +1,24 @@
+Description: Don't install compatibility symlinks
+Forwarded: not-needed
+Author: Andrea Bolognani <eof@kiyuko.org>
+Last-Update: 2012-02-19
+Index: spectrwm.git/linux/Makefile
+===================================================================
+--- spectrwm.git.orig/linux/Makefile	2012-02-19 23:06:23.334984674 +0100
++++ spectrwm.git/linux/Makefile	2012-02-19 23:08:55.777086480 +0100
+@@ -46,7 +46,6 @@
+ 	install -m 755 -d $(DESTDIR)$(MANDIR)/ru/man1
+ 	install -m 755 -d $(DESTDIR)$(XSESSIONSDIR)
+ 	install -m 755 spectrwm                    $(DESTDIR)$(BINDIR)
+-	ln -sf spectrwm                            $(DESTDIR)$(BINDIR)/scrotwm
+ 	install -m 644 libswmhack.so.$(LIBVERSION) $(DESTDIR)$(LIBDIR)
+ 	install -m 644 ../spectrwm.1               $(DESTDIR)$(MANDIR)/man1/spectrwm.1
+ 	install -m 644 ../spectrwm_es.1            $(DESTDIR)$(MANDIR)/es/man1/spectrwm.1
+@@ -57,7 +56,6 @@
+ 
+ uninstall:
+ 	rm -f $(DESTDIR)$(BINDIR)/spectrwm
+-	rm -f $(DESTDIR)$(BINDIR)/scrotwm
+ 	rm -f $(DESTDIR)$(LIBDIR)/libswmhack.so.$(LIBVERSION)
+ 	rm -f $(DESTDIR)$(MANDIR)/man1/spectrwm.1
+ 	rm -f $(DESTDIR)$(MANDIR)/es/man1/spectrwm.1
