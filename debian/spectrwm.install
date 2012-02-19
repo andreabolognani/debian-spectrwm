@@ -1,9 +1,1 @@
 spectrwm.conf etc
-usr/bin/spectrwm usr/bin
-usr/lib/spectrwm/libswmhack.so.* usr/lib/spectrwm
-usr/share/xsessions/spectrwm.desktop usr/share/xsessions
-usr/share/man/man1/spectrwm.1 usr/share/man/man1
-usr/share/man/es/man1/spectrwm.1 usr/share/man/es/man1
-usr/share/man/it/man1/spectrwm.1 usr/share/man/it/man1
-usr/share/man/pt/man1/spectrwm.1 usr/share/man/pt/man1
-usr/share/man/ru/man1/spectrwm.1 usr/share/man/ru/man1
