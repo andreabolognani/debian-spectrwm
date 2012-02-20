@@ -13,4 +13,9 @@ if dpkg-maintscript-helper supports mv_conffile; then
 		"$@"
 fi
 
+# Create compatibility symlink for the config file
+if test "x${1}" = "xconfigure"; then
+	ln -s spectrwm.conf /etc/scrotwm.conf
+fi
+
 #DEBHELPER#

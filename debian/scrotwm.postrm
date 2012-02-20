@@ -13,4 +13,9 @@ if dpkg-maintscript-helper supports mv_conffile; then
 		"$@"
 fi
 
+# Delete compatibility symlink
+if test "x${1}" = "xpurge"; then
+	rm -f /etc/scrotwm.conf
+fi
+
 #DEBHELPER#
