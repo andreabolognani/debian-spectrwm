@@ -13,4 +13,11 @@ if dpkg-maintscript-helper supports mv_conffile; then
 		"$@"
 fi
 
+# Don't list scrotwm as an alternative for x-window-manager anymore.
+# This cleanup has to be performed here because, when upgrading, the old
+# prerm is not called in a way that cleans up the alternative
+if [ "$1" = "upgrade" ]; then
+	update-alternatives --remove x-window-manager /usr/bin/scrotwm
+fi
+
 #DEBHELPER#
