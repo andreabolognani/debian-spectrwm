@@ -13,9 +13,16 @@ if dpkg-maintscript-helper supports mv_conffile; then
 		"$@"
 fi
 
-# Create compatibility symlink for the config file
+# Add some useful pointers to the legacy configuration file
 if [ "$1" = "configure" ]; then
-	ln -s spectrwm.conf /etc/scrotwm.conf
+	cat >/etc/scrotwm.conf <<EOF
+# scrotwm has been renamed to spectrwm.
+#
+# The new global configuration file is /etc/spectrwm.conf.
+# This file is no longer used, so edit the new one instead.
+#
+# Changes you had made before the upgrade have been preserved.
+EOF
 fi
 
 #DEBHELPER#
