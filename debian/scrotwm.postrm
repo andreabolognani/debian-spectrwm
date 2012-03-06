@@ -2,16 +2,15 @@
 
 set -e
 
-if dpkg-maintscript-helper supports mv_conffile; then
-	dpkg-maintscript-helper \
-		mv_conffile \
-			/etc/scrotwm.conf \
-			/etc/spectrwm.conf \
-		0.11.0-1 \
-		scrotwm \
-		-- \
-		"$@"
-fi
+# Migrate user changes to the new configuration file
+dpkg-maintscript-helper \
+	mv_conffile \
+		/etc/scrotwm.conf \
+		/etc/spectrwm.conf \
+	0.11.0-1 \
+	scrotwm \
+	-- \
+	"$@"
 
 # Delete legacy configuration file
 if test "x${1}" = "xpurge"; then
