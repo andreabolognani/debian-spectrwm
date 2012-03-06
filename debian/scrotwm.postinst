@@ -19,9 +19,10 @@ if [ "$1" = "configure" ]; then
 # scrotwm has been renamed to spectrwm.
 #
 # The new global configuration file is /etc/spectrwm.conf.
-# This file is no longer used, so edit the new one instead.
+# This file is no longer used, so any customization should be performed
+# by editing the new one instead.
 #
-# Changes you had made before the upgrade have been preserved.
+# Changes made to this file before the upgrade have been preserved.
 EOF
 fi
 
