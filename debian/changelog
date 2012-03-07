@@ -1,8 +1,9 @@
 spectrwm (1.0.0-1) unstable; urgency=low
 
   * New upstream release.
-  * Change package name to be consistent with upstream. Provide a
-    transitional package with the old name for compatibility.
+  * Change source and binary package name to spectrwm in order to be
+    consistent with upstream's new naming choices.
+    - Provide a transitional binary package for compatibility.
     - Add Pre-Depends: on dpkg (>= 1.15.7.2~) to properly migrate existing
       custom configuration files.
   * 104-skip-compatibility-symlinks.diff:
