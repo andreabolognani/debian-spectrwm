@@ -11,7 +11,7 @@ spectrwm (1.0.0-1) unstable; urgency=low
     - merged upstream; dropped.
   * Update Standards-Version to 3.9.3 (no changes needed).
 
- -- Andrea Bolognani <eof@kiyuko.org>  Thu, 01 Mar 2012 23:07:21 +0100
+ -- Andrea Bolognani <eof@kiyuko.org>  Wed, 07 Mar 2012 23:10:57 +0100
 
 scrotwm (0.11.0-1) unstable; urgency=low
 

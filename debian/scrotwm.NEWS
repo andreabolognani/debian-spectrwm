@@ -1,0 +1,9 @@
+spectrwm (1.0.0-1) unstable; urgency=low
+
+  scrotwm has been renamed to spectrwm.
+
+  Most of the files have been shuffled around due to this change, but as
+  long as the scrotwm package is installed existing setups should
+  continue to work.
+
+ -- Andrea Bolognani <eof@kiyuko.org>  Wed, 07 Mar 2012 23:10:57 +0100
