@@ -6,52 +6,36 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2012-02-19
 Index: spectrwm.git/spectrwm.c
 ===================================================================
---- spectrwm.git.orig/spectrwm.c	2012-02-19 21:41:48.961021479 +0100
-+++ spectrwm.git/spectrwm.c	2012-02-19 21:44:48.155492134 +0100
-@@ -4635,7 +4635,7 @@
+--- spectrwm.git.orig/spectrwm.c	2012-09-02 22:30:44.000000000 +0200
++++ spectrwm.git/spectrwm.c	2012-09-02 22:43:20.671690874 +0200
+@@ -4956,7 +4956,7 @@
  void
  setup_spawn(void)
  {
 -	setconfspawn("term",		"xterm",		0);
-+	setconfspawn("term",		"x-terminal-emulator",		0);
++	setconfspawn("term",		"x-terminal-emulator",	0);
  	setconfspawn("screenshot_all",	"screenshot.sh full",	0);
  	setconfspawn("screenshot_wind",	"screenshot.sh window",	0);
  	setconfspawn("lock",		"xlock",		0);
-@@ -6870,7 +6870,7 @@
- 	if ((bar_fonts = strdup(SWM_BAR_FONTS)) == NULL)
- 		err(1, "setup_globals: strdup: failed to allocate memory.");
- 
--	if ((spawn_term[0] = strdup("xterm")) == NULL)
-+	if ((spawn_term[0] = strdup("x-terminal-emulator")) == NULL)
- 		err(1, "setup_globals: strdup: failed to allocate memory.");
- 
- 	if ((clock_format = strdup("%a %b %d %R %Z %Y")) == NULL)
 Index: spectrwm.git/spectrwm.conf
 ===================================================================
---- spectrwm.git.orig/spectrwm.conf	2012-02-19 21:41:48.929021038 +0100
-+++ spectrwm.git/spectrwm.conf	2012-02-19 21:45:10.699802963 +0100
-@@ -30,13 +30,13 @@
- # urgent_enabled		= 1
+--- spectrwm.git.orig/spectrwm.conf	2012-09-02 22:30:44.000000000 +0200
++++ spectrwm.git/spectrwm.conf	2012-09-02 22:43:59.536911521 +0200
+@@ -40,7 +40,7 @@
  
- # spawn app
+ # Spawn Applications
+ # spawn_position	= last
 -# program[term]		= xterm
 +# program[term]		= x-terminal-emulator
  # program[screenshot_all]	= screenshot.sh full
  # program[screenshot_wind]	= screenshot.sh window
  # program[lock]		= xlock
- # program[initscr]	= initscreen.sh
- # program[menu]		= dmenu_run -fn $bar_font -nb $bar_color -nf $bar_font_color -sb $bar_border -sf $bar_color
--# spawn_term		= xterm
-+# spawn_term		= x-terminal-emulator
- 
- # dialog box size ratio .3 >= r < 1
- # dialog_ratio		= 0.6
-@@ -47,7 +47,7 @@
+@@ -56,7 +56,7 @@
  # region		= screen[1]:1280x1024+1280+0
  
  # Launch applications in a workspace of choice
 -# autorun		= ws[1]:xterm
 +# autorun		= ws[1]:x-terminal-emulator
- # autorun		= ws[2]:xxxterm http://www.openbsd.org
+ # autorun		= ws[2]:xombrero http://www.openbsd.org
  
  # workspace layout

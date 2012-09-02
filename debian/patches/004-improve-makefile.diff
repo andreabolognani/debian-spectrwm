@@ -13,7 +13,7 @@ Index: spectrwm.git/linux/Makefile
 --- spectrwm.git.orig/linux/Makefile	2012-02-19 22:41:22.682294347 +0100
 +++ spectrwm.git/linux/Makefile	2012-02-19 22:44:36.968973087 +0100
 @@ -1,53 +1,69 @@
--CFLAGS+= -Wall -ggdb -D_GNU_SOURCE -I.
+-CFLAGS+= -Wall -g -D_GNU_SOURCE -I.
 -CFLAGS+= -DSWM_LIB=\"$(LIBDIR)/libswmhack.so.$(LVERS)\"
 -LDADD+= -lX11 -lXrandr -lXtst
 +PREFIX       ?= /usr/local
@@ -26,7 +26,7 @@ Index: spectrwm.git/linux/Makefile
 +BUILDVERSION = $(shell sh $(CURDIR)/../buildver.sh)
 +LIBVERSION   = $(shell . $(CURDIR)/../lib/shlib_version; echo $$major.$$minor)
 +
-+MAINT_CFLAGS   = -Wall -ggdb
++MAINT_CFLAGS   = -Wall -g
 +MAINT_CPPFLAGS = -I. -D_GNU_SOURCE -DSWM_LIB=\"$(LIBDIR)/libswmhack.so.$(LIBVERSION)\"
 +MAINT_LDLIBS   = -lX11 -lXrandr -lXtst
  
