@@ -1,5 +1,8 @@
-.\" Copyright (c) 2009 Marco Peereboom <marco@peereboom.us>
+.\" Copyright (c) 2009-2012 Marco Peereboom <marco@peereboom.us>
 .\" Copyright (c) 2009 Darrin Chandler <dwchandler@stilyagin.com>
+.\" Copyright (c) 2011-2012 Reginald Kennedy <rk@rejii.com>
+.\" Copyright (c) 2011-2012 Lawrence Teo <lteo@lteo.net>
+.\" Copyright (c) 2011-2012 Tiago Cunha <tcunha@gmx.com>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -103,12 +106,51 @@ Status bar font.
 .It Ic bar_font_color Ns Bq Ar x
 Color of the font in status bar in screen
 .Ar x .
+.It Ic bar_format
+Set the bar_format string and overrides
+.Ic clock_format
+and all of the
+.Ic enabled
+options.
+The format is passed through
+.Xr strftime 3
+before being used.
+It may contain the following character sequences:
+.Bl -column "Character sequence" "Replaced with" -offset indent
+.It Sy "Character sequence" Ta Sy "Replaced with"
+.It Li "+<" Ta "Pad with a space"
+.It Li "+A" Ta "Output of the external script"
+.It Li "+C" Ta "Window class"
+.It Li "+D" Ta "Workspace name"
+.It Li "+F" Ta "Floating indicator"
+.It Li "+I" Ta "Workspace index"
+.It Li "+N" Ta "Screen number"
+.It Li "+P" Ta "Window class and title separated by a colon"
+.It Li "+S" Ta "Stacking algorithm"
+.It Li "+T" Ta "Window title"
+.It Li "+U" Ta "Urgency hint"
+.It Li "+V" Ta "Program version"
+.It Li "+W" Ta "Window name"
+.It Li "++" Ta "A literal" Ql +
+.El
+.Pp
+All character sequences may limit its output to a specific length, for example
++64A.
+Any characters that don't match the specification are copied as-is.
 .It Ic bar_justify
 Justify the status bar text. Possible values are
 .Pa left ,
 .Pa center ,
 and
 .Pa right .
+.Pp
+Note that if the output is not
+.Pa left
+justified, it may not be properly aligned in some circumstances, due to the
+white-spaces in the default static format.
+See the
+.Ic bar_format
+option for more details.
 .It Ic bind Ns Bq Ar x
 Bind key combo to action
 .Ar x .
@@ -134,6 +176,29 @@ This ratio is the screen size to what they will be resized.
 For example, 0.6 is 60% of the physical screen size.
 .It Ic disable_border
 Remove border when bar is disabled and there is only one window on the screen.
+.It Ic focus_close
+Window to put focus when the focused window is closed.
+Possible values are
+.Pa first ,
+.Pa next ,
+.Pa previous
+(default) and
+.Pa last .
+.Pa next
+and
+.Pa previous
+are relative to the window that is closed.
+.It Ic focus_close_wrap
+Whether to allow the focus to jump to the last window when the first window is
+closed or vice versa.
+Disable by setting to 0.
+.It Ic focus_default
+Window to put focus when no window has been focused.
+Possible values are
+.Pa first
+and
+.Pa last
+(default).
 .It Ic focus_mode
 Using a value of
 .Pa follow_cursor
@@ -155,7 +220,9 @@ shrinks the master area by 4 ticks and adds one window to the stack, while
 maintaining default floating window behavior.
 Possible stack_mode values are
 .Pa vertical ,
-.Pa horizontal
+.Pa vertical_flip ,
+.Pa horizontal ,
+.Pa horizontal_flip
 and
 .Pa fullscreen .
 .Pp
@@ -201,6 +268,19 @@ e.g.\& screen[1]:800x1200+0+0.
 To make a screen span multiple monitors, create a region big enough to cover
 them all, e.g. screen[1]:2048x768+0+0 makes the screen span two monitors with
 1024x768 resolution sitting one next to the other.
+.It Ic spawn_position
+Position in stack to place newly spawned windows.
+Possible values are
+.Pa first ,
+.Pa next ,
+.Pa previous
+and
+.Pa last
+(default).
+.Pa next
+and
+.Pa previous
+are relative to the focused window.
 .It Ic stack_enabled
 Enable or disable displaying the current stacking algorithm in the status bar.
 .It Ic term_width
@@ -231,7 +311,7 @@ Enable or disable the urgency hint.
 Note that many terminal emulators require this to be enabled for it to
 propagate.
 In xterm, for example, one needs to add the following line
-.Pa xterm.urgentOnBell: true
+.Pa xterm.bellIsUrgent: true
 to
 .Pa .Xdefaults .
 .It Ic verbose_layout
@@ -241,6 +321,14 @@ Enable by setting to 1.
 .It Ic window_name_enabled
 Enable or disable displaying the window name in the status bar.
 Enable by setting to 1.
+.Pp
+To prevent excessively large window names from pushing the remaining text off
+the screen, it's limited to 64 characters, by default.
+See the
+.Ic bar_format
+option for more details.
+.It Ic workspace_limit
+Set the total number of workspaces available.  Minimum is 1, maximum is 22.
 .El
 .Pp
 Colors need to be specified per the
@@ -343,7 +431,7 @@ Resize window while maintaining it centered
 .Pp
 The default key bindings are described below:
 .Pp
-.Bl -tag -width "M-j, M-<TAB>XXX" -offset indent -compact
+.Bl -tag -width "M-j, M-<TAB>XXXXXX" -offset indent -compact
 .It Cm M-S- Ns Aq Cm Return
 term
 .It Cm M-p
@@ -394,10 +482,10 @@ bar_toggle
 wind_del
 .It Cm M-S-x
 wind_kill
-.It Cm M- Ns Aq Ar n
-.Pf ws_ Ar n
-.It Cm M-S- Ns Aq Ar n
-.Pf mvws_ Ar n
+.It Cm M- Ns Aq Ar 1-9,0,F1-F12
+.Pf ws_ Aq Ar 1-22
+.It Cm M-S- Ns Aq Ar 1-9,0,F1-F12
+.Pf mvws_ Ns Aq Ar 1-22
 .It Cm M- Ns Aq Cm Right
 ws_next
 .It Cm M- Ns Aq Cm Left
@@ -516,13 +604,13 @@ Switch to workspace
 .Ar n ,
 where
 .Ar n
-is 1 through 10.
+is 1 through workspace_limit.
 .It Cm mvws_ Ns Ar n
 Move current window to workspace
 .Ar n ,
 where
 .Ar n
-is 1 through 10.
+is 1 through workspace_limit.
 .It Cm ws_next
 Switch to next workspace with a window in it.
 .It Cm ws_prev
@@ -614,6 +702,24 @@ To use the currently defined
 specify MOD as the modifier key.
 .Pp
 Multiple key combinations may be bound to the same action.
+.Pp
+To bind non-latin characters such as å or π you must enter the xkb
+character name instead of the character itself. Run xev, focus the window
+and press the specific key and in the terminal output read the symbol name.
+In the fallowing example for å:
+.Bd -literal -offset indent
+KeyPress event, serial 41, synthetic NO, window 0x2600001,
+    root 0x15a, subw 0x0, time 106213808, (11,5), root:(359,823),
+    state 0x0, keycode 24 (keysym 0xe5, aring), same_screen YES,
+    XLookupString gives 2 bytes: (c3 a5) "å"
+    XmbLookupString gives 2 bytes: (c3 a5) "å"
+    XFilterEvent returns: False
+.Ed
+.Pp
+The xkb name is aring. In other words, in .spectrwm.conf add:
+.Bd -literal -offset indent
+bind[program] = MOD+aring
+.Ed
 .Sh KEYBOARD MAPPING FILES
 Keyboard mapping files for several keyboard layouts are listed
 below.
