@@ -13,9 +13,11 @@ BUILDVERSION!= sh "${.CURDIR}/../buildver.sh"
 CFLAGS+= -DSPECTRWM_BUILDSTR=\"$(BUILDVERSION)\"
 .endif
 
-CFLAGS+= -Wall -Wno-uninitialized -I. -I${LOCALBASE}/include
+CFLAGS+= -Wall -Wextra -I. -I${LOCALBASE}/include \
+	 -I${LOCALBASE}/include/freetype2
 CFLAGS+= -DSWM_LIB=\"$(SWM_LIBDIR)/libswmhack.so.$(LVERS)\"
-LDADD+= -lutil -L${LOCALBASE}/lib -lX11 -lXrandr -lXtst
+LDADD+= -lutil -L${LOCALBASE}/lib -lX11 -lX11-xcb -lxcb \
+	-lxcb-icccm -lxcb-keysyms -lxcb-randr -lxcb-util -lxcb-xtest -lXft
 
 
 all: spectrwm libswmhack.so.$(LVERS)
@@ -51,5 +53,7 @@ install: all
 
 clean:
 	rm -f spectrwm *.o *.so libswmhack.so.* spectrwm.c swm_hack.c version.h
+
+.PHONY:	all install clean
 
 .sinclude <bsd.port.post.mk>
