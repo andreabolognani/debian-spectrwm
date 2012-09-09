@@ -1539,46 +1539,44 @@ bar_fmt(const char *fmtexp, char *fmtnew, struct swm_region *r, size_t sz)
 	strlcat(fmtnew, "+4<+A+4<+V", sz);
 }
 
+void
+bar_replace_pad(char *tmp, int *limit, size_t sz)
+{
+	/* special case; no limit given, pad one space, instead */
+	if (*limit == sz - 1)
+		*limit = 1;
+	snprintf(tmp, sz, "%*s", *limit, " ");
+}
+
 /* replaces the bar format character sequences (like in tmux(1)) */
 char *
 bar_replace_seq(char *fmt, char *fmtrep, struct swm_region *r, size_t *offrep,
     size_t sz)
 {
 	char			*ptr;
-	char			num[8], tmp[SWM_BAR_MAX];
-	int			limit;
-	size_t			len, numoff = 0;
+	char			tmp[SWM_BAR_MAX];
+	int			limit, size;
+	size_t			len;
 
 	/* reset strlcat(3) buffer */
 	*tmp = '\0';
 
 	/* get number, if any */
 	fmt++;
-	while (*fmt != '\0' && isdigit((unsigned char) *fmt)) {
-		if (numoff >= sizeof num - 1)
-			break;
-		num[numoff++] = *fmt++;
-	}
-	num[numoff] = '\0';
-
-	if ((limit = strtonum(num, 1, sizeof tmp - 1, NULL)) == 0)
+	size = 0;
+	if (sscanf(fmt, "%d%n", &limit, &size) != 1)
+		limit = sizeof tmp - 1;
+	if (limit <= 0 || limit >= sizeof tmp)
 		limit = sizeof tmp - 1;
 
-	/* if number is too big, skip to the first non-digit */
-	if (numoff >= sizeof num - 1) {
-		while (*fmt != '\0' && isdigit((unsigned char) *fmt))
-			fmt++;
-	}
 	/* there is nothing to replace (ie EOL) */
+	fmt += size;
 	if (*fmt == '\0')
 		return (fmt);
 
 	switch (*fmt) {
 	case '<':
-		/* special case; no limit given, pad one space, instead */
-		if (limit == sizeof tmp - 1)
-			limit = 1;
-		snprintf(tmp, sizeof tmp, "%*s", limit, " ");
+		bar_replace_pad(tmp, &limit, sizeof tmp);
 		break;
 	case 'A':
 		snprintf(tmp, sizeof tmp, "%s", bar_ext);
@@ -6213,9 +6211,10 @@ manage_window(Window id)
 			TAILQ_INSERT_AFTER(&win->ws->winlist, ww, win, entry);
 		else if ((ww = win->ws->focus) &&
 		    spawn_position == SWM_STACK_ABOVE)
-			TAILQ_INSERT_AFTER(&win->ws->winlist, win->ws->focus, win, entry);
+			TAILQ_INSERT_AFTER(&win->ws->winlist, win->ws->focus,
+			    win, entry);
 		else if (ww && spawn_position == SWM_STACK_BELOW)
-			TAILQ_INSERT_AFTER(&win->ws->winlist, win->ws->focus, win, entry);
+			TAILQ_INSERT_BEFORE(win->ws->focus, win, entry);
 		else switch (spawn_position) {
 		default:
 		case SWM_STACK_TOP:
@@ -6314,10 +6313,21 @@ manage_window(Window id)
 	win->s = r->s;	/* this never changes */
 	if (trans && (ww = find_window(trans)))
 		TAILQ_INSERT_AFTER(&ws->winlist, ww, win, entry);
-	else if (spawn_position == SWM_STACK_ABOVE && win->ws->focus)
-		TAILQ_INSERT_AFTER(&win->ws->winlist, win->ws->focus, win, entry);
-	else
-		TAILQ_INSERT_TAIL(&ws->winlist, win, entry);
+	else if (win->ws->focus && spawn_position == SWM_STACK_ABOVE)
+		TAILQ_INSERT_AFTER(&win->ws->winlist, win->ws->focus, win,
+		    entry);
+	else if (win->ws->focus && spawn_position == SWM_STACK_BELOW)
+		TAILQ_INSERT_BEFORE(win->ws->focus, win, entry);
+	else switch (spawn_position) {
+	default:
+	case SWM_STACK_TOP:
+	case SWM_STACK_ABOVE:
+		TAILQ_INSERT_TAIL(&win->ws->winlist, win, entry);
+		break;
+	case SWM_STACK_BOTTOM:
+	case SWM_STACK_BELOW:
+		TAILQ_INSERT_HEAD(&win->ws->winlist, win, entry);
+	}
 
 	/* ignore window border if there is one. */
 	WIDTH(win) = win->wa.width;
@@ -6971,14 +6981,21 @@ visibilitynotify(XEvent *e)
 void
 clientmessage(XEvent *e)
 {
-	XClientMessageEvent *ev;
-	struct ws_win *win;
+	XClientMessageEvent	*ev;
+	struct ws_win		*win;
 
 	ev = &e->xclient;
 
 	win = find_window(ev->window);
-	if (win == NULL)
+	if (win == NULL) {
+		if (ev->message_type == ewmh[_NET_ACTIVE_WINDOW].atom) {
+			DNPRINTF(SWM_D_EVENT, "clientmessage: request focus on "
+			    "unmanaged window.\n");
+			e->xmaprequest.window = ev->window;
+			maprequest(e);
+		}
 		return;
+	}
 
 	DNPRINTF(SWM_D_EVENT, "clientmessage: window: 0x%lx, type: %ld\n",
 	    ev->window, ev->message_type);
@@ -7160,7 +7177,7 @@ scan_xrandr(int i)
 	/* map virtual screens onto physical screens */
 #ifdef SWM_XRR_HAS_CRTC
 	if (xrandr_support) {
-		sr = XRRGetScreenResources(display, screens[i].root);
+		sr = XRRGetScreenResourcesCurrent(display, screens[i].root);
 		if (sr == NULL)
 			new_region(&screens[i], 0, 0,
 			    DisplayWidth(display, i),
