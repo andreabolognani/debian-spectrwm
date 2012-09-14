@@ -1,8 +1,8 @@
-spectrwm (1.1.2-1) unstable; urgency=low
+spectrwm (1.2.0-1) unstable; urgency=low
 
   * New upstream release.
 
- -- Andrea Bolognani <eof@kiyuko.org>  Sun, 09 Sep 2012 17:26:11 +0200
+ -- Andrea Bolognani <eof@kiyuko.org>  Fri, 14 Sep 2012 20:37:24 +0200
 
 spectrwm (1.0.0-1) unstable; urgency=low
 
