@@ -1,5 +1,5 @@
 Description: Remove OpenBSD assumptions
- The example baraction.sh script shipped in scrotwm's release relies on
+ The example baraction.sh script shipped in spectrwm's release relies on
  some features specific to the OpenBSD versions of the iostat and top
  commands. Moreover, it uses apm to get battery data.
  .

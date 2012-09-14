@@ -1,5 +1,5 @@
 Description: Remove Bash assumptions
- The example baraction.sh script shipped in scrotwm's release relies on
+ The example baraction.sh script shipped in spectrwm's release relies on
  some non-POSIX shell features.
  .
  This patch modifies the script so that it is possible to run it on a
