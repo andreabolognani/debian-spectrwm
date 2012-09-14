@@ -6,9 +6,9 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2012-09-09
 Index: spectrwm.git/spectrwm.c
 ===================================================================
---- spectrwm.git.orig/spectrwm.c	2012-09-09 17:25:02.766994023 +0200
-+++ spectrwm.git/spectrwm.c	2012-09-09 17:25:10.339107502 +0200
-@@ -4954,8 +4954,8 @@
+--- spectrwm.git.orig/spectrwm.c	2012-09-09 18:00:54.087231923 +0200
++++ spectrwm.git/spectrwm.c	2012-09-09 21:20:53.591394341 +0200
+@@ -5356,8 +5356,8 @@
  void
  setup_spawn(void)
  {

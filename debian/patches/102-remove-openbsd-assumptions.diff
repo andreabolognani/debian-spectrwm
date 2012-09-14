@@ -9,10 +9,10 @@ Description: Remove OpenBSD assumptions
 Bug-Debian: http://bugs.debian.org/530990
 Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2010-07-21
-Index: scrotwm.git/baraction.sh
+Index: spectrwm.git/baraction.sh
 ===================================================================
---- scrotwm.git.orig/baraction.sh	2012-01-12 22:29:04.170284596 +0100
-+++ scrotwm.git/baraction.sh	2012-01-12 22:32:49.296772037 +0100
+--- spectrwm.git.orig/baraction.sh	2012-09-09 21:16:12.127176552 +0200
++++ spectrwm.git/baraction.sh	2012-09-09 21:20:59.663485332 +0200
 @@ -1,9 +1,9 @@
  #!/bin/sh
  #

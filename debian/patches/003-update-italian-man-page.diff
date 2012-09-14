@@ -5,8 +5,8 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2012-02-19
 Index: spectrwm.git/spectrwm_it.1
 ===================================================================
---- spectrwm.git.orig/spectrwm_it.1	2012-02-19 20:22:40.015545145 +0100
-+++ spectrwm.git/spectrwm_it.1	2012-02-19 20:29:54.689538238 +0100
+--- spectrwm.git.orig/spectrwm_it.1	2012-09-14 20:36:29.305223591 +0200
++++ spectrwm.git/spectrwm_it.1	2012-09-14 20:36:36.861319510 +0200
 @@ -23,10 +23,10 @@
  .Nm spectrwm
  .Sh DESCRIZIONE

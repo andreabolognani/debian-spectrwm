@@ -6,11 +6,11 @@ Description: Try versioned dlopen()
  print an explanatory error message and abort the process.
 Bug-Debian: http://bugs.debian.org/551732
 Author: Andrea Bolognani <eof@kiyuko.org>
-Last-Update: 2009-11-02
+Last-Update: 2012-09-14
 Index: spectrwm.git/lib/swm_hack.c
 ===================================================================
---- spectrwm.git.orig/lib/swm_hack.c	2012-02-19 19:34:10.263426784 +0100
-+++ spectrwm.git/lib/swm_hack.c	2012-02-19 21:45:49.232334232 +0100
+--- spectrwm.git.orig/lib/swm_hack.c	2012-09-09 21:44:57.725034959 +0200
++++ spectrwm.git/lib/swm_hack.c	2012-09-09 21:47:52.095647468 +0200
 @@ -44,6 +44,7 @@
  #include <stdio.h>
  #include <stdlib.h>
@@ -19,11 +19,53 @@ Index: spectrwm.git/lib/swm_hack.c
  #include <X11/Xlib.h>
  #include <X11/X.h>
  #include <X11/Xatom.h>
-@@ -129,12 +130,29 @@
+@@ -90,17 +91,40 @@
+ {
+ 	Atom			atom = 0;
+ 	char			prop[SWM_PROPLEN];
++	char			*error;
+ 	static XIA		*xia = NULL;
+ 	static XCP		*xcp = NULL;
+ 
+ 	/* find the real Xlib and the real X function */
+ 	if (!lib_xlib)
+ 		lib_xlib = dlopen("libX11.so", RTLD_GLOBAL | RTLD_LAZY);
++	if (!lib_xlib)
++		lib_xlib = dlopen("libX11.so.6", RTLD_GLOBAL | RTLD_LAZY);
++
++	if (!lib_xlib)
++		if ((error = dlerror()) != NULL) {
++			fprintf(stderr, "%s\n", error);
++			assert(lib_xlib);
++		}
++
+ 	if (!xia)
+ 		xia = (XIA *) dlsym(lib_xlib, "XInternAtom");
++
++	if (!xia)
++		if ((error = dlerror()) != NULL) {
++			fprintf(stderr, "%s\n", error);
++			assert(xia);
++		}
++
+ 	if (!xcp)
+ 		xcp = (XCP *) dlsym(lib_xlib, "XChangeProperty");
+ 
++	if (!xcp)
++		if ((error = dlerror()) != NULL) {
++			fprintf(stderr, "%s\n", error);
++			assert(xcp);
++		}
++
+ 	/* Try to update the window's workspace property */
+ 	atom = (*xia)(dpy, name, False);
+ 	if (atom)
+@@ -128,16 +152,32 @@
+ {
  	static CWF	*func = NULL;
  	char		*env;
- 	Window		id;
 +	char		*error;
+ 	Window		id;
  
  	/* find the real Xlib and the real X function */
  	if (!lib_xlib)
@@ -39,21 +81,24 @@ Index: spectrwm.git/lib/swm_hack.c
 +
  	if (!func) {
  		func = (CWF *) dlsym(lib_xlib, "XCreateWindow");
-+
-+		if (!func)
-+			if ((error = dlerror()) != NULL) {
-+				fprintf(stderr, "%s\n", error);
-+				assert(func);
-+			}
-+
- 		dpy = display;
+ 		display = dpy;
  	}
  
-@@ -174,13 +192,29 @@
++	if (!func)
++		if ((error = dlerror()) != NULL) {
++			fprintf(stderr, "%s\n", error);
++			assert(func);
++		}
++
+ 	if (parent == DefaultRootWindow(display))
+ 		parent = MyRoot(display);
+ 	
+@@ -173,14 +213,30 @@
+ {
  	static CSWF	*func = NULL;
  	char		*env;
- 	Window		id;
 +	char		*error;
+ 	Window		id;
  
  	/* find the real Xlib and the real X function */
  	if (!lib_xlib)
@@ -76,15 +121,10 @@ Index: spectrwm.git/lib/swm_hack.c
 +			assert(func);
 +		}
 +
- 	if (parent == DefaultRootWindow(display))
- 		parent = MyRoot(display);
+ 	if (parent == DefaultRootWindow(dpy))
+ 		parent = MyRoot(dpy);
  
-@@ -208,13 +242,29 @@
- XReparentWindow(Display * display, Window window, Window parent, int x, int y)
- {
- 	static RWF         *func = NULL;
-+	char				*error;
- 
+@@ -212,9 +268,24 @@
  	/* find the real Xlib and the real X function */
  	if (!lib_xlib)
  		lib_xlib = dlopen("libX11.so", RTLD_GLOBAL | RTLD_LAZY);
@@ -106,20 +146,15 @@ Index: spectrwm.git/lib/swm_hack.c
 +			assert(func);
 +		}
 +
- 	if (parent == DefaultRootWindow(display))
- 		parent = MyRoot(display);
+ 	if (parent == DefaultRootWindow(dpy))
+ 		parent = MyRoot(dpy);
  
-@@ -235,12 +285,30 @@
- {
- 	static ANEF	*func = NULL;
- 	static int	kp_add = 0, kp_subtract = 0;
-+	char		*error;
- 
+@@ -239,6 +310,15 @@
  	/* find the real Xlib and the real X function */
  	if (!lib_xtlib)
-+		lib_xtlib = dlopen("libXt.so.6", RTLD_GLOBAL | RTLD_LAZY);
-+	if (!lib_xtlib)
  		lib_xtlib = dlopen("libXt.so", RTLD_GLOBAL | RTLD_LAZY);
++	if (!lib_xtlib)
++		lib_xtlib = dlopen("libXt.so.6", RTLD_GLOBAL | RTLD_LAZY);
 +
 +	if (!lib_xtlib)
 +		if ((error = dlerror()) != NULL) {
@@ -129,14 +164,17 @@ Index: spectrwm.git/lib/swm_hack.c
 +
  	if (!func) {
  		func = (ANEF *) dlsym(lib_xtlib, "XtAppNextEvent");
-+
-+		if (!func) {
-+			if ((error = dlerror()) != NULL) {
-+				fprintf(stderr, "%s\n", error);
-+				assert(func);
-+			}
+ 		if (display != NULL) {
+@@ -247,6 +327,12 @@
+ 		}
+ 	}
+ 
++	if (!func)
++		if ((error = dlerror()) != NULL) {
++			fprintf(stderr, "%s\n", error);
++			assert(func);
 +		}
 +
- 		if (dpy != NULL) {
- 			kp_add = XKeysymToKeycode(dpy, XK_KP_Add);
- 			kp_subtract = XKeysymToKeycode(dpy, XK_KP_Subtract);
+ 	(*func) (app_context, event_return);
+ 
+ 	/* Return here if it's not an Xterm. */
