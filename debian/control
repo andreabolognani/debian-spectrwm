@@ -2,7 +2,17 @@ Source: spectrwm
 Section: x11
 Priority: optional
 Maintainer: Andrea Bolognani <eof@kiyuko.org>
-Build-Depends: debhelper (>= 7), dpkg-dev (>= 1.16.1~), libx11-dev, libxt-dev, libxrandr-dev, libxtst-dev
+Build-Depends: dpkg-dev (>= 1.16.1~),
+               debhelper (>= 7),
+               libx11-dev,
+               libx11-xcb-dev,
+               libxcb1-dev,
+               libxcb-icccm4-dev,
+               libxcb-keysyms1-dev,
+               libxcb-randr0-dev,
+               libxcb-util0-dev,
+               libxcb-xtest0-dev,
+               libxft-dev
 Standards-Version: 3.9.3
 Homepage: http://opensource.conformal.com/wiki/spectrwm
 Vcs-Git: git://anonscm.debian.org/collab-maint/spectrwm.git
@@ -13,7 +23,8 @@ Architecture: any
 Provides: x-window-manager
 Replaces: scrotwm (<< 1.0.0-1~)
 Breaks: scrotwm (<< 1.0.0-1~)
-Depends: ${shlibs:Depends}, ${misc:Depends}
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
 Recommends: suckless-tools, xterm | x-terminal-emulator, xfonts-terminus
 Description: dynamic tiling window manager
  spectrwm is a minimalistic window manager that tries to stay out of the
@@ -31,7 +42,8 @@ Architecture: all
 Section: oldlibs
 Priority: extra
 Pre-Depends: dpkg (>= 1.15.7.2~)
-Depends: spectrwm, ${misc:Depends}
+Depends: spectrwm,
+         ${misc:Depends}
 Description: dynamic tiling window manager (transitional package)
  spectrwm is a minimalistic window manager that tries to stay out of the
  way so that valuable screen real estate can be used for much more
