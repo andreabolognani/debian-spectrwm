@@ -1,8 +1,9 @@
-001-remove-bash-assumptions.diff
-002-improve-man-page.diff
-003-update-italian-man-page.diff
-004-improve-makefile.diff
-101-use-x-terminal-emulator-instead-of-xterm.diff
-102-remove-openbsd-assumptions.diff
-103-try-versioned-dlopen.diff
-104-skip-compatibility-symlinks.diff
+# To rebuild this file, use `debian/rules rebuild-series'
+U01-remove-bash-assumptions.diff
+U02-improve-man-page.diff
+U03-update-italian-man-page.diff
+U04-improve-makefile.diff
+D01-use-x-terminal-emulator-instead-of-xterm.diff
+D02-remove-openbsd-assumptions.diff
+D03-try-versioned-dlopen.diff
+D04-skip-compatibility-symlinks.diff
