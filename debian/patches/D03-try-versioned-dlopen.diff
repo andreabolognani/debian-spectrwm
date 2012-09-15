@@ -9,8 +9,8 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2012-09-14
 Index: spectrwm.git/lib/swm_hack.c
 ===================================================================
---- spectrwm.git.orig/lib/swm_hack.c	2012-09-09 21:44:57.725034959 +0200
-+++ spectrwm.git/lib/swm_hack.c	2012-09-09 21:47:52.095647468 +0200
+--- spectrwm.git.orig/lib/swm_hack.c	2012-09-15 12:55:51.041495244 +0200
++++ spectrwm.git/lib/swm_hack.c	2012-09-15 12:57:41.423681561 +0200
 @@ -44,6 +44,7 @@
  #include <stdio.h>
  #include <stdlib.h>
@@ -124,7 +124,12 @@ Index: spectrwm.git/lib/swm_hack.c
  	if (parent == DefaultRootWindow(dpy))
  		parent = MyRoot(dpy);
  
-@@ -212,9 +268,24 @@
+@@ -208,13 +264,29 @@
+ XReparentWindow(Display *dpy, Window window, Window parent, int x, int y)
+ {
+ 	static RWF         *func = NULL;
++	char               *error;
+ 
  	/* find the real Xlib and the real X function */
  	if (!lib_xlib)
  		lib_xlib = dlopen("libX11.so", RTLD_GLOBAL | RTLD_LAZY);
@@ -149,7 +154,12 @@ Index: spectrwm.git/lib/swm_hack.c
  	if (parent == DefaultRootWindow(dpy))
  		parent = MyRoot(dpy);
  
-@@ -239,6 +310,15 @@
+@@ -235,10 +307,20 @@
+ {
+ 	static ANEF	*func = NULL;
+ 	static KeyCode	kp_add = 0, kp_subtract = 0;
++	char            *error;
+ 
  	/* find the real Xlib and the real X function */
  	if (!lib_xtlib)
  		lib_xtlib = dlopen("libXt.so", RTLD_GLOBAL | RTLD_LAZY);
@@ -165,7 +175,7 @@ Index: spectrwm.git/lib/swm_hack.c
  	if (!func) {
  		func = (ANEF *) dlsym(lib_xtlib, "XtAppNextEvent");
  		if (display != NULL) {
-@@ -247,6 +327,12 @@
+@@ -247,6 +329,12 @@
  		}
  	}
  
