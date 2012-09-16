@@ -7,11 +7,11 @@ Description: Improve GNU/Linux Makefile
  symlink hackery.
 Forwarded: Marco Peereboom <marco@peereboom.us>
 Author: Andrea Bolognani <eof@kiyuko.org>
-Last-Update: 2012-02-19
+Last-Update: 2012-09-16
 Index: spectrwm.git/linux/Makefile
 ===================================================================
---- spectrwm.git.orig/linux/Makefile	2012-09-14 20:36:29.205222321 +0200
-+++ spectrwm.git/linux/Makefile	2012-09-14 20:36:37.925333016 +0200
+--- spectrwm.git.orig/linux/Makefile	2012-09-16 16:53:50.780419552 +0200
++++ spectrwm.git/linux/Makefile	2012-09-16 16:56:26.558855864 +0200
 @@ -1,53 +1,69 @@
 -CFLAGS+= -Wall -Wextra -Wshadow -g -D_GNU_SOURCE -I. -I/usr/include/freetype2
 -CFLAGS+= -DSWM_LIB=\"$(LIBDIR)/libswmhack.so.$(LVERS)\"
@@ -35,7 +35,7 @@ Index: spectrwm.git/linux/Makefile
 -LIBDIR?= $(PREFIX)/lib
 -MANDIR?= $(PREFIX)/share/man
 -
--CC= gcc
+-CC?= gcc
 -
 -LVERS= $(shell . ../lib/shlib_version; echo $$major.$$minor)
 -
