@@ -5,8 +5,8 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2012-02-19
 Index: spectrwm.git/spectrwm.1
 ===================================================================
---- spectrwm.git.orig/spectrwm.1	2012-09-16 16:36:09.389099276 +0200
-+++ spectrwm.git/spectrwm.1	2012-09-16 16:43:17.753405379 +0200
+--- spectrwm.git.orig/spectrwm.1	2012-09-30 23:42:26.824332556 +0200
++++ spectrwm.git/spectrwm.1	2013-02-03 21:21:40.102723750 +0100
 @@ -472,7 +472,7 @@
  restart
  .It Cm M- Ns Aq Cm Space
@@ -16,3 +16,12 @@ Index: spectrwm.git/spectrwm.1
  flip_layout
  .It Cm M-S- Ns Aq Cm Space
  stack_reset
+@@ -736,7 +736,7 @@
+ To bind non-latin characters such as å or π you must enter the xkb
+ character name instead of the character itself. Run xev, focus the window
+ and press the specific key and in the terminal output read the symbol name.
+-In the fallowing example for å:
++In the following example for å:
+ .Bd -literal -offset indent
+ KeyPress event, serial 41, synthetic NO, window 0x2600001,
+     root 0x15a, subw 0x0, time 106213808, (11,5), root:(359,823),
