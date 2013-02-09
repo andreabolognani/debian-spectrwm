@@ -6,7 +6,7 @@ Last-Update: 2012-02-19
 Index: spectrwm.git/spectrwm.1
 ===================================================================
 --- spectrwm.git.orig/spectrwm.1	2012-09-30 23:42:26.824332556 +0200
-+++ spectrwm.git/spectrwm.1	2013-02-03 21:21:40.102723750 +0100
++++ spectrwm.git/spectrwm.1	2013-02-03 21:45:48.026183681 +0100
 @@ -472,7 +472,7 @@
  restart
  .It Cm M- Ns Aq Cm Space
@@ -25,3 +25,68 @@ Index: spectrwm.git/spectrwm.1
  .Bd -literal -offset indent
  KeyPress event, serial 41, synthetic NO, window 0x2600001,
      root 0x15a, subw 0x0, time 106213808, (11,5), root:(359,823),
+@@ -752,8 +752,7 @@
+ .Ed
+ .Sh KEYBOARD MAPPING FILES
+ Keyboard mapping files for several keyboard layouts are listed
+-below.
+-These files can be used with the
++below. These files can be used with the
+ .Pa keyboard_mapping
+ setting to load pre-defined key bindings for the specified
+ keyboard layout.
+@@ -851,8 +850,8 @@
+ .Aq name
+ by running
+ .Xr xprop 1
+-and then clicking on the desired window.
+-In the following example the main window of Firefox was clicked:
++and then clicking on the desired window. In the following example the main
++window of Firefox was clicked:
+ .Bd -literal -offset indent
+ $ xprop | grep WM_CLASS
+ WM_CLASS(STRING) = "Navigator", "Firefox"
+@@ -888,11 +887,9 @@
+ partially implements the Extended Window Manager Hints (EWMH) specification.
+ This enables controlling windows as well as
+ .Nm
+-itself from external scripts and programs.
+-This is achieved by
++itself from external scripts and programs. This is achieved by
+ .Nm
+-responding to certain ClientMessage events.
+-From the terminal these events
++responding to certain ClientMessage events. From the terminal these events
+ can be conveniently sent using tools such as
+ .Xr wmctrl 1
+ and
+@@ -901,8 +898,7 @@
+ actual format of these ClientMessage events, see the EWMH specification.
+ .Pp
+ The id of the currently focused window is stored in the _NET_ACTIVE_WINDOW
+-property of the root window.
+-This can be used for example to retrieve the
++property of the root window. This can be used for example to retrieve the
+ title of the currently active window with
+ .Xr xprop 1
+ and
+@@ -913,8 +909,7 @@
+ .Ed
+ .Pp
+ A window can be focused by sending a _NET_ACTIVE_WINDOW client message
+-to the root window.
+-For example, using
++to the root window. For example, using
+ .Xr wmctrl 1
+ to send the message
+ (assuming 0x4a0000b is the id of the window to be focused):
+@@ -923,8 +918,7 @@
+ .Ed
+ .Pp
+ Windows can be closed by sending a _NET_CLOSE_WINDOW client message
+-to the root window.
+-For example, using
++to the root window. For example, using
+ .Xr wmctrl 1
+ to send the message
+ (assuming 0x4a0000b is the id of the window to be closed):
