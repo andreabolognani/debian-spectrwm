@@ -2,7 +2,7 @@ Description: Update Italian manual page
  Bring Italian manual page up-to-date.
 Forwarded: Marco Peereboom <marco@peereboom.us>
 Author: Andrea Bolognani <eof@kiyuko.org>
-Last-Update: 2012-02-19
+Last-Update: 2013-02-09
 Index: spectrwm.git/spectrwm_it.1
 ===================================================================
 --- spectrwm.git.orig/spectrwm_it.1	2013-02-03 21:47:02.144631643 +0100
