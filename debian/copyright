@@ -13,6 +13,7 @@ Copyright: 2009-2012, Marco Peereboom <marco@peereboom.us>
            2011-2012, Reginald Kennedy <rk@rejii.com>
            2011-2012, Lawrence Teo <lteo@lteo.net>
            2011-2012, Tiago Cunha <tcunha@gmx.com>
+           2012, David Hill <dhill@mindcry.org>
            2006-2008, Anselm R Garbe <garbeam@gmail.com>
            2006-2007, Sander van Dijk <a.h.vandijk@gmail.com>
            2006-2007, Jukka Salmi <jukka@salmi.ch>
@@ -42,8 +43,12 @@ Copyright: 1998, Todd C. Miller <todd.miller@courtesan.com>
            2004, Ted Unangst and Todd Miller
 License: Expat and BSD-3-clause and BSD-4-clause
 
+Files: osx/osx.c
+Copyright: 2004, Ted Unangst and Todd Miller
+License: ISC
+
 Files: debian/*
-Copyright: 2009-2012, Andrea Bolognani <eof@kiyuko.org>
+Copyright: 2009-2013, Andrea Bolognani <eof@kiyuko.org>
 License: ISC
 
 
