@@ -1,12 +1,13 @@
 Description: Don't install compatibility symlinks
+ These links are shipped inside the scrotwm package on Debian.
 Forwarded: not-needed
 Author: Andrea Bolognani <eof@kiyuko.org>
-Last-Update: 2012-02-19
+Last-Update: 2013-02-09
 Index: spectrwm.git/linux/Makefile
 ===================================================================
---- spectrwm.git.orig/linux/Makefile	2012-09-16 16:52:29.283080884 +0200
-+++ spectrwm.git/linux/Makefile	2012-09-16 16:53:24.923999892 +0200
-@@ -47,7 +47,6 @@
+--- spectrwm.git.orig/linux/Makefile	2013-02-09 15:19:45.816320478 +0100
++++ spectrwm.git/linux/Makefile	2013-02-09 15:19:45.900321154 +0100
+@@ -46,7 +46,6 @@
  	install -m 755 -d $(DESTDIR)$(MANDIR)/ru/man1
  	install -m 755 -d $(DESTDIR)$(XSESSIONSDIR)
  	install -m 755 spectrwm                    $(DESTDIR)$(BINDIR)
@@ -14,7 +15,7 @@ Index: spectrwm.git/linux/Makefile
  	install -m 644 libswmhack.so.$(LIBVERSION) $(DESTDIR)$(LIBDIR)
  	install -m 644 ../spectrwm.1               $(DESTDIR)$(MANDIR)/man1/spectrwm.1
  	install -m 644 ../spectrwm_es.1            $(DESTDIR)$(MANDIR)/es/man1/spectrwm.1
-@@ -58,7 +57,6 @@
+@@ -57,7 +56,6 @@
  
  uninstall:
  	rm -f $(DESTDIR)$(BINDIR)/spectrwm
