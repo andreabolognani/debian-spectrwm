@@ -5,9 +5,29 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2012-02-19
 Index: spectrwm.git/spectrwm_it.1
 ===================================================================
---- spectrwm.git.orig/spectrwm_it.1	2012-09-14 20:36:29.305223591 +0200
-+++ spectrwm.git/spectrwm_it.1	2012-09-14 20:36:36.861319510 +0200
-@@ -23,10 +23,10 @@
+--- spectrwm.git.orig/spectrwm_it.1	2013-02-03 21:47:02.144631643 +0100
++++ spectrwm.git/spectrwm_it.1	2013-02-09 14:51:19.477009268 +0100
+@@ -1,5 +1,9 @@
+-.\" Copyright (c) 2009 Marco Peereboom <marco@peereboom.us>
++.\" Copyright (c) 2009-2012 Marco Peereboom <marco@peereboom.us>
+ .\" Copyright (c) 2009 Darrin Chandler <dwchandler@stilyagin.com>
++.\" Copyright (c) 2011-2012 Reginald Kennedy <rk@rejii.com>
++.\" Copyright (c) 2011-2012 Lawrence Teo <lteo@lteo.net>
++.\" Copyright (c) 2011-2012 Tiago Cunha <tcunha@gmx.com>
++.\" Copyright (c) 2012 David Hill <dhill@mindcry.org>
+ .\"
+ .\" Permission to use, copy, modify, and distribute this software for any
+ .\" purpose with or without fee is hereby granted, provided that the above
+@@ -13,7 +17,7 @@
+ .\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+ .\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+ .\"
+-.Dd $Mdocdate: September 15 2011 $
++.Dd $Mdocdate: February 15 2012 $
+ .Dt SPECTRWM 1
+ .Os
+ .Sh NOME
+@@ -23,10 +27,10 @@
  .Nm spectrwm
  .Sh DESCRIZIONE
  .Nm
@@ -21,7 +41,7 @@ Index: spectrwm.git/spectrwm_it.1
  hacker per gli hacker e cerca di essere piccolo, compatto e veloce.
  .Pp
  Quando
-@@ -35,7 +35,7 @@
+@@ -35,7 +39,7 @@
  .Pa spectrwm.conf .
  Vedere la sezione
  .Sx FILE DI CONFIGURAZIONE
@@ -30,7 +50,7 @@ Index: spectrwm.git/spectrwm_it.1
  .Pp
  In questa pagina di manuale viene usata la seguente notazione:
  .Pp
-@@ -53,21 +53,21 @@
+@@ -53,21 +57,21 @@
  .El
  .Pp
  .Nm
@@ -56,8 +76,13 @@ Index: spectrwm.git/spectrwm_it.1
  Per esempio:
  .Pp
  .Dl color_focus = red
-@@ -77,64 +77,97 @@
+@@ -75,66 +79,211 @@
+ Per abilitare o disabilitare un'opzione, usare i valori 1 o 0
+ rispettivamente.
  .Pp
++I colori devono essere specificati usando il formato descritto in
++.Xr XQueryColor 3 .
++.Pp
  Il file supporta le seguenti chiavi:
  .Pp
 -.Bl -tag -width "title_class_enabledXXX" -offset indent -compact
@@ -112,10 +137,73 @@ Index: spectrwm.git/spectrwm_it.1
 +.It Ic bar_enabled
 +Abilita o disabilita la barra di stato.
 +.It Ic bar_font
-+Font della barra di stato.
++Font usato per la barra di stato. I font possono essere specificati sia nel
++formato Xft che seguendo la X Logical Font Description (XLFD).
++È possibile definire dei font di fallback specificando più font separati da
++virgola. Se tutti i font sono descritti nel formato XLFD, verranno usati dei
++gruppi di font. Se almeno un font è descritto nel formato Xft, verrà usato
++Xft. Se Xft è in uso, viene usato il primo font che è possibile caricare
++correttamente, anche al font mancano dei glifi. Di default vendono usati i
++gruppi di font. Dmenu non supporta Xft.
++.Pp
++Esempi del formato Xft:
++.Bd -literal -offset indent
++bar_font = Terminus:style=Regular:pixelsize=14:antialias=true
++
++bar_font = -*-profont-medium-*-*-*-11-*-*-*-*-*-*-*,Terminus:pixelsize=14,\
++-*-clean-medium-*-*-*-12-*-*-*-*-*-*-*
++.Ed
++.Pp
++Esempi del formato XLFD:
++.Bd -literal -offset indent
++bar_font = -*-terminus-medium-*-*-*-14-*-*-*-*-*-*-*
++
++bar_font = -*-profont-medium-*-*-*-11-*-*-*-*-*-*-*,\
++-*-terminus-medium-*-*-*-14-*-*-*-*-*-*-*,\
++-*-clean-medium-*-*-*-12-*-*-*-*-*-*-*
++.Ed
++.Pp
++Per avere un'elenco dei font disponibile sul sistema usare
++.Xr fc-list 1
++o
++.Xr xlsfonts 1 .
++L'applicazione
++.Xr xfontsel 1
++può essere utile per il formato XLFD.
 +.It Ic bar_font_color Ns Bq Ar x
 +Colore del testo della barra di stato nello schermo
 +.Ar x .
++.It Ic bar_format
++Definisce il formato da utilizzare per il testo visualizzato nella barra di
++stato, sovrascrivendo quanto definito dall'opzione
++.Ic clock_format
++e da tutte le opzioni il cui nome termina con
++.Ic enabled .
++Il formato viene processato con
++.Xr strftime 3
++prima di essere usato.
++Può contenere le seguenti sequenze di caratteri:
++.Bl -column "Sequenza di caratteri" "Sostituita con" -offset indent
++.It Sy "Sequenza di caratteri" Ta Sy "Sostituita con"
++.It Li "+<" Ta "Allinea usando degli spazi"
++.It Li "+A" Ta "Output dello script esterno"
++.It Li "+C" Ta "Classe della finestra"
++.It Li "+D" Ta "Nome dell'area di lavoro"
++.It Li "+F" Ta "Stato floating"
++.It Li "+I" Ta "Indice dell'area di lavoro"
++.It Li "+N" Ta "Numero dello schermo"
++.It Li "+P" Ta "Classe e titolo della finestra, separati da due punti"
++.It Li "+S" Ta "Algoritmo di stacking"
++.It Li "+T" Ta "Titolo della finestra"
++.It Li "+U" Ta "Urgenza"
++.It Li "+V" Ta "Numero di versione"
++.It Li "+W" Ta "Nome della finestra"
++.It Li "++" Ta "Il carattere" Ql +
++.El
++.Pp
++Tutte le sequenze possono limitare la lunghezza del testo generato, usando
++ad esempio +64A. I caratteri che non corrispondono a nessuna sequenza
++vengono lasciati inalterati.
 +.It Ic bar_justify
 +Giustifica il testo nella barra di stato. I valori possibili sono
 +.Pa left
@@ -125,6 +213,12 @@ Index: spectrwm.git/spectrwm_it.1
 +e
 +.Pa right
 +(destra).
++.Pp
++Se l'output non è giustificato a sinistra, potrebbe non essere visualizzato
++correttamente in alcune circostanze, a causa degli spazi presenti nel formato
++di default. Vedere l'opzione
++.Ic bar_format
++per maggiori dettagli.
 +.It Ic bind Ns Bq Ar x
 +Assegna una combinazione di tasti all'azione
 +.Ar x .
@@ -152,24 +246,61 @@ Index: spectrwm.git/spectrwm_it.1
  schermo.
 -.It Cm layout
 +.It Ic disable_border
-+Rimuovi il bordo dalle finestre se la barra di stato è nascosta e c'è
++Rimuove il bordo dalle finestre se la barra di stato è nascosta e c'è
 +una sola finestra sullo schermo.
++.It Ic focus_close
++Finestra alla quale dare il focus quando la finestra che ha il focus viene
++chiusa. I valori possibili sono
++.Pa first
++(prima),
++.Pa next
++(successiva),
++.Pa previous
++(precedente),
++.Pa last
++(ultima). Il default è
++.Pa previous ;
++.Pa next
++e
++.Pa previous
++sono da intendersi relativi alla finestra appena chiusa.
++.It Ic focus_close_wrap
++Il focus viene passato all'ultima finestra quando la prima viene chiusa, e
++viceversa. Il valore 0 disabilita questo comportamento.
++.It Ic focus_default
++Finestra alla quale dare il focus quando nessuna finestra ha mai avuto il
++focus. I valori possibili sono
++.Pa first
++(prima) e
++.Pa last
++(ultima); il default è
++.Pa last .
 +.It Ic focus_mode
-+Se viene usato il valore
-+.Pa follow_cursor
-+(segui il cursore),
-+il gestore di finestre darà il focus alla finestra sotto il puntatore
-+quando si cambia area di lavoro o si creano finestre.
++Comportamento del focus in seguito allo spostamento del puntatore del mouse. I
++valori possibili sono:
++.Pp
++.Bl -tag -width "default" -offset indent -compact
++.It Cm default
++Cambia il focus quando il puntatore passa da una finestra all'altra in
++seguito ad uno spostamento o all'interazione con una finestra.
++.It Cm follow
++Cambia il focus ogni volta che il puntatore passa da una finestra all'altra,
++anche quando questo succede in seguito al cambiamento dell'area di lavoro
++o dell'algoritmo di stacking.
++.It Cm manual
++Cambia il focus soltanto in seguito all'interazione con una finestra.
++.El
 +.It Ic keyboard_mapping
 +Ignora tutte le scorciatoie esistenti e carica delle nuove scorciatoie dal
 +file specificato.
 +Vedere la sezione
 +.Sx FILE DI MAPPATURA DELLA TASTIERA
-+per una lista di file di mappatura che vengono forniti per diversi layout
++per la lista dei file di mappatura che vengono forniti per diversi layout
 +di tastiera.
 +.It Ic layout
  Layout da utilizzare all'avvio. Definito nel formato
- ws[<idx>]:master_grow:master_add:stack_inc:layout:always_raise:stack_mode,
+-ws[<idx>]:master_grow:master_add:stack_inc:layout:always_raise:stack_mode,
++ws[idx]:master_grow:master_add:stack_inc:layout:always_raise:stack_mode,
  eg. ws[2]:-4:0:1:0:horizontal assegna il layout orizzontale all'area di
 -lavoro 2, riduce l'area principale di 4 unit?, aggiunge una finestra allo
 +lavoro 2, riduce l'area principale di 4 unità, aggiunge una finestra allo
@@ -179,8 +310,12 @@ Index: spectrwm.git/spectrwm_it.1
 -.Pa vertical ,
 +.Pa vertical
 +(verticale),
++.Pa vertical_flip
++(verticale invertito),
  .Pa horizontal
-+(orizzontale)
++(orizzontale),
++.Pa horizontal_flip
++(orizzontale invertito)
  e
 -.Pa fullscreen .
 +.Pa fullscreen
@@ -188,7 +323,12 @@ Index: spectrwm.git/spectrwm_it.1
  .Pp
  Fare riferimento a
  .Pa master_grow ,
-@@ -146,90 +179,77 @@
+@@ -142,120 +291,116 @@
+ .Pa master_add ,
+ .Pa master_del ,
+ .Pa stack_inc ,
+-.Pa stack_del
++.Pa stack_dec
  e
  .Pa always_raise
  per ulteriori informazioni.
@@ -209,7 +349,7 @@ Index: spectrwm.git/spectrwm_it.1
 +.Sx PROGRAMMI
 +più sotto.
 +.It Cm quirk Ns Bq Ar c:n
-+Aggiunge un "quirk" per le finestre di classe
++Aggiunge un "quirk" (comportamento speciale) per le finestre di classe
 +.Ar c
 +e nome
 +.Ar n .
@@ -220,15 +360,33 @@ Index: spectrwm.git/spectrwm_it.1
  Alloca una regione personalizzata, rimuovendo qualsiasi regione
  automaticamente rilevata stia occupando lo stesso spazio sullo schermo.
  Definita nel formato screen[<idx>]:LARGHEZZAxALTEZZA+X+Y, ad esempio
- \& screen[1]:800x1200+0+0.
+-\& screen[1]:800x1200+0+0.
++screen[1]:800x1200+0+0.
  .Pp
 -Per fare s? che pi? monitor vengano considerati come una singola entit?
 -? sufficiente creare una regione sufficientemente grande da contenerli,
+-eg. screen[1]:2048x760+0+0 unisce due monitor con risoluzione 1024x768
 +Per fare sì che più monitor vengano considerati come una singola entità
-+è sufficiente creare una regione abbastanza grande da contenerli,
- eg. screen[1]:2048x760+0+0 unisce due monitor con risoluzione 1024x768
++è sufficiente creare una regione abbastanza grande da contenerli, ad
++esempio screen[1]:2048x760+0+0 unisce due monitor con risoluzione 1024x768
  posizionati uno di fianco all'altro.
 -.It Cm term_width
++.It Ic spawn_position
++Posizione all'interno dello stack per le nuove finestre. I valori possibili
++sono
++.Pa first
++(prima),
++.Pa next
++(successiva),
++.Pa previous
++(precedente) e
++.Pa last
++(ultima). Il default è
++.Pa last ;
++.Pa next
++e
++.Pa previous
++sono relativi alla finestra che ha il focus.
 +.It Ic stack_enabled
 +Abilita o disabilita la visualizzazione dell'algoritmo di stacking
 +corrente nella barra di stato.
@@ -312,37 +470,64 @@ Index: spectrwm.git/spectrwm_it.1
 -Vedere la sezione
 -.Sx QUIRKS
 -pi? sotto.
+-.El
+-.Pp
+-I colori devono essere specificati nel formato usato da
+-.Xr XQueryColor 3
+-e i font in quello usato da
+-.Xr XQueryFont 3 .
 +.It Ic window_name_enabled
 +Abilita o disabilita la visualizzazione del nome della finestra nella
 +barra di stato. Impostare a 1 per abilitare.
- .El
  .Pp
- I colori devono essere specificati nel formato usato da
-@@ -243,19 +263,19 @@
- .Xr xlsfonts 1 .
- L'applicazione
- .Xr xfontsel 1
+-Per avere una lista dei font disponibili sul proprio sistema utilizzare
+-.Xr fc-list 1
+-o
+-.Xr xlsfonts 1 .
+-L'applicazione
+-.Xr xfontsel 1
 -? utile per visualizzare la X Logical Font Description ("XLFD") usata per
-+è utile per visualizzare la X Logical Font Description ("XLFD") usata per
- la chiave
- .Pa bar_font .
+-la chiave
+-.Pa bar_font .
++Per evitare che un nome particolarmente lungo assegnato ad una finestra
++faccia uscire il testo rimanente dallo schermo, il nome viene troncato a
++64 caratteri. Vedere l'opzione
++.Ic bar_format
++per ulteriori informazioni.
++.It Ic workspace_limit
++Numero di aree di lavoro disponibili. Il minimo è 1, il massimo 22, il
++default 10.
++.El
  .Sh PROGRAMMI
  .Nm
- consente la definizione di azioni personalizzate per lanciare programmi di
- propria scelta, che possono essere assegnate a combinazioni di tasti nello
+-consente la definizione di azioni personalizzate per lanciare programmi di
+-propria scelta, che possono essere assegnate a combinazioni di tasti nello
 -stesso modo in cui ? possibile farlo con le azioni predefinite.
-+stesso modo in cui è possibile farlo con le azioni predefinite.
- Vedere la sezione
+-Vedere la sezione
++consente la definizione di azioni personalizzate per lanciare programmi a
++scelta; queste azioni, come quelle predefinite, possono essere assegnate a
++combinazioni di tasti.  Vedere la sezione
  .Sx SCORCIATOIE
 -pi? sotto.
 +più sotto.
  .Pp
 -I programmi di default sono descritte qui sotto:
-+I programmi di default sono descritti qui sotto:
++I programmi predefiniti sono descritti qui sotto:
  .Pp
  .Bl -tag -width "screenshot_wind" -offset indent -compact
  .It Cm term
-@@ -277,12 +297,12 @@
+@@ -269,20 +414,21 @@
+ .It Cm initscr
+ initscreen.sh
+ .It Cm menu
+-dmenu_run \-fn $bar_font \-nb $bar_color \-nf $bar_font_color \-sb $bar_border \-sf $bar_color
++dmenu_run \-fn $bar_font \-nb $bar_color \-nf $bar_font_color \-sb
++$bar_border \-sf $bar_color
+ .El
+ .Pp
+-I programmi personalizzati vengono specificati con la seguente sintassi:
++I programmi personalizzati vengono specificati usando la seguente sintassi:
+ .Pp
  .Dl program[<nome>] = <percorso> [<arg> [... <arg>]]
  .Pp
  .Aq nome
@@ -358,12 +543,12 @@ Index: spectrwm.git/spectrwm_it.1
  .Pp
  Le seguenti variabili rappresentano valori impostabili in
  .Nm
-@@ -304,15 +324,14 @@
+@@ -304,15 +450,14 @@
  Esempio:
  .Bd -literal -offset indent
  program[ff] = /usr/local/bin/firefox http://spectrwm.org/
 -bind[ff] = Mod+f # adesso Mod+F lancia firefox
-+bind[ff] = Mod+Shift+b # adesso Mod+Shift+b lancia firefox
++bind[ff] = Mod+Shift+b # Adesso Mod+Shift+b lancia Firefox
  .Ed
  .Pp
  Per eliminare la combinazione precedente:
@@ -376,7 +561,7 @@ Index: spectrwm.git/spectrwm_it.1
  .Sh SCORCIATOIE
  .Nm
  fornisce molte funzioni (o azioni) accessibili tramite combinazioni di
-@@ -322,7 +341,7 @@
+@@ -322,7 +467,7 @@
  .Pp
  .Bl -tag -width "M-j, M-<TAB>XXX" -offset indent -compact
  .It Cm M1
@@ -385,7 +570,19 @@ Index: spectrwm.git/spectrwm_it.1
  .It Cm M-M1
  Muove la finestra
  .It Cm M-M3
-@@ -344,8 +363,10 @@
+@@ -331,9 +476,9 @@
+ Ridimensiona la finestra mantenendola centrata
+ .El
+ .Pp
+-Le scorciatoie da tastiera di default sono:
++Le scorciatoie da tastiera predefinite sono:
+ .Pp
+-.Bl -tag -width "M-j, M-<TAB>XXX" -offset indent -compact
++.Bl -tag -width "M-j, M-<TAB>XXXXXX" -offset indent -compact
+ .It Cm M-S- Ns Aq Cm Return
+ term
+ .It Cm M-p
+@@ -344,8 +489,10 @@
  restart
  .It Cm M- Ns Aq Cm Space
  cycle_layout
@@ -397,7 +594,7 @@ Index: spectrwm.git/spectrwm_it.1
  .It Cm M-h
  master_shrink
  .It Cm M-l
-@@ -357,7 +378,7 @@
+@@ -357,7 +504,7 @@
  .It Cm M-S-,
  stack_inc
  .It Cm M-S-.
@@ -406,7 +603,19 @@ Index: spectrwm.git/spectrwm_it.1
  .It Cm M- Ns Aq Cm Return
  swap_main
  .It Xo
-@@ -390,6 +411,10 @@
+@@ -382,14 +529,18 @@
+ wind_del
+ .It Cm M-S-x
+ wind_kill
+-.It Cm M- Ns Aq Ar n
+-.Ns ws_ Ns Ar n
+-.It Cm M-S- Ns Aq Ar n
+-.Ns mvws_ Ns Ar n
++.It Cm M- Ns Aq Ar 1-9,0,F1-F12
++.Pf ws_ Aq Ar 1-22
++.It Cm M-S- Ns Aq Ar 1-9,0,F1-F12
++.Pf mvws_ Ns Aq Ar 1-22
+ .It Cm M- Ns Aq Cm Right
  ws_next
  .It Cm M- Ns Aq Cm Left
  ws_prev
@@ -417,7 +626,16 @@ Index: spectrwm.git/spectrwm_it.1
  .It Cm M-a
  ws_prior
  .It Cm M-S- Ns Aq Cm Right
-@@ -416,6 +441,28 @@
+@@ -404,7 +555,7 @@
+ version
+ .It Cm M-t
+ float_toggle
+-.It Cm M-S Aq Cm Delete
++.It Cm M-S- Ns Aq Cm Delete
+ lock
+ .It Cm M-S-i
+ initscr
+@@ -416,21 +567,43 @@
  always_raise
  .It Cm M-v
  button2
@@ -441,47 +659,52 @@ Index: spectrwm.git/spectrwm_it.1
 +name_workspace
 +.It Cm M-/
 +search_workspace
-+.It Cm M-s
++.It Cm M-f
 +search_win
  .El
  .Pp
  I nomi delle azioni e le relative descrizioni sono le seguenti:
-@@ -425,12 +472,12 @@
+ .Pp
+-.Bl -tag -width "M-j, M-<TAB>XXX" -offset indent -compact
++.Bl -tag -width "M-j, M-<TAB>XXXX" -offset indent -compact
+ .It Cm term
  Lancia un nuovo terminale
- (vedi
+-(vedi
++(vedere la sezione
  .Sx PROGRAMMI
 -pi? in alto).
 +più in alto).
  .It Cm menu
  Menu
- (vedi
+-(vedi
++(vedere la sezione
  .Sx PROGRAMMI
 -pi? in alto).
 +più in alto).
  .It Cm quit
  Chiude
  .Nm .
-@@ -439,7 +486,9 @@
+@@ -439,7 +612,9 @@
  .Nm .
  .It Cm cycle_layout
  Cambia layout.
 -.It Cm reset_layout
 +.It Cm flip_layout
-+Inverti l'area principale e l'area di stacking.
++Inverte l'area principale e l'area di stacking.
 +.It Cm stack_reset
  Re-inizializza il layout.
  .It Cm master_shrink
  Restringe l'area principale.
-@@ -450,17 +499,17 @@
+@@ -450,23 +625,23 @@
  .It Cm master_del
  Rimuove finestre dall'area principale.
  .It Cm stack_inc
 -Aggiunge righe/colonne all'area di stacking.
 -.It Cm stack_del
 -Rimuove righe/colonne dall'area di stacking.
-+Aumenta il numero di righe/colonne all'area di stacking.
++Aumenta il numero di righe/colonne dell'area di stacking.
 +.It Cm stack_dec
-+Riduce il numero di righe/colonne dall'area di stacking.
++Riduce il numero di righe/colonne dell'area di stacking.
  .It Cm swap_main
  Muove la finestra corrente nell'area principale.
  .It Cm focus_next
@@ -496,19 +719,26 @@ Index: spectrwm.git/spectrwm_it.1
  .It Cm swap_next
  Scambia con la finestra successiva dell'area di lavoro.
  .It Cm swap_prev
-@@ -476,17 +525,21 @@
+ Scambia con la finestra precedente dell'area di lavoro.
+ .It Cm bar_toggle
+-Mostra/nascondi la barra di stato da tutte le aree di lavoro.
++Mostra/nascondi la barra di stato.
+ .It Cm wind_del
+ Chiude la finestra corrente.
+ .It Cm wind_kill
+@@ -476,17 +651,21 @@
  .Ar n ,
  dove
  .Ar n
 -? compreso tra 1 e 10.
-+è compreso tra 1 e 10.
++è compreso tra 1 e workspace_limit.
  .It Cm mvws_ Ns Ar n
  Sposta la finestra corrente nell'area di lavoro
  .Ar n ,
  dove
  .Ar n
 -? compreso tra 1 e 10.
-+è compreso tra 1 e 10.
++è compreso tra 1 e workspace_limit.
  .It Cm ws_next
  Passa all'area di lavoro non vuota successiva.
  .It Cm ws_prev
@@ -520,7 +750,7 @@ Index: spectrwm.git/spectrwm_it.1
  .It Cm ws_prior
  Passa all'ultima area di lavoro visitata.
  .It Cm screen_next
-@@ -496,12 +549,12 @@
+@@ -496,12 +675,12 @@
  .It Cm screenshot_all
  Cattura uno screenshot dell'intero schermo, se abilitato (vedere la sezione
  .Sx PROGRAMMI
@@ -535,7 +765,7 @@ Index: spectrwm.git/spectrwm_it.1
  .It Cm version
  Abilita/disabilita il numero di versione nella barra di stato.
  .It Cm float_toggle
-@@ -509,20 +562,42 @@
+@@ -509,20 +688,42 @@
  .It Cm lock
  Blocca lo schermo (vedere la sezione
  .Sx PROGRAMMI
@@ -565,13 +795,13 @@ Index: spectrwm.git/spectrwm_it.1
 +.It Cm height_grow
 +Aumenta l'altezza di una finestra floating.
 +.It Cm move_left
-+Sposta una finestra floating di un passo verso sinistra.
++Sposta una finestra floating verso sinistra.
 +.It Cm move_right
-+Sposta una finestra floating di un passo verso destra.
++Sposta una finestra floating verso destra.
 +.It Cm move_up
-+Sposta una finestra floating di un passo verso l'alto.
++Sposta una finestra floating verso l'alto.
 +.It Cm move_down
-+Sposta una finestra floating di un passo verso il basso.
++Sposta una finestra floating verso il basso.
 +.It Cm name_workspace
 +Assegna un nome all'area di lavoro corrente.
 +.It Cm search_workspace
@@ -581,7 +811,7 @@ Index: spectrwm.git/spectrwm_it.1
  .El
  .Pp
  Le scorciatoie personalizzate sono specificate nel file di configurazione
-@@ -531,9 +606,9 @@
+@@ -531,9 +732,9 @@
  .Dl bind[<azione>] = <tasti>
  .Pp
  .Aq azione
@@ -593,31 +823,58 @@ Index: spectrwm.git/spectrwm_it.1
  tasti normali (b, space, ecc.), separati da "+".
  Per esempio:
  .Bd -literal -offset indent
-@@ -541,10 +616,31 @@
+@@ -541,17 +742,66 @@
  bind[] = Mod1+q # rimuovi l'assegnazione di Alt + q
  .Ed
  .Pp
 -Pi? combinazioni di tasti possono essere assegnate alla stessa azione.
++Per usare il valore corrente di
++.Ic
++modkey ,
++specificare MOD come modificatore.
++.Pp
 +Più combinazioni di tasti possono essere assegnate alla stessa azione.
++.Pp
++Per utilizzare caratteri come å e π in una scorciatoia è necessario
++specificare il nome xkb del carattere, non il carattere stesso. Il nome
++del carattere può essere trovato lanciando
++.Xr xev 1 ,
++dando focus alla finestra, premendo il tasto in questione e leggendo
++l'output su terminale. Ad esempio, per il carattere å:
++.Bd -literal -offset indent
++KeyPress event, serial 41, synthetic NO, window 0x2600001,
++    root 0x15a, subw 0x0, time 106213808, (11,5), root:(359,823),
++    state 0x0, keycode 24 (keysym 0xe5, aring), same_screen YES,
++    XLookupString gives 2 bytes: (c3 a5) "å"
++    XmbLookupString gives 2 bytes: (c3 a5) "å"
++    XFilterEvent returns: False
++.Ed
++.Pp
++In questo caso, il nome del carattere è aring: nel file di configurazione
++si dovrà quindi scrivere
++.Bd -literal -offset indent
++bind[program] = MOD+aring
++.Ed
 +.Sh FILE DI MAPPATURA DELLA TASTIERA
-+I file di mappatura per svariati layout di tastiera sono elencati qui sotto.
-+Questi file possono essere utilizzati tramite la chiave di configurazione
++I file di mappatura per svariati layout di tastiera sono elencati qui
++sotto. Questi file possono essere utilizzati tramite la chiave di
++configurazione
 +.Pa keyboard_mapping
 +per caricare scorciatoie create appositamente per un determinato layout
 +di tastiera.
 +.Pp
-+.Bl -tag -width "scrotwm_XX.confXXX" -offset indent -compact
-+.It Cm scrotwm_cz.conf
++.Bl -tag -width "spectrwm_XX.confXXX" -offset indent -compact
++.It Cm spectrwm_cz.conf
 +Layout di tastiera per la Repubblica Ceca
-+.It Cm scrotwm_es.conf
++.It Cm spectrwm_es.conf
 +Layout di tastiera per la Spagna
-+.It Cm scrotwm_fr.conf
++.It Cm spectrwm_fr.conf
 +Layout di tastiera per la Francia
-+.It Cm scrotwm_fr_ch.conf
++.It Cm spectrwm_fr_ch.conf
 +Layout di tastiera per la Svizzera Francese
-+.It Cm scrotwm_se.conf
++.It Cm spectrwm_se.conf
 +Layout di tastiera per la Svezia
-+.It Cm scrotwm_us.conf
++.It Cm spectrwm_us.conf
 +Layout di tastiera per gli Stati Uniti
 +.El
  .Sh QUIRK
@@ -627,18 +884,27 @@ Index: spectrwm.git/spectrwm_it.1
  finestre che devono subire un trattamento speciale da un gestore di finestre
  tiling, come ad esempio alcune finestre di dialogo e applicazioni a
  schermo intero.
-@@ -597,8 +693,8 @@
+ .Pp
+ I quirk abilitati di default sono elencati qui sotto:
+ .Pp
+-.Bl -tag -width "OpenOffice.org N.M:VCLSalFrame<TAB>XXX" -offset indent -compact
++.Bl -tag -width "OpenOffice.org N.M:VCLSalFrame<TAB>XXX" -offset indent \
++-compact
+ .It Firefox\-bin:firefox\-bin
+ TRANSSZ
+ .It Firefox:Dialog
+@@ -597,8 +847,8 @@
  Rimuove i bordi, consentendo alla finestra di usare l'intera dimensione
  dello schermo.
  .It FOCUSPREV
 -Quando la finestra viene chiusa, d? il focus alla finestra che aveva il
 -focus precedente anzich? all'applicazione precedente nello stack.
 +Quando la finestra viene chiusa, dà il focus alla finestra che aveva il
-+focus precedente anziché all'applicazione precedente nello stack.
++focus precedentemente anziché all'applicazione precedente nello stack.
  .El
  .Pp
  I quirk personalizzati vanno specificati nel file di configurazione come
-@@ -611,35 +707,38 @@
+@@ -611,35 +861,37 @@
  .Aq nome
  specificano a quali finestre i quirk vanno applicati, e
  .Aq quirk
@@ -657,11 +923,11 @@ Index: spectrwm.git/spectrwm_it.1
  .Aq nome
 -usando xprop(1) e facendo click sulla finestra desiderata.
 -Nel seguente esempio ? stato fatto click sulla finestra principale di
+-Firefox:
 +usando
 +.Xr xprop 1
-+e facendo click sulla finestra desiderata.
-+Nel seguente esempio è stato fatto click sulla finestra principale di
- Firefox:
++e facendo click sulla finestra desiderata. Nel seguente esempio è stato
++fatto click sulla finestra principale di Firefox:
  .Bd -literal -offset indent
  $ xprop | grep WM_CLASS
  WM_CLASS(STRING) = "Navigator", "Firefox"
@@ -685,21 +951,24 @@ Index: spectrwm.git/spectrwm_it.1
  .Pp
  .Bl -tag -width "_NET_WM_WINDOW_TYPE_TOOLBAR<TAB>XXX" -offset indent -compact
  .It _NET_WM_WINDOW_TYPE_DOCK
-@@ -654,25 +753,25 @@
+@@ -654,25 +906,25 @@
  FLOAT
  .El
  .Pp
 -In tutti gli altri casi, nessun quirk ? automaticamente assegnato alla
-+In tutti gli altri casi, nessun quirk è automaticamente assegnato alla
- finestra. I quirk specificati nel file di configurazione hanno la precedenza
- sui quirk assegnati in automatico.
+-finestra. I quirk specificati nel file di configurazione hanno la precedenza
+-sui quirk assegnati in automatico.
++In tutti gli altri casi, alle finestre non viene assegnato alcun quirk. I
++quirk specificati nel file di configurazione hanno la precedenza sui
++quirk assegnati in automatico.
  .Sh EWMH
  .Nm
  implementa in maniera parziale la specifica Extended Window Manager Hints
 -(EWMH). Ci? permette di controllare sia le finestre che
-+(EWMH). Ciò permette di controllare sia le finestre che
++(EWMH). Questo permette di controllare sia le finestre che
  .Nm
- stesso tramite script e programmi esterni. Per renderlo possibile,
+-stesso tramite script e programmi esterni. Per renderlo possibile,
++stesso tramite script e programmi esterni. Per rendere ciò possibile,
  .Nm
  risponde ad alcuni eventi di tipo ClientMessage; questo tipo di messaggio
 -pu? essere inviato da un terminale usando programmi come
@@ -716,7 +985,7 @@ Index: spectrwm.git/spectrwm_it.1
  della finestra attiva usando
  .Xr xprop 1
  e
-@@ -682,7 +781,7 @@
+@@ -682,7 +934,7 @@
  $ xprop \-id $WINDOWID WM_NAME | grep \-o "\\".*\\""
  .Ed
  .Pp
@@ -725,7 +994,7 @@ Index: spectrwm.git/spectrwm_it.1
  _NET_ACTIVE_WINDOW alla root window. Ad esempio, usando
  .Xr wmctrl 1
  (supponendo che 0x4a0000b sia l'id della finestra a cui dare il focus):
-@@ -690,7 +789,7 @@
+@@ -690,7 +942,7 @@
  $ wmctrl \-i \-c 0x4a0000b
  .Ed
  .Pp
@@ -734,7 +1003,7 @@ Index: spectrwm.git/spectrwm_it.1
  alla root window. Ad esempio, usando
  .Xr wmctrl 1
  (supponendo che 0x4a0000b sia l'id della finestra da chiudere):
-@@ -698,8 +797,8 @@
+@@ -698,8 +950,8 @@
  $ wmctrl \-i \-c 0x4a0000b
  .Ed
  .Pp
@@ -745,7 +1014,7 @@ Index: spectrwm.git/spectrwm_it.1
  inviando il messaggio _NET_WM_STATE alla root window. Ad esempio, usando
  .Xr wmctrl 1
  (supponendo che 0x4a0000b sia l'id della finestra):
-@@ -719,7 +818,7 @@
+@@ -719,7 +971,7 @@
  .Pp
  I messaggi _NET_MOVERESIZE_WINDOW vengono ignorati per le finestre stacked.
  .Sh SEGNALI
@@ -754,7 +1023,7 @@ Index: spectrwm.git/spectrwm_it.1
  .Nm
  inviandogli il segnale HUP.
  .Sh FILE
-@@ -739,7 +838,7 @@
+@@ -739,7 +991,7 @@
  .An -nosplit
  .Pp
  .Nm
@@ -763,13 +1032,14 @@ Index: spectrwm.git/spectrwm_it.1
  .Pp
  .Bl -tag -width "Ryan Thomas McBride Aq mcbride@countersiege.com " -offset indent -compact
  .It Cm Marco Peereboom Aq marco@peereboom.us
-@@ -748,8 +847,7 @@
+@@ -748,8 +1000,8 @@
  .It Cm Pierre-Yves Ritschard Aq pyr@spootnik.org
  .It Cm Tuukka Kataja Aq stuge@xor.fi
  .It Cm Jason L. Wright Aq jason@thought.net
 +.It Cm Reginald Kennedy Aq rk@rejii.com
 +.It Cm Lawrence Teo Aq lteo@lteo.net
 +.It Cm Tiago Cunha Aq tcunha@gmx.com
++.It Cm David Hill Aq dhill@mindcry.org
  .El
 -.Sh BUGS
 -Al momento il menu, invocato usando
