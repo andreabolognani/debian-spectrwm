@@ -251,10 +251,11 @@ u_int32_t		swm_debug = 0
 #define SWM_FOCUS_MANUAL	(2)
 
 #define SWM_CK_NONE		0
-#define SWM_CK_ALL		0x7
+#define SWM_CK_ALL		0xf
 #define SWM_CK_FOCUS		0x1
 #define SWM_CK_POINTER		0x2
 #define SWM_CK_FALLBACK		0x4
+#define SWM_CK_REGION		0x8
 
 #define SWM_CONF_DEFAULT	(0)
 #define SWM_CONF_KEYMAPPING	(1)
@@ -279,7 +280,6 @@ volatile sig_atomic_t   restart_wm = 0;
 xcb_timestamp_t		last_event_time = 0;
 int			outputs = 0;
 int			other_wm;
-int			ss_enabled = 0;
 int			xrandr_support;
 int			xrandr_eventbase;
 unsigned int		numlockmask = 0;
@@ -348,16 +348,14 @@ double			dialog_ratio = 0.6;
 
 char		*bar_argv[] = { NULL, NULL };
 int		 bar_pipe[2];
-unsigned char	 bar_ext[SWM_BAR_MAX];
+char		 bar_ext[SWM_BAR_MAX];
+char		 bar_ext_buf[SWM_BAR_MAX];
 char		 bar_vertext[SWM_BAR_MAX];
 int		 bar_version = 0;
-sig_atomic_t	 bar_alarm = 0;
-int		 bar_delay = 30;
 int		 bar_enabled = 1;
 int		 bar_border_width = 1;
 int		 bar_at_bottom = 0;
-int		 bar_extra = 1;
-int		 bar_extra_running = 0;
+int		 bar_extra = 0;
 int		 bar_verbose = 1;
 int		 bar_height = 0;
 int		 bar_justify = SWM_BAR_JUSTIFY_LEFT;
@@ -376,6 +374,8 @@ int		 focus_default = SWM_STACK_TOP;
 int		 spawn_position = SWM_STACK_TOP;
 int		 disable_border = 0;
 int		 border_width = 1;
+int		 region_padding = 0;
+int		 tile_gap = 0;
 int		 verbose_layout = 0;
 time_t		 time_started;
 pid_t		 bar_pid;
@@ -386,6 +386,8 @@ int		 bar_font_legacy = 1;
 char		*bar_fonts;
 XftColor	 bar_font_color;
 struct passwd	*pwd;
+char		*startup_exception;
+unsigned int	 nr_exceptions = 0;
 
 /* layout manager data */
 struct swm_geometry {
@@ -407,6 +409,7 @@ struct swm_bar {
 /* virtual "screens" */
 struct swm_region {
 	TAILQ_ENTRY(swm_region)	entry;
+	xcb_window_t		id;
 	struct swm_geometry	g;
 	struct workspace	*ws;	/* current workspace on this region */
 	struct workspace	*ws_prior; /* prior workspace on this region */
@@ -494,6 +497,7 @@ struct workspace {
 	int			idx;		/* workspace index */
 	char			*name;		/* workspace name */
 	int			always_raise;	/* raise windows on focus */
+	int			bar_enabled;	/* bar visibility */
 	struct layout		*cur_layout;	/* current layout handlers */
 	struct ws_win		*focus;		/* may be NULL */
 	struct ws_win		*focus_prev;	/* may be NULL */
@@ -520,6 +524,7 @@ struct workspace {
 enum {
 	SWM_S_COLOR_BAR,
 	SWM_S_COLOR_BAR_BORDER,
+	SWM_S_COLOR_BAR_BORDER_UNFOCUS,
 	SWM_S_COLOR_BAR_FONT,
 	SWM_S_COLOR_FOCUS,
 	SWM_S_COLOR_UNFOCUS,
@@ -536,6 +541,7 @@ struct swm_screen {
 	struct swm_region_list	orl;	/* list of old regions */
 	xcb_window_t		root;
 	struct workspace	ws[SWM_WS_MAX];
+	struct swm_region	*r_focus;
 
 	/* colors */
 	struct {
@@ -567,8 +573,8 @@ union arg {
 #define SWM_ARG_ID_STACKINIT	(31)
 #define SWM_ARG_ID_CYCLEWS_UP	(40)
 #define SWM_ARG_ID_CYCLEWS_DOWN	(41)
-#define SWM_ARG_ID_CYCLESC_UP	(42)
-#define SWM_ARG_ID_CYCLESC_DOWN	(43)
+#define SWM_ARG_ID_CYCLERG_UP	(42)
+#define SWM_ARG_ID_CYCLERG_DOWN	(43)
 #define SWM_ARG_ID_CYCLEWS_UP_ALL	(44)
 #define SWM_ARG_ID_CYCLEWS_DOWN_ALL	(45)
 #define SWM_ARG_ID_STACKINC	(50)
@@ -587,6 +593,8 @@ union arg {
 #define SWM_ARG_ID_MOVEDOWN	(101)
 #define SWM_ARG_ID_MOVELEFT	(102)
 #define SWM_ARG_ID_MOVERIGHT	(103)
+#define SWM_ARG_ID_BAR_TOGGLE	(110)
+#define SWM_ARG_ID_BAR_TOGGLE_WS	(111)
 	char			**argv;
 };
 
@@ -699,44 +707,248 @@ struct cursors {
 	{"top_right_corner", XC_top_right_corner, XCB_CURSOR_NONE},
 };
 
+/* spawn */
+struct spawn_prog {
+	TAILQ_ENTRY(spawn_prog)	entry;
+	char			*name;
+	int			argc;
+	char			**argv;
+};
+TAILQ_HEAD(spawn_list, spawn_prog);
+struct spawn_list		spawns = TAILQ_HEAD_INITIALIZER(spawns);
+
+/* user/key callable function IDs */
+enum keyfuncid {
+	KF_BAR_TOGGLE,
+	KF_BAR_TOGGLE_WS,
+	KF_BUTTON2,
+	KF_CYCLE_LAYOUT,
+	KF_FLIP_LAYOUT,
+	KF_FLOAT_TOGGLE,
+	KF_FOCUS_MAIN,
+	KF_FOCUS_NEXT,
+	KF_FOCUS_PREV,
+	KF_HEIGHT_GROW,
+	KF_HEIGHT_SHRINK,
+	KF_ICONIFY,
+	KF_MASTER_SHRINK,
+	KF_MASTER_GROW,
+	KF_MASTER_ADD,
+	KF_MASTER_DEL,
+	KF_MOVE_DOWN,
+	KF_MOVE_LEFT,
+	KF_MOVE_RIGHT,
+	KF_MOVE_UP,
+	KF_MVRG_1,
+	KF_MVRG_2,
+	KF_MVRG_3,
+	KF_MVRG_4,
+	KF_MVRG_5,
+	KF_MVRG_6,
+	KF_MVRG_7,
+	KF_MVRG_8,
+	KF_MVRG_9,
+	KF_MVWS_1,
+	KF_MVWS_2,
+	KF_MVWS_3,
+	KF_MVWS_4,
+	KF_MVWS_5,
+	KF_MVWS_6,
+	KF_MVWS_7,
+	KF_MVWS_8,
+	KF_MVWS_9,
+	KF_MVWS_10,
+	KF_MVWS_11,
+	KF_MVWS_12,
+	KF_MVWS_13,
+	KF_MVWS_14,
+	KF_MVWS_15,
+	KF_MVWS_16,
+	KF_MVWS_17,
+	KF_MVWS_18,
+	KF_MVWS_19,
+	KF_MVWS_20,
+	KF_MVWS_21,
+	KF_MVWS_22,
+	KF_NAME_WORKSPACE,
+	KF_QUIT,
+	KF_RAISE_TOGGLE,
+	KF_RESTART,
+	KF_RG_1,
+	KF_RG_2,
+	KF_RG_3,
+	KF_RG_4,
+	KF_RG_5,
+	KF_RG_6,
+	KF_RG_7,
+	KF_RG_8,
+	KF_RG_9,
+	KF_RG_NEXT,
+	KF_RG_PREV,
+	KF_SCREEN_NEXT,
+	KF_SCREEN_PREV,
+	KF_SEARCH_WIN,
+	KF_SEARCH_WORKSPACE,
+	KF_SPAWN_CUSTOM,
+	KF_STACK_INC,
+	KF_STACK_DEC,
+	KF_STACK_RESET,
+	KF_SWAP_MAIN,
+	KF_SWAP_NEXT,
+	KF_SWAP_PREV,
+	KF_UNICONIFY,
+	KF_VERSION,
+	KF_WIDTH_GROW,
+	KF_WIDTH_SHRINK,
+	KF_WIND_DEL,
+	KF_WIND_KILL,
+	KF_WS_1,
+	KF_WS_2,
+	KF_WS_3,
+	KF_WS_4,
+	KF_WS_5,
+	KF_WS_6,
+	KF_WS_7,
+	KF_WS_8,
+	KF_WS_9,
+	KF_WS_10,
+	KF_WS_11,
+	KF_WS_12,
+	KF_WS_13,
+	KF_WS_14,
+	KF_WS_15,
+	KF_WS_16,
+	KF_WS_17,
+	KF_WS_18,
+	KF_WS_19,
+	KF_WS_20,
+	KF_WS_21,
+	KF_WS_22,
+	KF_WS_NEXT,
+	KF_WS_NEXT_ALL,
+	KF_WS_PREV,
+	KF_WS_PREV_ALL,
+	KF_WS_PRIOR,
+	KF_DUMPWINS, /* MUST BE LAST */
+	KF_INVALID
+};
+
+struct key {
+        RB_ENTRY(key)           entry;
+        unsigned int            mod;
+        KeySym                  keysym;
+        enum keyfuncid          funcid;
+        char                    *spawn_name;
+};
+RB_HEAD(key_tree, key);
+
 /* function prototypes */
+void	 adjust_font(struct ws_win *);
+void	 bar_class_name(char *, size_t, struct swm_region *);
+void	 bar_class_title_name(char *, size_t, struct swm_region *);
+void	 bar_cleanup(struct swm_region *);
+void	 bar_extra_setup(void);
+void	 bar_extra_stop(void);
+int	 bar_extra_update(void);
+void	 bar_fmt(const char *, char *, struct swm_region *, size_t);
+void	 bar_fmt_expand(char *, size_t);
+void	 bar_draw(void);
+void	 bar_print(struct swm_region *, const char *);
+void	 bar_print_legacy(struct swm_region *, const char *);
+void	 bar_replace(char *, char *, struct swm_region *, size_t);
+void	 bar_replace_pad(char *, int *, size_t);
+char *	 bar_replace_seq(char *, char *, struct swm_region *, size_t *,
+	     size_t);
+void	 bar_setup(struct swm_region *);
+void	 bar_title_name(char *, size_t, struct swm_region *);
+void	 bar_toggle(struct swm_region *, union arg *);
+void	 bar_urgent(char *, size_t);
+void	 bar_window_float(char *, size_t, struct swm_region *);
+void	 bar_window_name(char *, size_t, struct swm_region *);
+void	 bar_workspace_name(char *, size_t, struct swm_region *);
 void	 buttonpress(xcb_button_press_event_t *);
 void	 check_conn(void);
+void	 clear_keys(void);
 void	 clientmessage(xcb_client_message_event_t *);
+void	 client_msg(struct ws_win *, xcb_atom_t, xcb_timestamp_t);
 int	 conf_load(const char *, int);
 void	 configurenotify(xcb_configure_notify_event_t *);
 void	 configurerequest(xcb_configure_request_event_t *);
+void	 config_win(struct ws_win *, xcb_configure_request_event_t *);
 void	 constrain_window(struct ws_win *, struct swm_region *, int);
+int	 count_win(struct workspace *, int);
+void	 cursors_cleanup(void);
+void	 cursors_load(void);
+void	 custom_region(char *);
+void	 cyclerg(struct swm_region *, union arg *);
+void	 cyclews(struct swm_region *, union arg *);
+void	 cycle_layout(struct swm_region *, union arg *);
 void	 destroynotify(xcb_destroy_notify_event_t *);
+void	 dumpwins(struct swm_region *, union arg *);
+int	 enable_wm(void);
 void	 enternotify(xcb_enter_notify_event_t *);
 void	 event_drain(uint8_t);
 void	 event_error(xcb_generic_error_t *);
 void	 event_handle(xcb_generic_event_t *);
+void	 ewmh_autoquirk(struct ws_win *);
+void	 ewmh_get_win_state(struct ws_win *);
+int	 ewmh_set_win_fullscreen(struct ws_win *, int);
+void	 ewmh_update_actions(struct ws_win *);
+void	 ewmh_update_win_state(struct ws_win *, xcb_atom_t, long);
 char	*expand_tilde(const char *);
 void	 expose(xcb_expose_event_t *);
+void	 fake_keypress(struct ws_win *, xcb_keysym_t, uint16_t);
+struct pid_e	*find_pid(pid_t);
+struct ws_win	*find_unmanaged_window(xcb_window_t);
 struct ws_win	*find_window(xcb_window_t);
+void	 floating_toggle(struct swm_region *, union arg *);
 int	 floating_toggle_win(struct ws_win *);
 void	 focus(struct swm_region *, union arg *);
-void	 focus_flush(void);
-struct ws_win	*get_focus_magic(struct ws_win *);
-struct ws_win	*get_focus_prev(struct ws_win *);
-void	 focus_win(struct ws_win *);
 #ifdef SWM_DEBUG
 void	 focusin(xcb_focus_in_event_t *);
+void	 focusout(xcb_focus_out_event_t *);
 #endif
+void	 focus_flush(void);
+void	 focus_region(struct swm_region *);
+void	 focusrg(struct swm_region *, union arg *);
+void	 focus_win(struct ws_win *);
+void	 fontset_init(void);
+void	 free_window(struct ws_win *);
 xcb_atom_t get_atom_from_string(const char *);
 #ifdef SWM_DEBUG
 char	*get_atom_name(xcb_atom_t);
+#endif
+struct ws_win   *get_focus_magic(struct ws_win *);
+struct ws_win   *get_focus_prev(struct ws_win *);
+#ifdef SWM_DEBUG
 char	*get_notify_detail_label(uint8_t);
 char	*get_notify_mode_label(uint8_t);
 #endif
 struct ws_win	*get_pointer_win(xcb_window_t);
 struct ws_win	*get_region_focus(struct swm_region *);
+int	 get_region_index(struct swm_region *);
 xcb_screen_t	*get_screen(int);
+#ifdef SWM_DEBUG
+char	*get_stack_mode_name(uint8_t);
+#endif
+int32_t	 get_swm_iconic(struct ws_win *);
 char	*get_win_name(xcb_window_t);
+int	 get_ws_idx(xcb_window_t);
 uint32_t getstate(xcb_window_t);
 void	 grabbuttons(struct ws_win *);
+void	 grabkeys(void);
+void	 grab_windows(void);
+void	 iconify(struct swm_region *, union arg *);
+int	 isxlfd(char *);
 void	 keypress(xcb_key_press_event_t *);
+int	 key_cmp(struct key *, struct key *);
+void	 key_insert(unsigned int, KeySym, enum keyfuncid, const char *);
+struct key	*key_lookup(unsigned int, KeySym);
+void	 key_remove(struct key *);
+void	 key_replace(struct key *, unsigned int, KeySym, enum keyfuncid,
+	     const char *);
+void	 kill_bar_extra_atexit(void);
+void	 kill_refs(struct ws_win *);
 #ifdef SWM_DEBUG
 void	 leavenotify(xcb_leave_notify_event_t *);
 #endif
@@ -746,18 +958,109 @@ void	 map_window(struct ws_win *);
 void	 mapnotify(xcb_map_notify_event_t *);
 void	 mappingnotify(xcb_mapping_notify_event_t *);
 void	 maprequest(xcb_map_request_event_t *);
+void	 motionnotify(xcb_motion_notify_event_t *);
+void	 move(struct ws_win *, union arg *);
+void	 move_step(struct swm_region *, union arg *);
+uint32_t name_to_pixel(const char *);
+void	 name_workspace(struct swm_region *, union arg *);
 void	 new_region(struct swm_screen *, int, int, int, int);
+int	 parsekeys(char *, unsigned int, unsigned int *, KeySym *);
+int	 parsequirks(char *, unsigned long *);
 int	 parse_rgb(const char *, uint16_t *, uint16_t *, uint16_t *);
+void	 pressbutton(struct swm_region *, union arg *);
+void	 priorws(struct swm_region *, union arg *);
+#ifdef SWM_DEBUG
+void	 print_win_geom(xcb_window_t);
+#endif
 void	 propertynotify(xcb_property_notify_event_t *);
-void	 spawn_select(struct swm_region *, union arg *, const char *, int *);
+void	 quirk_insert(const char *, const char *, unsigned long);
+void	 quirk_remove(struct quirk *);
+void	 quirk_replace(struct quirk *, const char *, const char *,
+	     unsigned long);
+void	 quit(struct swm_region *, union arg *);
+void	 raise_toggle(struct swm_region *, union arg *);
+void	 resize(struct ws_win *, union arg *);
+void	 resize_step(struct swm_region *, union arg *);
+void	 restart(struct swm_region *, union arg *);
+struct swm_region	*root_to_region(xcb_window_t, int);
 void	 screenchange(xcb_randr_screen_change_notify_event_t *);
+void	 scan_xrandr(int);
+void	 search_do_resp(void);
+void	 search_resp_name_workspace(const char *, unsigned long);
+void	 search_resp_search_window(const char *);
+void	 search_resp_search_workspace(const char *);
+void	 search_resp_uniconify(const char *, unsigned long);
+void	 search_win(struct swm_region *, union arg *);
+void	 search_win_cleanup(void);
+void	 search_workspace(struct swm_region *, union arg *);
+void	 send_to_rg(struct swm_region *, union arg *);
+void	 send_to_ws(struct swm_region *, union arg *);
+void	 set_region(struct swm_region *);
+int	 setautorun(char *, char *, int);
+int	 setconfbinding(char *, char *, int);
+int	 setconfcolor(char *, char *, int);
+int	 setconfmodkey(char *, char *, int);
+int	 setconfquirk(char *, char *, int);
+int	 setconfregion(char *, char *, int);
+int	 setconfspawn(char *, char *, int);
+int	 setconfvalue(char *, char *, int);
+void	 setkeybinding(unsigned int, KeySym, enum keyfuncid, const char *);
+int	 setkeymapping(char *, char *, int);
+int	 setlayout(char *, char *, int);
+void	 setquirk(const char *, const char *, unsigned long);
+void	 setscreencolor(char *, int, int);
+void	 setspawn(const char *, const char *);
+void	 setup_ewmh(void);
+void	 setup_globals(void);
+void	 setup_keys(void);
+void	 setup_quirks(void);
+void	 setup_screens(void);
+void	 setup_spawn(void);
+void	 set_child_transient(struct ws_win *, xcb_window_t *);
+void	 set_swm_iconic(struct ws_win *, int);
+void	 set_win_state(struct ws_win *, uint16_t);
 void	 shutdown_cleanup(void);
+void	 sighdlr(int);
+void	 socket_setnonblock(int);
+void	 sort_windows(struct ws_win_list *);
+void	 spawn(int, union arg *, int);
+void	 spawn_custom(struct swm_region *, union arg *, const char *);
+int	 spawn_expand(struct swm_region *, union arg *, const char *, char ***);
+void	 spawn_insert(const char *, const char *);
+void	 spawn_remove(struct spawn_prog *);
+void	 spawn_replace(struct spawn_prog *, const char *, const char *);
+void	 spawn_select(struct swm_region *, union arg *, const char *, int *);
+void	 stack_config(struct swm_region *, union arg *);
+void	 stack_floater(struct ws_win *, struct swm_region *);
+void	 stack_master(struct workspace *, struct swm_geometry *, int, int);
 void	 store_float_geom(struct ws_win *, struct swm_region *);
+char *	 strdupsafe(const char *);
+void	 swapwin(struct swm_region *, union arg *);
+void	 switchws(struct swm_region *, union arg *);
+void	 teardown_ewmh(void);
+void	 unfocus_win(struct ws_win *);
+void	 uniconify(struct swm_region *, union arg *);
 void	 unmanage_window(struct ws_win *);
 void	 unmapnotify(xcb_unmap_notify_event_t *);
-void	 unfocus_win(struct ws_win *);
+void	 unmap_all(void);
+void	 unmap_window(struct ws_win *);
+void	 updatenumlockmask(void);
+void	 update_modkey(unsigned int);
 void	 update_window(struct ws_win *);
+int	 validate_win(struct ws_win *);
+int	 validate_ws(struct workspace *);
 /*void	 visibilitynotify(xcb_visibility_notify_event_t *);*/
+void	 version(struct swm_region *, union arg *);
+pid_t	 window_get_pid(xcb_window_t);
+void	 wkill(struct swm_region *, union arg *);
+void	 workaround(void);
+void	 xft_init(struct swm_region *);
+void	 _add_startup_exception(const char *, va_list);
+void	 add_startup_exception(const char *, ...);
+
+RB_PROTOTYPE(key_tree, key, entry, key_cmp);
+RB_GENERATE(key_tree, key, entry, key_cmp);
+struct key_tree                 keys;
 
 void
 cursors_load(void)
@@ -802,7 +1105,8 @@ char *
 expand_tilde(const char *s)
 {
 	struct passwd           *ppwd;
-	int                     i, max;
+	int                     i;
+	long			max;
 	char                    *user;
 	const char              *sc = s;
 	char			*result;
@@ -875,6 +1179,27 @@ get_screen(int screen)
 			return (iter.data);
 
 	return (NULL);
+}
+
+int
+get_region_index(struct swm_region *r)
+{
+	struct swm_region	*rr;
+	int			 ridx = 0;
+
+	if (r == NULL)
+		return -1;
+
+	TAILQ_FOREACH(rr, &r->s->rl, entry) {
+		if (rr == r)
+			break;
+		++ridx;
+	}
+
+	if (rr == NULL)
+		return -1;
+
+	return ridx;
 }
 
 void
@@ -1585,7 +1910,7 @@ bar_extra_stop(void)
 		kill(bar_pid, SIGTERM);
 		bar_pid = 0;
 	}
-	strlcpy((char *)bar_ext, "", sizeof bar_ext);
+	strlcpy(bar_ext, "", sizeof bar_ext);
 	bar_extra = 0;
 }
 
@@ -1892,8 +2217,9 @@ bar_fmt_expand(char *fmtexp, size_t sz)
 #endif
 }
 
+/* Redraws the bar; need to follow with xcb_flush() or focus_flush(). */
 void
-bar_fmt_print(void)
+bar_draw(void)
 {
 	char			fmtexp[SWM_BAR_MAX], fmtnew[SWM_BAR_MAX];
 	char			fmtrep[SWM_BAR_MAX];
@@ -1908,8 +2234,23 @@ bar_fmt_print(void)
 		TAILQ_FOREACH(r, &screens[i].rl, entry) {
 			if (r->bar == NULL)
 				continue;
-			bar_fmt(fmtexp, fmtnew, r, sizeof fmtnew);
-			bar_replace(fmtnew, fmtrep, r, sizeof fmtrep);
+
+			if (bar_enabled && r->ws->bar_enabled)
+				xcb_map_window(conn, r->bar->id);
+			else {
+				xcb_unmap_window(conn, r->bar->id);
+				continue;
+			}
+
+			if (startup_exception)
+				snprintf(fmtrep, sizeof fmtrep, "total "
+				    "exceptions: %d, first exception: %s",
+				    nr_exceptions,
+				    startup_exception);
+			else {
+				bar_fmt(fmtexp, fmtnew, r, sizeof fmtnew);
+				bar_replace(fmtnew, fmtrep, r, sizeof fmtrep);
+			}
 			if (bar_font_legacy)
 				bar_print_legacy(r, fmtrep);
 			else
@@ -1918,39 +2259,52 @@ bar_fmt_print(void)
 	}
 }
 
-void
-bar_update(void)
+/*
+ * Reads external script output; call when stdin is readable.
+ * Returns 1 if bar_ext was updated; otherwise 0.
+ */
+int
+bar_extra_update(void)
 {
-	size_t			len;
-	char			*b;
+	size_t		len;
+	char		b[SWM_BAR_MAX];
+	int		changed = 0;
 
-	if (!bar_enabled)
-		return;
-	if (bar_extra && bar_extra_running) {
-		/* ignore short reads; it'll correct itself */
-		while ((b = fgetln(stdin, &len)) != NULL)
-			if (b && b[len - 1] == '\n') {
-				b[len - 1] = '\0';
-				strlcpy((char *)bar_ext, b, sizeof bar_ext);
+	if (!bar_extra)
+		return changed;
+
+	while (fgets(b, sizeof(b), stdin) != NULL) {
+		if (bar_enabled) {
+			len = strlen(b);
+			if (b[len - 1] == '\n') {
+				/* Remove newline. */
+				b[--len] = '\0';
+
+				/* "Clear" bar_ext. */
+				bar_ext[0] = '\0';
+
+				/* Flush buffered output. */
+				strlcpy(bar_ext, bar_ext_buf, sizeof(bar_ext));
+				bar_ext_buf[0] = '\0';
+
+				/* Append new output to bar. */
+				strlcat(bar_ext, b, sizeof(bar_ext));
+
+				changed = 1;
+			} else {
+				/* Buffer output. */
+				strlcat(bar_ext_buf, b, sizeof(bar_ext_buf));
 			}
-		if (b == NULL && errno != EAGAIN) {
-			warn("bar_update: bar_extra failed");
-			bar_extra_stop();
 		}
-	} else
-		strlcpy((char *)bar_ext, "", sizeof bar_ext);
+	}
 
-	bar_fmt_print();
-	alarm(bar_delay);
-}
+	if (errno != EAGAIN) {
+		warn("bar_action failed");
+		bar_extra_stop();
+		changed = 1;
+	}
 
-void
-bar_signal(int sig)
-{
-	/* suppress unused warning since var is needed */
-	(void)sig;
-
-	bar_alarm = 1;
+	return changed;
 }
 
 void
@@ -1965,48 +2319,58 @@ bar_toggle(struct swm_region *r, union arg *args)
 
 	DNPRINTF(SWM_D_BAR, "bar_toggle\n");
 
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
-	if (bar_enabled) {
-		for (i = 0; i < num_screens; i++)
-			TAILQ_FOREACH(tmpr, &screens[i].rl, entry)
-				if (tmpr->bar)
-					xcb_unmap_window(conn, tmpr->bar->id);
-	} else {
-		for (i = 0; i < num_screens; i++)
-			TAILQ_FOREACH(tmpr, &screens[i].rl, entry)
-				if (tmpr->bar)
-					xcb_map_window(conn, tmpr->bar->id);
+	switch (args->id) {
+	case SWM_ARG_ID_BAR_TOGGLE_WS:
+		/* Only change if master switch is enabled. */
+		if (bar_enabled)
+			r->ws->bar_enabled = !r->ws->bar_enabled;
+		else
+			bar_enabled = r->ws->bar_enabled = 1;
+		break;
+	case SWM_ARG_ID_BAR_TOGGLE:
+		bar_enabled = !bar_enabled;
+		break;
 	}
 
-	bar_enabled = !bar_enabled;
+	/* update bars as necessary */
+	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	for (i = 0; i < num_screens; i++)
+		TAILQ_FOREACH(tmpr, &screens[i].rl, entry)
+			if (tmpr->bar) {
+				if (bar_enabled && tmpr->ws->bar_enabled)
+					xcb_map_window(conn, tmpr->bar->id);
+				else
+					xcb_unmap_window(conn, tmpr->bar->id);
+			}
 
 	stack();
 
 	/* must be after stack */
-	bar_update();
+	bar_draw();
 
 	focus_flush();
 }
 
 void
-bar_refresh(void)
+bar_extra_setup(void)
 {
-	struct swm_region	*r;
-	uint32_t		wa[2];
-	int			i, num_screens;
-
 	/* do this here because the conf file is in memory */
-	if (bar_extra && !bar_extra_running && bar_argv[0]) {
+	if (!bar_extra && bar_argv[0]) {
 		/* launch external status app */
-		bar_extra_running = 1;
+		bar_extra = 1;
 		if (pipe(bar_pipe) == -1)
 			err(1, "pipe error");
 		socket_setnonblock(bar_pipe[0]);
 		socket_setnonblock(bar_pipe[1]); /* XXX hmmm, really? */
-		if (dup2(bar_pipe[0], 0) == -1)
+
+		/* Set stdin to read from the pipe. */
+		if (dup2(bar_pipe[0], STDIN_FILENO) == -1)
 			err(1, "dup2");
-		if (dup2(bar_pipe[1], 1) == -1)
+
+		/* Set stdout to write to the pipe. */
+		if (dup2(bar_pipe[1], STDOUT_FILENO) == -1)
 			err(1, "dup2");
+
 		if (signal(SIGPIPE, SIG_IGN) == SIG_ERR)
 			err(1, "could not disable SIGPIPE");
 		switch (bar_pid = fork()) {
@@ -2022,19 +2386,16 @@ bar_refresh(void)
 			close(bar_pipe[1]);
 			break;
 		}
-	}
 
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
-	for (i = 0; i < num_screens; i++)
-		TAILQ_FOREACH(r, &screens[i].rl, entry) {
-			if (r->bar == NULL)
-				continue;
-			wa[0] = screens[i].c[SWM_S_COLOR_BAR].pixel;
-			wa[1] = screens[i].c[SWM_S_COLOR_BAR_BORDER].pixel;
-			xcb_change_window_attributes(conn, r->bar->id,
-			    XCB_CW_BACK_PIXEL | XCB_CW_BORDER_PIXEL, wa);
-		}
-	bar_update();
+		atexit(kill_bar_extra_atexit);
+	}
+}
+
+void
+kill_bar_extra_atexit(void)
+{
+	if (bar_pid)
+		kill(bar_pid, SIGTERM);
 }
 
 int
@@ -2138,7 +2499,7 @@ xft_init(struct swm_region *r)
 
 	if (!XftColorAllocValue(display, DefaultVisual(display, r->s->idx),
 	    DefaultColormap(display, r->s->idx), &color, &bar_font_color))
-		warn("unable to allocate Xft color");
+		warn("Xft error: unable to allocate color.");
 
 	bar_height = bar_font->height + 2 * bar_border_width;
 
@@ -2174,10 +2535,12 @@ bar_setup(struct swm_region *r)
 	WIDTH(r->bar) = WIDTH(r) - 2 * bar_border_width;
 	HEIGHT(r->bar) = bar_height - 2 * bar_border_width;
 
+	/* Assume region is unfocused when we create the bar. */
 	r->bar->id = xcb_generate_id(conn);
 	wa[0] = r->s->c[SWM_S_COLOR_BAR].pixel;
-	wa[1] = r->s->c[SWM_S_COLOR_BAR_BORDER].pixel;
-	wa[2] = XCB_EVENT_MASK_EXPOSURE;
+	wa[1] = r->s->c[SWM_S_COLOR_BAR_BORDER_UNFOCUS].pixel;
+	wa[2] = XCB_EVENT_MASK_EXPOSURE | XCB_EVENT_MASK_POINTER_MOTION |
+	    XCB_EVENT_MASK_POINTER_MOTION_HINT;
 
 	xcb_create_window(conn, XCB_COPY_FROM_PARENT, r->bar->id, r->s->root,
 	    X(r->bar), Y(r->bar), WIDTH(r->bar), HEIGHT(r->bar),
@@ -2200,9 +2563,7 @@ bar_setup(struct swm_region *r)
 	    "%d x %d\n", WINID(r->bar), X(r->bar), Y(r->bar), WIDTH(r->bar),
 	    HEIGHT(r->bar));
 
-	if (signal(SIGALRM, bar_signal) == SIG_ERR)
-		err(1, "could not install bar_signal");
-	bar_refresh();
+	bar_extra_setup();
 }
 
 void
@@ -2265,8 +2626,8 @@ version(struct swm_region *r, union arg *args)
 		    "Version: %s Build: %s", SPECTRWM_VERSION, buildstr);
 	else
 		strlcpy(bar_vertext, "", sizeof bar_vertext);
-	bar_update();
 
+	bar_draw();
 	xcb_flush(conn);
 }
 
@@ -2535,6 +2896,7 @@ get_pointer_win(xcb_window_t root)
 		} else {
 			DNPRINTF(SWM_D_EVENT, "get_pointer_win: none.\n");
 		}
+		free(r);
 	}
 
 	return win;
@@ -2556,7 +2918,10 @@ root_to_region(xcb_window_t root, int check)
 		if (screens[i].root == root)
 			break;
 
-	if (check & SWM_CK_FOCUS) {
+	if (check & SWM_CK_REGION)
+		r = screens[i].r_focus;
+
+	if (r == NULL && check & SWM_CK_FOCUS) {
 		/* Try to find an actively focused window */
 		gifr = xcb_get_input_focus_reply(conn,
 		    xcb_get_input_focus(conn), NULL);
@@ -2805,6 +3170,7 @@ unfocus_win(struct ws_win *win)
 		kill_refs(win->ws->focus);
 		win->ws->focus = NULL;
 	}
+
 	if (validate_win(win->ws->focus_prev)) {
 		kill_refs(win->ws->focus_prev);
 		win->ws->focus_prev = NULL;
@@ -2832,6 +3198,9 @@ focus_win(struct ws_win *win)
 		goto out;
 
 	if (win->ws == NULL)
+		goto out;
+
+	if (!win->mapped)
 		goto out;
 
 	ws = win->ws;
@@ -2910,8 +3279,9 @@ focus_win(struct ws_win *win)
 			TAILQ_FOREACH(w, &ws->winlist, entry)
 				if (w->transient == win->id && !w->iconic)
 					map_window(w);
-
 		}
+
+		set_region(ws->r);
 
 		xcb_change_property(conn, XCB_PROP_MODE_REPLACE, win->s->root,
 		    ewmh[_NET_ACTIVE_WINDOW].atom, XCB_ATOM_WINDOW, 32, 1,
@@ -2919,7 +3289,7 @@ focus_win(struct ws_win *win)
 	}
 
 out:
-	bar_update();
+	bar_draw();
 
 	DNPRINTF(SWM_D_FOCUS, "focus_win: done.\n");
 }
@@ -2970,6 +3340,60 @@ event_drain(uint8_t rt)
 			event_handle(evt);
 
 		free(evt);
+	}
+}
+
+void
+set_region(struct swm_region *r)
+{
+	struct swm_region	*rf;
+
+	if (r == NULL)
+		return;
+
+	rf = r->s->r_focus;
+	/* Unfocus old region bar. */
+	if (rf) {
+		if (rf == r)
+			return;
+
+		xcb_change_window_attributes(conn, rf->bar->id,
+		    XCB_CW_BORDER_PIXEL,
+		    &r->s->c[SWM_S_COLOR_BAR_BORDER_UNFOCUS].pixel);
+	}
+
+	/* Set region bar border to focus_color. */
+	xcb_change_window_attributes(conn, r->bar->id,
+	    XCB_CW_BORDER_PIXEL, &r->s->c[SWM_S_COLOR_BAR_BORDER].pixel);
+
+	r->s->r_focus = r;
+}
+
+void
+focus_region(struct swm_region *r)
+{
+	struct ws_win		*nfw;
+	struct swm_region	*old_r;
+
+	if (r == NULL)
+		return;
+
+	old_r = r->s->r_focus;
+	set_region(r);
+
+	nfw = get_region_focus(r);
+	if (nfw) {
+		focus_win(nfw);
+	} else {
+		/* New region is empty; need to manually unfocus win. */
+		if (old_r)
+			unfocus_win(old_r->ws->focus);
+
+		xcb_set_input_focus(conn, XCB_INPUT_FOCUS_PARENT, r->s->root,
+		    XCB_CURRENT_TIME);
+
+		/* Clear bar since empty. */
+		bar_draw();
 	}
 }
 
@@ -3041,7 +3465,7 @@ switchws(struct swm_region *r, union arg *args)
 
 	/* Clear bar if new ws is empty. */
 	if (new_ws->focus_pending == NULL)
-		bar_update();
+		bar_draw();
 
 	focus_flush();
 
@@ -3111,9 +3535,32 @@ priorws(struct swm_region *r, union arg *args)
 }
 
 void
-cyclescr(struct swm_region *r, union arg *args)
+focusrg(struct swm_region *r, union arg *args)
 {
-	struct ws_win		*nfw;
+	int			ridx = args->id, i, num_screens;
+	struct swm_region	*rr = NULL;
+
+	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	/* do nothing if we don't have more than one screen */
+	if (!(num_screens > 1 || outputs > 1))
+		return;
+
+	DNPRINTF(SWM_D_FOCUS, "focusrg: id: %d\n", ridx);
+
+	rr = TAILQ_FIRST(&r->s->rl);
+	for (i = 0; i < ridx; ++i)
+		rr = TAILQ_NEXT(rr, entry);
+
+	if (rr == NULL)
+		return;
+
+	focus_region(rr);
+	focus_flush();
+}
+
+void
+cyclerg(struct swm_region *r, union arg *args)
+{
 	struct swm_region	*rr = NULL;
 	int			i, num_screens;
 
@@ -3124,12 +3571,12 @@ cyclescr(struct swm_region *r, union arg *args)
 
 	i = r->s->idx;
 	switch (args->id) {
-	case SWM_ARG_ID_CYCLESC_UP:
+	case SWM_ARG_ID_CYCLERG_UP:
 		rr = TAILQ_NEXT(r, entry);
 		if (rr == NULL)
 			rr = TAILQ_FIRST(&screens[i].rl);
 		break;
-	case SWM_ARG_ID_CYCLESC_DOWN:
+	case SWM_ARG_ID_CYCLERG_DOWN:
 		rr = TAILQ_PREV(r, swm_region_list, entry);
 		if (rr == NULL)
 			rr = TAILQ_LAST(&screens[i].rl, swm_region_list);
@@ -3140,19 +3587,7 @@ cyclescr(struct swm_region *r, union arg *args)
 	if (rr == NULL)
 		return;
 
-	nfw = get_region_focus(rr);
-	if (nfw) {
-		focus_win(nfw);
-	} else {
-		/* New region is empty; unfocus old region and warp pointer. */
-		unfocus_win(r->ws->focus);
-		xcb_set_input_focus(conn, XCB_INPUT_FOCUS_PARENT,
-				rr->s[i].root, XCB_CURRENT_TIME);
-
-		/* Clear bar since empty. */
-		bar_update();
-	}
-
+	focus_region(rr);
 	focus_flush();
 }
 
@@ -3302,37 +3737,70 @@ get_focus_prev(struct ws_win *win)
 	if (winfocus == NULL || winfocus == win) {
 		switch (focus_close) {
 		case SWM_STACK_BOTTOM:
-			winfocus = TAILQ_FIRST(wl);
+			TAILQ_FOREACH(winfocus, wl, entry)
+				if (!winfocus->iconic && winfocus != cur_focus)
+					break;
 			break;
 		case SWM_STACK_TOP:
-			winfocus = TAILQ_LAST(wl, ws_win_list);
+			TAILQ_FOREACH_REVERSE(winfocus, wl, ws_win_list, entry)
+				if (!winfocus->iconic && winfocus != cur_focus)
+					break;
 			break;
 		case SWM_STACK_ABOVE:
-			if ((winfocus = TAILQ_NEXT(cur_focus, entry)) == NULL) {
-				if (focus_close_wrap)
-					winfocus = TAILQ_FIRST(wl);
-				else
-					winfocus = TAILQ_PREV(cur_focus,
-					    ws_win_list, entry);
+			winfocus = TAILQ_NEXT(cur_focus, entry);
+			while (winfocus && winfocus->iconic)
+				winfocus = TAILQ_NEXT(winfocus, entry);
+
+			if (winfocus == NULL) {
+				if (focus_close_wrap) {
+					TAILQ_FOREACH(winfocus, wl, entry)
+						if (!winfocus->iconic &&
+						    winfocus != cur_focus)
+							break;
+				} else {
+					TAILQ_FOREACH_REVERSE(winfocus, wl,
+					    ws_win_list, entry)
+						if (!winfocus->iconic &&
+						    winfocus != cur_focus)
+							break;
+				}
 			}
 			break;
 		case SWM_STACK_BELOW:
-			if ((winfocus = TAILQ_PREV(cur_focus, ws_win_list,
-			    entry)) == NULL) {
-				if (focus_close_wrap)
-					winfocus = TAILQ_LAST(wl, ws_win_list);
-				else
-					winfocus = TAILQ_NEXT(cur_focus, entry);
+			winfocus = TAILQ_PREV(cur_focus, ws_win_list, entry);
+			while (winfocus && winfocus->iconic)
+				winfocus = TAILQ_PREV(winfocus, ws_win_list,
+				    entry);
+
+			if (winfocus == NULL) {
+				if (focus_close_wrap) {
+					TAILQ_FOREACH_REVERSE(winfocus, wl,
+					    ws_win_list, entry)
+						if (!winfocus->iconic &&
+						    winfocus != cur_focus)
+							break;
+				} else {
+					TAILQ_FOREACH(winfocus, wl, entry)
+						if (!winfocus->iconic &&
+						    winfocus != cur_focus)
+							break;
+				}
 			}
 			break;
 		}
 	}
 done:
-	if (winfocus == NULL) {
-		if (focus_default == SWM_STACK_TOP)
-			winfocus = TAILQ_LAST(wl, ws_win_list);
-		else
-			winfocus = TAILQ_FIRST(wl);
+	if (winfocus == NULL ||
+	    (winfocus && (winfocus->iconic || winfocus == cur_focus))) {
+		if (focus_default == SWM_STACK_TOP) {
+			TAILQ_FOREACH_REVERSE(winfocus, wl, ws_win_list, entry)
+				if (!winfocus->iconic && winfocus != cur_focus)
+					break;
+		} else {
+			TAILQ_FOREACH(winfocus, wl, entry)
+				if (!winfocus->iconic && winfocus != cur_focus)
+					break;
+		}
 	}
 
 	kill_refs(win);
@@ -3463,7 +3931,7 @@ cycle_layout(struct swm_region *r, union arg *args)
 		ws->cur_layout = &layouts[0];
 
 	stack();
-	bar_update();
+	bar_draw();
 
 	focus_win(get_region_focus(r));
 
@@ -3483,7 +3951,7 @@ stack_config(struct swm_region *r, union arg *args)
 
 	if (args->id != SWM_ARG_ID_STACKINIT)
 		stack();
-	bar_update();
+	bar_draw();
 
 	focus_flush();
 }
@@ -3508,11 +3976,13 @@ stack(void) {
 			DNPRINTF(SWM_D_STACK, "stack: workspace: %d "
 			    "(screen: %d, region: %d)\n", r->ws->idx, i, j++);
 
-			/* start with screen geometry, adjust for bar */
+			/* Adjust stack area for region bar and padding. */
 			g = r->g;
-			g.w -= 2 * border_width;
-			g.h -= 2 * border_width;
-			if (bar_enabled) {
+			g.x += region_padding;
+			g.y += region_padding;
+			g.w -= 2 * border_width + 2 * region_padding;
+			g.h -= 2 * border_width + 2 * region_padding;
+			if (bar_enabled && r->ws->bar_enabled) {
 				if (!bar_at_bottom)
 					g.y += bar_height;
 				g.h -= bar_height;
@@ -3747,9 +4217,7 @@ stack_master(struct workspace *ws, struct swm_geometry *g, int rot, int flip)
 	/*  stack all the tiled windows */
 	i = j = 0, s = stacks;
 	TAILQ_FOREACH(win, &ws->winlist, entry) {
-		if (win->transient || win->floating)
-			continue;
-		if (win->iconic)
+		if (win->transient || win->floating || win->iconic)
 			continue;
 
 		if (win->ewmh_flags & EWMH_F_FULLSCREEN) {
@@ -3767,16 +4235,20 @@ stack_master(struct workspace *ws, struct swm_geometry *g, int rot, int flip)
 			if (flip)
 				win_g.x = r_g.x;
 			else
-				win_g.x += win_g.w + 2 * border_width;
+				win_g.x += win_g.w + 2 * border_width +
+				    tile_gap;
 			win_g.w = (r_g.w - msize -
-			    (stacks * 2 * border_width)) / stacks;
+			    (stacks * (2 * border_width + tile_gap))) / stacks;
 			if (s == 1)
 				win_g.w += (r_g.w - msize -
-				    (stacks * 2 * border_width)) % stacks;
+				    (stacks * (2 * border_width + tile_gap))) %
+				    stacks;
 			s--;
 			j = 0;
 		}
-		win_g.h = hrh - 2 * border_width;
+
+		win_g.h = hrh - 2 * border_width - tile_gap;
+
 		if (rot) {
 			h_inc = win->sh.width_inc;
 			h_base = win->sh.base_width;
@@ -3784,6 +4256,7 @@ stack_master(struct workspace *ws, struct swm_geometry *g, int rot, int flip)
 			h_inc =	win->sh.height_inc;
 			h_base = win->sh.base_height;
 		}
+
 		if (j == colno - 1) {
 			win_g.h = hrh + extra;
 		} else if (h_inc > 1 && h_inc < h_slice) {
@@ -3803,15 +4276,17 @@ stack_master(struct workspace *ws, struct swm_geometry *g, int rot, int flip)
 		if (j == 0)
 			win_g.y = r_g.y;
 		else
-			win_g.y += last_h + 2 * border_width;
+			win_g.y += last_h + 2 * border_width + tile_gap;
 
-		if (disable_border && !bar_enabled && winno == 1){
+		if (disable_border && !(bar_enabled && ws->bar_enabled) &&
+		    winno == 1){
 			bordered = 0;
 			win_g.w += 2 * border_width;
 			win_g.h += 2 * border_width;
 		} else {
 			bordered = 1;
 		}
+
 		if (rot) {
 			if (X(win) != win_g.y || Y(win) != win_g.x ||
 			    WIDTH(win) != win_g.h || HEIGHT(win) != win_g.w) {
@@ -3979,7 +4454,7 @@ max_stack(struct workspace *ws, struct swm_geometry *g)
 {
 	struct swm_geometry	gg = *g;
 	struct ws_win		*w, *win = NULL, *parent = NULL;
-	int			winno, num_screens;
+	int			winno;
 
 	DNPRINTF(SWM_D_STACK, "max_stack: workspace: %d\n", ws->idx);
 
@@ -4004,10 +4479,12 @@ max_stack(struct workspace *ws, struct swm_geometry *g)
 	DNPRINTF(SWM_D_STACK, "max_stack: win: 0x%x\n", win->id);
 
 	/* maximize all top level windows */
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
 	TAILQ_FOREACH(w, &ws->winlist, entry) {
 		if (w->transient || w->iconic)
 			continue;
+
+		if (!w->mapped && w != win)
+			map_window(w);
 
 		if (w->floating && !w->floatmaxed) {
 			/*
@@ -4022,7 +4499,7 @@ max_stack(struct workspace *ws, struct swm_geometry *g)
 		if (X(w) != gg.x || Y(w) != gg.y || WIDTH(w) != gg.w ||
 		    HEIGHT(w) != gg.h) {
 			w->g = gg;
-			if (bar_enabled){
+			if (bar_enabled && ws->bar_enabled){
 				w->bordered = 1;
 			} else {
 				w->bordered = 0;
@@ -4032,14 +4509,9 @@ max_stack(struct workspace *ws, struct swm_geometry *g)
 
 			update_window(w);
 		}
-
-		/* Unmap unwanted windows if not multi-screen. */
-		if (!(num_screens > 1 || outputs > 1) && (w != win ||
-		    w != parent || w->transient != win->id))
-			unmap_window(w);
 	}
 
-	/* If a parent exists, map it first. */
+	/* If a parent exists, map/raise it first. */
 	if (parent) {
 		map_window(parent);
 
@@ -4052,15 +4524,41 @@ max_stack(struct workspace *ws, struct swm_geometry *g)
 			}
 	}
 
-	/* Map focused window. */
+	/* Map/raise focused window. */
 	map_window(win);
 
-	/* Finally, map children of focus window. */
+	/* Finally, map/raise children of focus window. */
 	TAILQ_FOREACH(w, &ws->winlist, entry)
 		if (w->transient == win->id && !w->iconic) {
 			stack_floater(w, ws->r);
 			map_window(w);
 		}
+}
+
+void
+send_to_rg(struct swm_region *r, union arg *args)
+{
+	int			ridx = args->id, i, num_screens;
+	struct swm_region	*rr = NULL;
+	union arg		a;
+
+	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	/* do nothing if we don't have more than one screen */
+	if (!(num_screens > 1 || outputs > 1))
+		return;
+
+	DNPRINTF(SWM_D_FOCUS, "send_to_rg: id: %d\n", ridx);
+
+	rr = TAILQ_FIRST(&r->s->rl);
+	for (i = 0; i < ridx; ++i)
+		rr = TAILQ_NEXT(rr, entry);
+
+	if (rr == NULL)
+		return;
+
+	a.id = rr->ws->idx;
+
+	send_to_ws(r, &a);
 }
 
 void
@@ -4221,24 +4719,28 @@ get_win_name(xcb_window_t win)
 	    XCB_GET_PROPERTY_TYPE_ANY, 0, UINT_MAX);
 	r = xcb_get_property_reply(conn, c, NULL);
 
-	if (!r || r->type == XCB_NONE) {
-		free(r);
-		/* Use WM_NAME instead; no UTF-8. */
-		c = xcb_get_property(conn, 0, win, XCB_ATOM_WM_NAME,
-		    XCB_GET_PROPERTY_TYPE_ANY, 0, UINT_MAX);
-		r = xcb_get_property_reply(conn, c, NULL);
-
-		if(!r || r->type == XCB_NONE) {
+	if (r) {
+		if (r->type == XCB_NONE) {
 			free(r);
-			return NULL;
+			/* Use WM_NAME instead; no UTF-8. */
+			c = xcb_get_property(conn, 0, win, XCB_ATOM_WM_NAME,
+			    XCB_GET_PROPERTY_TYPE_ANY, 0, UINT_MAX);
+			r = xcb_get_property_reply(conn, c, NULL);
+
+			if (!r)
+				return (NULL);
+			if (r->type == XCB_NONE) {
+				free(r);
+				return (NULL);
+			}
 		}
+		if (r->length > 0)
+			name = strndup(xcb_get_property_value(r),
+			    xcb_get_property_value_length(r));
+
+		free(r);
 	}
 
-	if (r->length > 0)
-		name = strndup(xcb_get_property_value(r),
-		    xcb_get_property_value_length(r));
-
-	free(r);
 	return (name);
 }
 
@@ -4785,7 +5287,7 @@ resize(struct ws_win *win, union arg *args)
 {
 	xcb_timestamp_t		timestamp = 0;
 	struct swm_region	*r = NULL;
-	int			resize_step = 0;
+	int			resize_stp = 0;
 	struct swm_geometry	g;
 	int			top = 0, left = 0, resizing;
 	int			dx, dy;
@@ -4823,24 +5325,24 @@ resize(struct ws_win *win, union arg *args)
 	switch (args->id) {
 	case SWM_ARG_ID_WIDTHSHRINK:
 		WIDTH(win) -= SWM_RESIZE_STEPS;
-		resize_step = 1;
+		resize_stp = 1;
 		break;
 	case SWM_ARG_ID_WIDTHGROW:
 		WIDTH(win) += SWM_RESIZE_STEPS;
-		resize_step = 1;
+		resize_stp = 1;
 		break;
 	case SWM_ARG_ID_HEIGHTSHRINK:
 		HEIGHT(win) -= SWM_RESIZE_STEPS;
-		resize_step = 1;
+		resize_stp = 1;
 		break;
 	case SWM_ARG_ID_HEIGHTGROW:
 		HEIGHT(win) += SWM_RESIZE_STEPS;
-		resize_step = 1;
+		resize_stp = 1;
 		break;
 	default:
 		break;
 	}
-	if (resize_step) {
+	if (resize_stp) {
 		constrain_window(win, r, 1);
 		update_window(win);
 		store_float_geom(win,r);
@@ -4974,7 +5476,7 @@ void
 move(struct ws_win *win, union arg *args)
 {
 	xcb_timestamp_t		timestamp = 0;
-	int			move_step = 0, moving;
+	int			move_stp = 0, moving;
 	struct swm_region	*r = NULL;
 	xcb_query_pointer_reply_t	*qpr;
 	xcb_generic_event_t		*evt;
@@ -5007,28 +5509,28 @@ move(struct ws_win *win, union arg *args)
 
 	focus_flush();
 
-	move_step = 0;
+	move_stp = 0;
 	switch (args->id) {
 	case SWM_ARG_ID_MOVELEFT:
 		X(win) -= (SWM_MOVE_STEPS - border_width);
-		move_step = 1;
+		move_stp = 1;
 		break;
 	case SWM_ARG_ID_MOVERIGHT:
 		X(win) += (SWM_MOVE_STEPS - border_width);
-		move_step = 1;
+		move_stp = 1;
 		break;
 	case SWM_ARG_ID_MOVEUP:
 		Y(win) -= (SWM_MOVE_STEPS - border_width);
-		move_step = 1;
+		move_stp = 1;
 		break;
 	case SWM_ARG_ID_MOVEDOWN:
 		Y(win) += (SWM_MOVE_STEPS - border_width);
-		move_step = 1;
+		move_stp = 1;
 		break;
 	default:
 		break;
 	}
-	if (move_step) {
+	if (move_stp) {
 		constrain_window(win, r, 0);
 		update_window(win);
 		store_float_geom(win, r);
@@ -5102,101 +5604,6 @@ move_step(struct swm_region *r, union arg *args)
 	focus_flush();
 }
 
-/* user/key callable function IDs */
-enum keyfuncid {
-	KF_BAR_TOGGLE,
-	KF_BUTTON2,
-	KF_CYCLE_LAYOUT,
-	KF_FLIP_LAYOUT,
-	KF_FLOAT_TOGGLE,
-	KF_FOCUS_MAIN,
-	KF_FOCUS_NEXT,
-	KF_FOCUS_PREV,
-	KF_HEIGHT_GROW,
-	KF_HEIGHT_SHRINK,
-	KF_ICONIFY,
-	KF_MASTER_SHRINK,
-	KF_MASTER_GROW,
-	KF_MASTER_ADD,
-	KF_MASTER_DEL,
-	KF_MOVE_DOWN,
-	KF_MOVE_LEFT,
-	KF_MOVE_RIGHT,
-	KF_MOVE_UP,
-	KF_MVWS_1,
-	KF_MVWS_2,
-	KF_MVWS_3,
-	KF_MVWS_4,
-	KF_MVWS_5,
-	KF_MVWS_6,
-	KF_MVWS_7,
-	KF_MVWS_8,
-	KF_MVWS_9,
-	KF_MVWS_10,
-	KF_MVWS_11,
-	KF_MVWS_12,
-	KF_MVWS_13,
-	KF_MVWS_14,
-	KF_MVWS_15,
-	KF_MVWS_16,
-	KF_MVWS_17,
-	KF_MVWS_18,
-	KF_MVWS_19,
-	KF_MVWS_20,
-	KF_MVWS_21,
-	KF_MVWS_22,
-	KF_NAME_WORKSPACE,
-	KF_QUIT,
-	KF_RAISE_TOGGLE,
-	KF_RESTART,
-	KF_SCREEN_NEXT,
-	KF_SCREEN_PREV,
-	KF_SEARCH_WIN,
-	KF_SEARCH_WORKSPACE,
-	KF_SPAWN_CUSTOM,
-	KF_STACK_INC,
-	KF_STACK_DEC,
-	KF_STACK_RESET,
-	KF_SWAP_MAIN,
-	KF_SWAP_NEXT,
-	KF_SWAP_PREV,
-	KF_UNICONIFY,
-	KF_VERSION,
-	KF_WIDTH_GROW,
-	KF_WIDTH_SHRINK,
-	KF_WIND_DEL,
-	KF_WIND_KILL,
-	KF_WS_1,
-	KF_WS_2,
-	KF_WS_3,
-	KF_WS_4,
-	KF_WS_5,
-	KF_WS_6,
-	KF_WS_7,
-	KF_WS_8,
-	KF_WS_9,
-	KF_WS_10,
-	KF_WS_11,
-	KF_WS_12,
-	KF_WS_13,
-	KF_WS_14,
-	KF_WS_15,
-	KF_WS_16,
-	KF_WS_17,
-	KF_WS_18,
-	KF_WS_19,
-	KF_WS_20,
-	KF_WS_21,
-	KF_WS_22,
-	KF_WS_NEXT,
-	KF_WS_NEXT_ALL,
-	KF_WS_PREV,
-	KF_WS_PREV_ALL,
-	KF_WS_PRIOR,
-	KF_DUMPWINS, /* MUST BE LAST */
-	KF_INVALID
-};
-
 /* key definitions */
 struct keyfunc {
 	char			name[SWM_FUNCNAME_LEN];
@@ -5204,7 +5611,8 @@ struct keyfunc {
 	union arg		args;
 } keyfuncs[KF_INVALID + 1] = {
 	/* name			function	argument */
-	{ "bar_toggle",		bar_toggle,	{0} },
+	{ "bar_toggle",		bar_toggle,	{.id = SWM_ARG_ID_BAR_TOGGLE} },
+	{ "bar_toggle_ws",	bar_toggle,	{.id = SWM_ARG_ID_BAR_TOGGLE_WS} },
 	{ "button2",		pressbutton,	{2} },
 	{ "cycle_layout",	cycle_layout,	{0} },
 	{ "flip_layout",	stack_config,	{.id = SWM_ARG_ID_FLIPLAYOUT} },
@@ -5223,6 +5631,15 @@ struct keyfunc {
 	{ "move_left",		move_step,	{.id = SWM_ARG_ID_MOVELEFT} },
 	{ "move_right",		move_step,	{.id = SWM_ARG_ID_MOVERIGHT} },
 	{ "move_up",		move_step,	{.id = SWM_ARG_ID_MOVEUP} },
+	{ "mvrg_1",		send_to_rg,	{.id = 0} },
+	{ "mvrg_2",		send_to_rg,	{.id = 1} },
+	{ "mvrg_3",		send_to_rg,	{.id = 2} },
+	{ "mvrg_4",		send_to_rg,	{.id = 3} },
+	{ "mvrg_5",		send_to_rg,	{.id = 4} },
+	{ "mvrg_6",		send_to_rg,	{.id = 5} },
+	{ "mvrg_7",		send_to_rg,	{.id = 6} },
+	{ "mvrg_8",		send_to_rg,	{.id = 7} },
+	{ "mvrg_9",		send_to_rg,	{.id = 8} },
 	{ "mvws_1",		send_to_ws,	{.id = 0} },
 	{ "mvws_2",		send_to_ws,	{.id = 1} },
 	{ "mvws_3",		send_to_ws,	{.id = 2} },
@@ -5249,8 +5666,19 @@ struct keyfunc {
 	{ "quit",		quit,		{0} },
 	{ "raise_toggle",	raise_toggle,	{0} },
 	{ "restart",		restart,	{0} },
-	{ "screen_next",	cyclescr,	{.id = SWM_ARG_ID_CYCLESC_UP} },
-	{ "screen_prev",	cyclescr,	{.id = SWM_ARG_ID_CYCLESC_DOWN} },
+	{ "rg_1",		focusrg,	{.id = 0} },
+	{ "rg_2",		focusrg,	{.id = 1} },
+	{ "rg_3",		focusrg,	{.id = 2} },
+	{ "rg_4",		focusrg,	{.id = 3} },
+	{ "rg_5",		focusrg,	{.id = 4} },
+	{ "rg_6",		focusrg,	{.id = 5} },
+	{ "rg_7",		focusrg,	{.id = 6} },
+	{ "rg_8",		focusrg,	{.id = 7} },
+	{ "rg_9",		focusrg,	{.id = 8} },
+	{ "rg_next",		cyclerg,	{.id = SWM_ARG_ID_CYCLERG_UP} },
+	{ "rg_prev",		cyclerg,	{.id = SWM_ARG_ID_CYCLERG_DOWN} },
+	{ "screen_next",	cyclerg,	{.id = SWM_ARG_ID_CYCLERG_UP} },
+	{ "screen_prev",	cyclerg,	{.id = SWM_ARG_ID_CYCLERG_DOWN} },
 	{ "search_win",		search_win,	{0} },
 	{ "search_workspace",	search_workspace,	{0} },
 	{ "spawn_custom",	NULL,		{0} },
@@ -5296,14 +5724,6 @@ struct keyfunc {
 	{ "dumpwins",		dumpwins,	{0} }, /* MUST BE LAST */
 	{ "invalid key func",	NULL,		{0} },
 };
-struct key {
-	RB_ENTRY(key)		entry;
-	unsigned int		mod;
-	KeySym			keysym;
-	enum keyfuncid		funcid;
-	char			*spawn_name;
-};
-RB_HEAD(key_tree, key);
 
 int
 key_cmp(struct key *kp1, struct key *kp2)
@@ -5320,9 +5740,6 @@ key_cmp(struct key *kp1, struct key *kp2)
 
 	return (0);
 }
-
-RB_GENERATE(key_tree, key, entry, key_cmp);
-struct key_tree			keys;
 
 /* mouse */
 enum { client_click, root_click };
@@ -5360,16 +5777,6 @@ update_modkey(unsigned int mod)
 		else
 			buttons[i].mask = mod;
 }
-
-/* spawn */
-struct spawn_prog {
-	TAILQ_ENTRY(spawn_prog)	entry;
-	char			*name;
-	int			argc;
-	char			**argv;
-};
-TAILQ_HEAD(spawn_list, spawn_prog);
-struct spawn_list		spawns = TAILQ_HEAD_INITIALIZER(spawns);
 
 int
 spawn_expand(struct swm_region *r, union arg *args, const char *spawn_name,
@@ -5431,6 +5838,13 @@ spawn_expand(struct swm_region *r, union arg *args, const char *spawn_name,
 			    strdup(r->s->c[SWM_S_COLOR_UNFOCUS].name))
 			    == NULL)
 				err(1, "spawn_custom color unfocus");
+		} else if (!strcasecmp(ap, "$region_index")) {
+			if (asprintf(&real_args[i], "%d",
+			    get_region_index(r) + 1) < 1)
+				err(1, "spawn_custom region index");
+		} else if (!strcasecmp(ap, "$workspace_index")) {
+			if (asprintf(&real_args[i], "%d", r->ws->idx + 1) < 1)
+				err(1, "spawn_custom workspace index");
 		} else {
 			/* no match --> copy as is */
 			if ((real_args[i] = strdup(ap)) == NULL)
@@ -5492,9 +5906,9 @@ spawn_select(struct swm_region *r, union arg *args, const char *spawn_name,
 		err(1, "cannot fork");
 		break;
 	case 0: /* child */
-		if (dup2(select_list_pipe[0], 0) == -1)
+		if (dup2(select_list_pipe[0], STDIN_FILENO) == -1)
 			err(1, "dup2");
-		if (dup2(select_resp_pipe[1], 1) == -1)
+		if (dup2(select_resp_pipe[1], STDOUT_FILENO) == -1)
 			err(1, "dup2");
 		close(select_list_pipe[1]);
 		close(select_resp_pipe[0]);
@@ -5605,14 +6019,24 @@ setspawn(const char *name, const char *args)
 int
 setconfspawn(char *selector, char *value, int flags)
 {
-	char *args;
-
-	/* suppress unused warning since var is needed */
-	(void)flags;
+	char		*args;
+	char		which[PATH_MAX];
+	size_t		i;
 
 	args = expand_tilde(value);
 
 	DNPRINTF(SWM_D_SPAWN, "setconfspawn: [%s] [%s]\n", selector, args);
+
+	/* verify we have the goods */
+	snprintf(which, sizeof which, "which %s", value);
+	for (i = strlen("which "); i < strlen(which); i++)
+		if (which[i] == ' ') {
+			which[i] = '\0';
+			break;
+		}
+	if (flags == 0 && system(which) != 0)
+		add_startup_exception("could not find %s",
+		    &which[strlen("which ")]);
 
 	setspawn(selector, args);
 	free(args);
@@ -5626,10 +6050,6 @@ setup_spawn(void)
 {
 	setconfspawn("term",		"xterm",		0);
 	setconfspawn("spawn_term",	"xterm",		0);
-	setconfspawn("screenshot_all",	"screenshot.sh full",	0);
-	setconfspawn("screenshot_wind",	"screenshot.sh window",	0);
-	setconfspawn("lock",		"xlock",		0);
-	setconfspawn("initscr",		"initscreen.sh",	0);
 	setconfspawn("menu",		"dmenu_run"
 					" -fn $bar_font"
 					" -nb $bar_color"
@@ -5650,6 +6070,12 @@ setup_spawn(void)
 					" -nf $bar_font_color"
 					" -sb $bar_border"
 					" -sf $bar_color",	0);
+
+	/* these are not verified for existence */
+	setconfspawn("lock",		"xlock",		1);
+	setconfspawn("screenshot_all",  "screenshot.sh full",   1);
+	setconfspawn("screenshot_wind", "screenshot.sh window", 1);
+	setconfspawn("initscr",         "initscreen.sh",        1);
 }
 
 /* key bindings */
@@ -5789,7 +6215,7 @@ setkeybinding(unsigned int mod, KeySym ks, enum keyfuncid kfid,
 		return;
 	}
 	if (kfid == KF_INVALID) {
-		warnx("error: setkeybinding: cannot find mod/key combination");
+		warnx("bind: Key combination already unbound.");
 		DNPRINTF(SWM_D_KEY, "setkeybinding: leave\n");
 		return;
 	}
@@ -5853,25 +6279,94 @@ void
 setup_keys(void)
 {
 #define MODKEY_SHIFT	MODKEY | XCB_MOD_MASK_SHIFT
+	setkeybinding(MODKEY,		XK_b,		KF_BAR_TOGGLE,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_b,		KF_BAR_TOGGLE_WS,NULL);
+	setkeybinding(MODKEY,		XK_v,		KF_BUTTON2,	NULL);
 	setkeybinding(MODKEY,		XK_space,	KF_CYCLE_LAYOUT,NULL);
 	setkeybinding(MODKEY_SHIFT,	XK_backslash,	KF_FLIP_LAYOUT,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_space,	KF_STACK_RESET,	NULL);
+	setkeybinding(MODKEY,		XK_t,		KF_FLOAT_TOGGLE,NULL);
+	setkeybinding(MODKEY,		XK_m,		KF_FOCUS_MAIN,	NULL);
+	setkeybinding(MODKEY,		XK_j,		KF_FOCUS_NEXT,	NULL);
+	setkeybinding(MODKEY,		XK_Tab,		KF_FOCUS_NEXT,	NULL);
+	setkeybinding(MODKEY,		XK_k,		KF_FOCUS_PREV,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_Tab,		KF_FOCUS_PREV,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_equal,	KF_HEIGHT_GROW,NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_minus,	KF_HEIGHT_SHRINK,NULL);
+	setkeybinding(MODKEY,		XK_w,		KF_ICONIFY,	NULL);
 	setkeybinding(MODKEY,		XK_h,		KF_MASTER_SHRINK, NULL);
 	setkeybinding(MODKEY,		XK_l,		KF_MASTER_GROW,	NULL);
 	setkeybinding(MODKEY,		XK_comma,	KF_MASTER_ADD,	NULL);
 	setkeybinding(MODKEY,		XK_period,	KF_MASTER_DEL,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_bracketright,KF_MOVE_DOWN,NULL);
+	setkeybinding(MODKEY,		XK_bracketleft,	KF_MOVE_LEFT,NULL);
+	setkeybinding(MODKEY,		XK_bracketright,KF_MOVE_RIGHT,NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_bracketleft,	KF_MOVE_UP,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_KP_End,	KF_MVRG_1,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_KP_Down,	KF_MVRG_2,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_KP_Next,	KF_MVRG_3,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_KP_Left,	KF_MVRG_4,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_KP_Begin,	KF_MVRG_5,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_KP_Right,	KF_MVRG_6,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_KP_Home,	KF_MVRG_7,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_KP_Up,	KF_MVRG_8,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_KP_Prior,	KF_MVRG_9,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_1,		KF_MVWS_1,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_2,		KF_MVWS_2,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_3,		KF_MVWS_3,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_4,		KF_MVWS_4,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_5,		KF_MVWS_5,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_6,		KF_MVWS_6,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_7,		KF_MVWS_7,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_8,		KF_MVWS_8,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_9,		KF_MVWS_9,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_0,		KF_MVWS_10,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_F1,		KF_MVWS_11,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_F2,		KF_MVWS_12,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_F3,		KF_MVWS_13,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_F4,		KF_MVWS_14,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_F5,		KF_MVWS_15,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_F6,		KF_MVWS_16,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_F7,		KF_MVWS_17,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_F8,		KF_MVWS_18,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_F9,		KF_MVWS_19,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_F10,		KF_MVWS_20,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_F11,		KF_MVWS_21,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_F12,		KF_MVWS_22,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_slash,	KF_NAME_WORKSPACE,NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_q,		KF_QUIT,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_r,		KF_RAISE_TOGGLE,NULL);
+	setkeybinding(MODKEY,		XK_q,		KF_RESTART,	NULL);
+	setkeybinding(MODKEY,		XK_KP_End,	KF_RG_1,	NULL);
+	setkeybinding(MODKEY,		XK_KP_Down,	KF_RG_2,	NULL);
+	setkeybinding(MODKEY,		XK_KP_Next,	KF_RG_3,	NULL);
+	setkeybinding(MODKEY,		XK_KP_Left,	KF_RG_4,	NULL);
+	setkeybinding(MODKEY,		XK_KP_Begin,	KF_RG_5,	NULL);
+	setkeybinding(MODKEY,		XK_KP_Right,	KF_RG_6,	NULL);
+	setkeybinding(MODKEY,		XK_KP_Home,	KF_RG_7,	NULL);
+	setkeybinding(MODKEY,		XK_KP_Up,	KF_RG_8,	NULL);
+	setkeybinding(MODKEY,		XK_KP_Prior,	KF_RG_9,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_Right,	KF_RG_NEXT,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_Left,	KF_RG_PREV,	NULL);
+	setkeybinding(MODKEY,		XK_f,		KF_SEARCH_WIN,	NULL);
+	setkeybinding(MODKEY,		XK_slash,	KF_SEARCH_WORKSPACE,NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_i,		KF_SPAWN_CUSTOM,"initscr");
+	setkeybinding(MODKEY_SHIFT,	XK_Delete,	KF_SPAWN_CUSTOM,"lock");
+	setkeybinding(MODKEY,		XK_p,		KF_SPAWN_CUSTOM,"menu");
+	setkeybinding(MODKEY,		XK_s,		KF_SPAWN_CUSTOM,"screenshot_all");
+	setkeybinding(MODKEY_SHIFT,	XK_s,		KF_SPAWN_CUSTOM,"screenshot_wind");
+	setkeybinding(MODKEY_SHIFT,	XK_Return,	KF_SPAWN_CUSTOM,"term");
 	setkeybinding(MODKEY_SHIFT,	XK_comma,	KF_STACK_INC,	NULL);
 	setkeybinding(MODKEY_SHIFT,	XK_period,	KF_STACK_DEC,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_space,	KF_STACK_RESET,	NULL);
 	setkeybinding(MODKEY,		XK_Return,	KF_SWAP_MAIN,	NULL);
-	setkeybinding(MODKEY,		XK_j,		KF_FOCUS_NEXT,	NULL);
-	setkeybinding(MODKEY,		XK_k,		KF_FOCUS_PREV,	NULL);
 	setkeybinding(MODKEY_SHIFT,	XK_j,		KF_SWAP_NEXT,	NULL);
 	setkeybinding(MODKEY_SHIFT,	XK_k,		KF_SWAP_PREV,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_Return,	KF_SPAWN_CUSTOM,"term");
-	setkeybinding(MODKEY,		XK_p,		KF_SPAWN_CUSTOM,"menu");
-	setkeybinding(MODKEY_SHIFT,	XK_q,		KF_QUIT,	NULL);
-	setkeybinding(MODKEY,		XK_q,		KF_RESTART,	NULL);
-	setkeybinding(MODKEY,		XK_m,		KF_FOCUS_MAIN,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_w,		KF_UNICONIFY,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_v,		KF_VERSION,	NULL);
+	setkeybinding(MODKEY,		XK_equal,	KF_WIDTH_GROW,	NULL);
+	setkeybinding(MODKEY,		XK_minus,	KF_WIDTH_SHRINK,NULL);
+	setkeybinding(MODKEY,		XK_x,		KF_WIND_DEL,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_x,		KF_WIND_KILL,	NULL);
 	setkeybinding(MODKEY,		XK_1,		KF_WS_1,	NULL);
 	setkeybinding(MODKEY,		XK_2,		KF_WS_2,	NULL);
 	setkeybinding(MODKEY,		XK_3,		KF_WS_3,	NULL);
@@ -5899,56 +6394,6 @@ setup_keys(void)
 	setkeybinding(MODKEY,		XK_Up,		KF_WS_NEXT_ALL,	NULL);
 	setkeybinding(MODKEY,		XK_Down,	KF_WS_PREV_ALL,	NULL);
 	setkeybinding(MODKEY,		XK_a,		KF_WS_PRIOR,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_Right,	KF_SCREEN_NEXT,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_Left,	KF_SCREEN_PREV,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_1,		KF_MVWS_1,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_2,		KF_MVWS_2,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_3,		KF_MVWS_3,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_4,		KF_MVWS_4,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_5,		KF_MVWS_5,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_6,		KF_MVWS_6,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_7,		KF_MVWS_7,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_8,		KF_MVWS_8,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_9,		KF_MVWS_9,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_0,		KF_MVWS_10,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_F1,		KF_MVWS_11,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_F2,		KF_MVWS_12,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_F3,		KF_MVWS_13,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_F4,		KF_MVWS_14,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_F5,		KF_MVWS_15,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_F6,		KF_MVWS_16,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_F7,		KF_MVWS_17,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_F8,		KF_MVWS_18,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_F9,		KF_MVWS_19,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_F10,		KF_MVWS_20,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_F11,		KF_MVWS_21,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_F12,		KF_MVWS_22,	NULL);
-	setkeybinding(MODKEY,		XK_b,		KF_BAR_TOGGLE,	NULL);
-	setkeybinding(MODKEY,		XK_Tab,		KF_FOCUS_NEXT,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_Tab,		KF_FOCUS_PREV,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_x,		KF_WIND_KILL,	NULL);
-	setkeybinding(MODKEY,		XK_x,		KF_WIND_DEL,	NULL);
-	setkeybinding(MODKEY,		XK_s,		KF_SPAWN_CUSTOM,"screenshot_all");
-	setkeybinding(MODKEY_SHIFT,	XK_s,		KF_SPAWN_CUSTOM,"screenshot_wind");
-	setkeybinding(MODKEY,		XK_t,		KF_FLOAT_TOGGLE,NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_v,		KF_VERSION,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_Delete,	KF_SPAWN_CUSTOM,"lock");
-	setkeybinding(MODKEY_SHIFT,	XK_i,		KF_SPAWN_CUSTOM,"initscr");
-	setkeybinding(MODKEY,		XK_w,		KF_ICONIFY,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_w,		KF_UNICONIFY,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_r,		KF_RAISE_TOGGLE,NULL);
-	setkeybinding(MODKEY,		XK_v,		KF_BUTTON2,	NULL);
-	setkeybinding(MODKEY,		XK_equal,	KF_WIDTH_GROW,	NULL);
-	setkeybinding(MODKEY,		XK_minus,	KF_WIDTH_SHRINK,NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_equal,	KF_HEIGHT_GROW,NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_minus,	KF_HEIGHT_SHRINK,NULL);
-	setkeybinding(MODKEY,		XK_bracketleft,	KF_MOVE_LEFT,NULL);
-	setkeybinding(MODKEY,		XK_bracketright,KF_MOVE_RIGHT,NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_bracketleft,	KF_MOVE_UP,	NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_bracketright,KF_MOVE_DOWN,NULL);
-	setkeybinding(MODKEY_SHIFT,	XK_slash,	KF_NAME_WORKSPACE,NULL);
-	setkeybinding(MODKEY,		XK_slash,	KF_SEARCH_WORKSPACE,NULL);
-	setkeybinding(MODKEY,		XK_f,		KF_SEARCH_WIN,	NULL);
 #ifdef SWM_DEBUG
 	setkeybinding(MODKEY_SHIFT,	XK_d,		KF_DUMPWINS,	NULL);
 #endif
@@ -6026,7 +6471,7 @@ grabkeys(void)
 {
 	struct key		*kp;
 	int			num_screens, k, j;
-	unsigned int		modifiers[3];
+	unsigned int		modifiers[4];
 	xcb_keycode_t		*code;
 
 	DNPRINTF(SWM_D_MISC, "grabkeys\n");
@@ -6034,7 +6479,8 @@ grabkeys(void)
 
 	modifiers[0] = 0;
 	modifiers[1] = numlockmask;
-	modifiers[2] = numlockmask | XCB_MOD_MASK_LOCK;
+	modifiers[2] = XCB_MOD_MASK_LOCK;
+	modifiers[3] = numlockmask | XCB_MOD_MASK_LOCK;
 
 	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
 	for (k = 0; k < num_screens; k++) {
@@ -6050,7 +6496,7 @@ grabkeys(void)
 					    screens[k].root,
 					    kp->mod | modifiers[j],
 					    *code, XCB_GRAB_MODE_SYNC,
-					    XCB_GRAB_MODE_ASYNC);
+					    XCB_GRAB_MODE_SYNC);
 				free(code);
 			}
 		}
@@ -6060,16 +6506,25 @@ grabkeys(void)
 void
 grabbuttons(struct ws_win *win)
 {
-	int		i;
+	unsigned int	modifiers[4];
+	int		i, j;
 
 	DNPRINTF(SWM_D_MOUSE, "grabbuttons: win 0x%x\n", win->id);
+	updatenumlockmask();
+
+	modifiers[0] = 0;
+	modifiers[1] = numlockmask;
+	modifiers[2] = XCB_MOD_MASK_LOCK;
+	modifiers[3] = numlockmask | XCB_MOD_MASK_LOCK;
 
 	for (i = 0; i < LENGTH(buttons); i++)
 		if (buttons[i].action == client_click)
-			xcb_grab_button(conn, 0, win->id, BUTTONMASK,
-			    XCB_GRAB_MODE_SYNC, XCB_GRAB_MODE_ASYNC,
-			    XCB_WINDOW_NONE, XCB_CURSOR_NONE,
-			    buttons[i].button, buttons[i].mask);
+			for (j = 0; j < LENGTH(modifiers); ++j)
+				xcb_grab_button(conn, 0, win->id, BUTTONMASK,
+				    XCB_GRAB_MODE_SYNC, XCB_GRAB_MODE_ASYNC,
+				    XCB_WINDOW_NONE, XCB_CURSOR_NONE,
+				    buttons[i].button, buttons[i].mask |
+				    modifiers[j]);
 }
 
 const char *quirkname[] = {
@@ -6244,6 +6699,7 @@ enum {
 	SWM_S_BAR_BORDER_WIDTH,
 	SWM_S_BAR_DELAY,
 	SWM_S_BAR_ENABLED,
+	SWM_S_BAR_ENABLED_WS,
 	SWM_S_BAR_FONT,
 	SWM_S_BAR_FORMAT,
 	SWM_S_BAR_JUSTIFY,
@@ -6258,12 +6714,14 @@ enum {
 	SWM_S_FOCUS_CLOSE_WRAP,
 	SWM_S_FOCUS_DEFAULT,
 	SWM_S_FOCUS_MODE,
+	SWM_S_REGION_PADDING,
 	SWM_S_SPAWN_ORDER,
 	SWM_S_SPAWN_TERM,
 	SWM_S_SS_APP,
 	SWM_S_SS_ENABLED,
 	SWM_S_STACK_ENABLED,
 	SWM_S_TERM_WIDTH,
+	SWM_S_TILE_GAP,
 	SWM_S_TITLE_CLASS_ENABLED,
 	SWM_S_TITLE_NAME_ENABLED,
 	SWM_S_URGENT_ENABLED,
@@ -6275,8 +6733,9 @@ enum {
 int
 setconfvalue(char *selector, char *value, int flags)
 {
-	int	i;
-	char	*b;
+	struct workspace	*ws;
+	int			i, ws_id, num_screens;
+	char			*b;
 
 	/* suppress unused warning since var is needed */
 	(void)selector;
@@ -6296,10 +6755,22 @@ setconfvalue(char *selector, char *value, int flags)
 			bar_border_width = 0;
 		break;
 	case SWM_S_BAR_DELAY:
-		bar_delay = atoi(value);
+		/* No longer needed; leave to not break old conf files. */
 		break;
 	case SWM_S_BAR_ENABLED:
 		bar_enabled = atoi(value);
+		break;
+	case SWM_S_BAR_ENABLED_WS:
+		ws_id = atoi(selector) - 1;
+		if (ws_id < 0 || ws_id >= workspace_limit)
+			errx(1, "setconfvalue: bar_enabled_ws: invalid "
+			    "workspace %d.", ws_id + 1);
+
+		num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+		for (i = 0; i < num_screens; i++) {
+			ws = (struct workspace *)&screens[i].ws;
+			ws[ws_id].bar_enabled = atoi(value);
+		}
 		break;
 	case SWM_S_BAR_FONT:
 		b = bar_fonts;
@@ -6400,6 +6871,11 @@ setconfvalue(char *selector, char *value, int flags)
 		else
 			errx(1, "focus_mode");
 		break;
+	case SWM_S_REGION_PADDING:
+		region_padding = atoi(value);
+		if (region_padding < 0)
+			region_padding = 0;
+		break;
 	case SWM_S_SPAWN_ORDER:
 		if (!strcmp(value, "first"))
 			spawn_position = SWM_STACK_BOTTOM;
@@ -6417,9 +6893,10 @@ setconfvalue(char *selector, char *value, int flags)
 		setconfspawn("spawn_term", value, 0);
 		break;
 	case SWM_S_SS_APP:
+		/* No longer needed; leave to not break old conf files. */
 		break;
 	case SWM_S_SS_ENABLED:
-		ss_enabled = atoi(value);
+		/* No longer needed; leave to not break old conf files. */
 		break;
 	case SWM_S_STACK_ENABLED:
 		stack_enabled = atoi(value);
@@ -6428,6 +6905,11 @@ setconfvalue(char *selector, char *value, int flags)
 		term_width = atoi(value);
 		if (term_width < 0)
 			term_width = 0;
+		break;
+	case SWM_S_TILE_GAP:
+		tile_gap = atoi(value);
+		if (tile_gap < 0)
+			tile_gap = 0;
 		break;
 	case SWM_S_TITLE_CLASS_ENABLED:
 		title_class_enabled = atoi(value);
@@ -6665,57 +7147,86 @@ struct config_option {
 	int			funcflags;
 };
 struct config_option configopt[] = {
-	{ "bar_enabled",		setconfvalue,	SWM_S_BAR_ENABLED },
+	{ "autorun",			setautorun,	0 },
+	{ "bar_action",			setconfvalue,	SWM_S_BAR_ACTION },
 	{ "bar_at_bottom",		setconfvalue,	SWM_S_BAR_AT_BOTTOM },
 	{ "bar_border",			setconfcolor,	SWM_S_COLOR_BAR_BORDER },
+	{ "bar_border_unfocus",		setconfcolor,	SWM_S_COLOR_BAR_BORDER_UNFOCUS },
 	{ "bar_border_width",		setconfvalue,	SWM_S_BAR_BORDER_WIDTH },
 	{ "bar_color",			setconfcolor,	SWM_S_COLOR_BAR },
-	{ "bar_font_color",		setconfcolor,	SWM_S_COLOR_BAR_FONT },
-	{ "bar_font",			setconfvalue,	SWM_S_BAR_FONT },
-	{ "bar_action",			setconfvalue,	SWM_S_BAR_ACTION },
 	{ "bar_delay",			setconfvalue,	SWM_S_BAR_DELAY },
-	{ "bar_justify",		setconfvalue,	SWM_S_BAR_JUSTIFY },
+	{ "bar_enabled",		setconfvalue,	SWM_S_BAR_ENABLED },
+	{ "bar_enabled_ws",		setconfvalue,	SWM_S_BAR_ENABLED_WS },
+	{ "bar_font",			setconfvalue,	SWM_S_BAR_FONT },
+	{ "bar_font_color",		setconfcolor,	SWM_S_COLOR_BAR_FONT },
 	{ "bar_format",			setconfvalue,	SWM_S_BAR_FORMAT },
-	{ "keyboard_mapping",		setkeymapping,	0 },
+	{ "bar_justify",		setconfvalue,	SWM_S_BAR_JUSTIFY },
 	{ "bind",			setconfbinding,	0 },
-	{ "stack_enabled",		setconfvalue,	SWM_S_STACK_ENABLED },
+	{ "border_width",		setconfvalue,	SWM_S_BORDER_WIDTH },
 	{ "clock_enabled",		setconfvalue,	SWM_S_CLOCK_ENABLED },
 	{ "clock_format",		setconfvalue,	SWM_S_CLOCK_FORMAT },
 	{ "color_focus",		setconfcolor,	SWM_S_COLOR_FOCUS },
 	{ "color_unfocus",		setconfcolor,	SWM_S_COLOR_UNFOCUS },
 	{ "cycle_empty",		setconfvalue,	SWM_S_CYCLE_EMPTY },
 	{ "cycle_visible",		setconfvalue,	SWM_S_CYCLE_VISIBLE },
-	{ "workspace_limit",		setconfvalue,	SWM_S_WORKSPACE_LIMIT },
 	{ "dialog_ratio",		setconfvalue,	SWM_S_DIALOG_RATIO },
-	{ "verbose_layout",		setconfvalue,	SWM_S_VERBOSE_LAYOUT },
+	{ "disable_border",		setconfvalue,	SWM_S_DISABLE_BORDER },
+	{ "focus_close",		setconfvalue,	SWM_S_FOCUS_CLOSE },
+	{ "focus_close_wrap",		setconfvalue,	SWM_S_FOCUS_CLOSE_WRAP },
+	{ "focus_default",		setconfvalue,	SWM_S_FOCUS_DEFAULT },
+	{ "focus_mode",			setconfvalue,	SWM_S_FOCUS_MODE },
+	{ "keyboard_mapping",		setkeymapping,	0 },
+	{ "layout",			setlayout,	0 },
 	{ "modkey",			setconfmodkey,	0 },
 	{ "program",			setconfspawn,	0 },
 	{ "quirk",			setconfquirk,	0 },
 	{ "region",			setconfregion,	0 },
-	{ "spawn_term",			setconfvalue,	SWM_S_SPAWN_TERM },
-	{ "screenshot_enabled",		setconfvalue,	SWM_S_SS_ENABLED },
+	{ "region_padding",		setconfvalue,	SWM_S_REGION_PADDING },
 	{ "screenshot_app",		setconfvalue,	SWM_S_SS_APP },
-	{ "window_name_enabled",	setconfvalue,	SWM_S_WINDOW_NAME_ENABLED },
-	{ "urgent_enabled",		setconfvalue,	SWM_S_URGENT_ENABLED },
+	{ "screenshot_enabled",		setconfvalue,	SWM_S_SS_ENABLED },
+	{ "spawn_position",		setconfvalue,	SWM_S_SPAWN_ORDER },
+	{ "spawn_term",			setconfvalue,	SWM_S_SPAWN_TERM },
+	{ "stack_enabled",		setconfvalue,	SWM_S_STACK_ENABLED },
 	{ "term_width",			setconfvalue,	SWM_S_TERM_WIDTH },
+	{ "tile_gap",			setconfvalue,	SWM_S_TILE_GAP },
 	{ "title_class_enabled",	setconfvalue,	SWM_S_TITLE_CLASS_ENABLED },
 	{ "title_name_enabled",		setconfvalue,	SWM_S_TITLE_NAME_ENABLED },
-	{ "focus_mode",			setconfvalue,	SWM_S_FOCUS_MODE },
-	{ "focus_close",		setconfvalue,	SWM_S_FOCUS_CLOSE },
-	{ "focus_close_wrap",		setconfvalue,	SWM_S_FOCUS_CLOSE_WRAP },
-	{ "focus_default",		setconfvalue,	SWM_S_FOCUS_DEFAULT },
-	{ "spawn_position",		setconfvalue,	SWM_S_SPAWN_ORDER },
-	{ "disable_border",		setconfvalue,	SWM_S_DISABLE_BORDER },
-	{ "border_width",		setconfvalue,	SWM_S_BORDER_WIDTH },
-	{ "autorun",			setautorun,	0 },
-	{ "layout",			setlayout,	0 },
+	{ "urgent_enabled",		setconfvalue,	SWM_S_URGENT_ENABLED },
+	{ "verbose_layout",		setconfvalue,	SWM_S_VERBOSE_LAYOUT },
+	{ "window_name_enabled",	setconfvalue,	SWM_S_WINDOW_NAME_ENABLED },
+	{ "workspace_limit",		setconfvalue,	SWM_S_WORKSPACE_LIMIT },
 };
+
+void
+_add_startup_exception(const char *fmt, va_list ap)
+{
+	if (vasprintf(&startup_exception, fmt, ap) == -1)
+		warn("%s: asprintf", __func__);
+}
+
+void
+add_startup_exception(const char *fmt, ...)
+{
+	va_list ap;
+
+	nr_exceptions++;
+
+	if (startup_exception)
+		return;
+
+	/* force bar to be enabled due to exception */
+	bar_enabled = 1;
+
+	va_start(ap, fmt);
+	_add_startup_exception(fmt, ap);
+	va_end(ap);
+}
 
 int
 conf_load(const char *filename, int keymapping)
 {
 	FILE			*config;
-	char			*line, *cp, *optsub, *optval;
+	char			*line = NULL, *cp, *optsub, *optval;
 	size_t			linelen, lineno = 0;
 	int			wordlen, i, optidx;
 	struct config_option	*opt = NULL;
@@ -6732,6 +7243,9 @@ conf_load(const char *filename, int keymapping)
 	}
 
 	while (!feof(config)) {
+		if (line)
+			free(line);
+
 		if ((line = fparseln(config, &linelen, &lineno, NULL, 0))
 		    == NULL) {
 			if (ferror(config))
@@ -6743,15 +7257,14 @@ conf_load(const char *filename, int keymapping)
 		cp += strspn(cp, " \t\n"); /* eat whitespace */
 		if (cp[0] == '\0') {
 			/* empty line */
-			free(line);
 			continue;
 		}
 		/* get config option */
 		wordlen = strcspn(cp, "=[ \t\n");
 		if (wordlen == 0) {
-			warnx("%s: line %zd: no option found",
+			add_startup_exception("%s: line %zd: no option found",
 			    filename, lineno);
-			goto out;
+			continue;
 		}
 		optidx = -1;
 		for (i = 0; i < LENGTH(configopt); i++) {
@@ -6763,17 +7276,20 @@ conf_load(const char *filename, int keymapping)
 			}
 		}
 		if (optidx == -1) {
-			warnx("%s: line %zd: unknown option %.*s",
-			    filename, lineno, wordlen, cp);
-			goto out;
+			add_startup_exception("%s: line %zd: unknown option "
+			    "%.*s", filename, lineno, wordlen, cp);
+			continue;
 		}
 		if (keymapping && opt && strcmp(opt->optname, "bind")) {
-			warnx("%s: line %zd: invalid option %.*s",
-			    filename, lineno, wordlen, cp);
-			goto out;
+			add_startup_exception("%s: line %zd: invalid option "
+			    "%.*s", filename, lineno, wordlen, cp);
+			continue;
 		}
 		cp += wordlen;
 		cp += strspn(cp, " \t\n"); /* eat whitespace */
+
+		/* from here on out we call goto invalid to continue */
+
 		/* get [selector] if any */
 		optsub = NULL;
 		if (*cp == '[') {
@@ -6781,17 +7297,17 @@ conf_load(const char *filename, int keymapping)
 			wordlen = strcspn(cp, "]");
 			if (*cp != ']') {
 				if (wordlen == 0) {
-					warnx("%s: line %zd: syntax error",
-					    filename, lineno);
-					goto out;
+					add_startup_exception("%s: line %zd: "
+					    "syntax error", filename, lineno);
+					goto invalid;
 				}
 
 				if (asprintf(&optsub, "%.*s", wordlen, cp) ==
 				    -1) {
-					warnx("%s: line %zd: unable to allocate"
-					    "memory for selector", filename,
-					    lineno);
-					goto out;
+					add_startup_exception("%s: line %zd: "
+					    "unable to allocatememory for "
+					    "selector", filename, lineno);
+					goto invalid;
 				}
 			}
 			cp += wordlen;
@@ -6800,27 +7316,36 @@ conf_load(const char *filename, int keymapping)
 		cp += strspn(cp, "= \t\n"); /* eat trailing */
 		/* get RHS value */
 		optval = strdup(cp);
+		if (strlen(optval) == 0) {
+			add_startup_exception("%s: line %zd: must supply value "
+			    "to %s", filename, lineno,
+			    configopt[optidx].optname);
+			goto invalid;
+		}
 		/* call function to deal with it all */
 		if (configopt[optidx].func(optsub, optval,
-		    configopt[optidx].funcflags) != 0)
-			errx(1, "%s: line %zd: invalid data for %s",
-			    filename, lineno, configopt[optidx].optname);
-		free(optval);
-		free(optsub);
-		free(line);
+		    configopt[optidx].funcflags) != 0) {
+			add_startup_exception("%s: line %zd: invalid data for "
+			    "%s", filename, lineno, configopt[optidx].optname);
+			goto invalid;
+		}
+invalid:
+		if (optval) {
+			free(optval);
+			optval = NULL;
+		}
+		if (optsub) {
+			free(optsub);
+			optsub = NULL;
+		}
 	}
 
+	if (line)
+		free(line);
 	fclose(config);
 	DNPRINTF(SWM_D_CONF, "conf_load: end\n");
 
 	return (0);
-
-out:
-	free(line);
-	fclose(config);
-	DNPRINTF(SWM_D_CONF, "conf_load: end with error.\n");
-
-	return (1);
 }
 
 void
@@ -7221,7 +7746,7 @@ expose(xcb_expose_event_t *e)
 	for (i = 0; i < num_screens; i++)
 		TAILQ_FOREACH(r, &screens[i].rl, entry)
 			if (e->window == WINID(r->bar))
-				bar_update();
+				bar_draw();
 
 	xcb_flush(conn);
 }
@@ -7252,10 +7777,14 @@ keypress(xcb_key_press_event_t *e)
 
 	keysym = xcb_key_press_lookup_keysym(syms, e, 0);
 
-	DNPRINTF(SWM_D_EVENT, "keypress: %u %u\n", e->detail, keysym);
+	DNPRINTF(SWM_D_EVENT, "keypress: keysym: %u, win (x,y): 0x%x (%d,%d), "
+	    "detail: %u, time: %u, root (x,y): 0x%x (%d,%d), child: 0x%x, "
+	    "state: %u, same_screen: %s\n", keysym, e->event, e->event_x,
+	    e->event_y, e->detail, e->time, e->root, e->root_x, e->root_y,
+	    e->child, e->state, YESNO(e->same_screen));
 
 	if ((kp = key_lookup(CLEANMASK(e->state), keysym)) == NULL)
-		return;
+		goto out;
 
 	last_event_time = e->time;
 
@@ -7265,6 +7794,13 @@ keypress(xcb_key_press_event_t *e)
 	else if (keyfuncs[kp->funcid].func)
 		keyfuncs[kp->funcid].func(root_to_region(e->root, SWM_CK_ALL),
 		    &(keyfuncs[kp->funcid].args));
+
+out:
+	/* Unfreeze grab events. */
+	xcb_allow_events(conn, XCB_ALLOW_ASYNC_KEYBOARD, e->time);
+	xcb_flush(conn);
+
+	DNPRINTF(SWM_D_EVENT, "keypress: done.\n");
 }
 
 void
@@ -7291,7 +7827,13 @@ buttonpress(xcb_button_press_event_t *e)
 			/* Focus on empty region */
 			/* If no windows on region if its empty. */
 			r = root_to_region(e->root, SWM_CK_POINTER);
-			if (r && TAILQ_EMPTY(&r->ws->winlist)) {
+			if (r == NULL) {
+				DNPRINTF(SWM_D_EVENT, "buttonpress: "
+				    "NULL region; ignoring.\n");
+				goto out;
+			}
+
+			if (TAILQ_EMPTY(&r->ws->winlist)) {
 				old_r = root_to_region(e->root, SWM_CK_FOCUS);
 				if (old_r && old_r != r)
 					unfocus_win(old_r->ws->focus);
@@ -7300,7 +7842,7 @@ buttonpress(xcb_button_press_event_t *e)
 				    XCB_INPUT_FOCUS_PARENT, e->root, e->time);
 
 				/* Clear bar since empty. */
-				bar_update();
+				bar_draw();
 
 				handled = 1;
 				goto out;
@@ -7311,7 +7853,7 @@ buttonpress(xcb_button_press_event_t *e)
 	}
 
 	if (win == NULL)
-		return;
+		goto out;
 
 	last_event_time = e->time;
 
@@ -7500,9 +8042,10 @@ configurerequest(xcb_configure_request_event_t *e)
 			WIDTH(win) = win->g_float.w;
 			HEIGHT(win) = win->g_float.h;
 
-			stack_floater(win, win->ws->r);
-
-			focus_flush();
+			if (r) {
+				stack_floater(win, r);
+				focus_flush();
+			}
 		} else {
 			config_win(win, e);
 			xcb_flush(conn);
@@ -7642,7 +8185,7 @@ void
 enternotify(xcb_enter_notify_event_t *e)
 {
 	struct ws_win		*win;
-	struct swm_region	*old_r, *r;
+	struct swm_region	*r;
 
 	DNPRINTF(SWM_D_FOCUS, "enternotify: time: %u, win (x,y): 0x%x "
 	    "(%d,%d), mode: %s(%d), detail: %s(%d), root (x,y): 0x%x (%d,%d), "
@@ -7665,29 +8208,23 @@ enternotify(xcb_enter_notify_event_t *e)
 		if (e->event == e->root) {
 			/* If no windows on pointer region, then focus root. */
 			r = root_to_region(e->root, SWM_CK_POINTER);
-			if (TAILQ_EMPTY(&r->ws->winlist)) {
-				old_r = root_to_region(e->root, SWM_CK_FOCUS);
-				if (old_r && old_r != r)
-					unfocus_win(old_r->ws->focus);
-
-				xcb_set_input_focus(conn,
-				    XCB_INPUT_FOCUS_PARENT, e->root, e->time);
-
-				/* Clear bar since empty. */
-				bar_update();
-
-				focus_flush();
+			if (r == NULL) {
+				DNPRINTF(SWM_D_EVENT, "enterntoify: "
+				    "NULL region; ignoring.\n");
+				return;
 			}
+
+			focus_region(r);
 		} else {
 			DNPRINTF(SWM_D_EVENT, "enternotify: window is NULL; "
 			    "ignoring\n");
+			return;
 		}
-		return;
+	} else {
+		focus_win(get_focus_magic(win));
 	}
 
-	focus_win(get_focus_magic(win));
-
-	xcb_flush(conn);
+	focus_flush();
 }
 
 #ifdef SWM_DEBUG
@@ -7704,9 +8241,6 @@ leavenotify(xcb_leave_notify_event_t *e)
 	    YESNO(e->same_screen_focus), e->state);
 }
 #endif
-
-/* lets us use one switch statement for arbitrary mode/detail combinations */
-#define MERGE_MEMBERS(a,b)	(((a & 0xffff) << 16) | (b & 0xffff))
 
 void
 mapnotify(xcb_map_notify_event_t *e)
@@ -7781,6 +8315,35 @@ maprequest(xcb_map_request_event_t *e)
 out:
 	free(war);
 	DNPRINTF(SWM_D_EVENT, "maprequest: done.\n");
+}
+
+void
+motionnotify(xcb_motion_notify_event_t *e)
+{
+	struct swm_region	*r;
+	int			i, num_screens;
+
+	DNPRINTF(SWM_D_FOCUS, "motionnotify: time: %u, win (x,y): 0x%x "
+	    "(%d,%d), detail: %s(%d), root (x,y): 0x%x (%d,%d), "
+	    "child: 0x%x, same_screen_focus: %s, state: %d\n",
+	    e->time, e->event, e->event_x, e->event_y,
+	    get_notify_detail_label(e->detail), e->detail,
+	    e->root, e->root_x, e->root_y, e->child,
+	    YESNO(e->same_screen), e->state);
+
+	last_event_time = e->time;
+
+	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	for (i = 0; i < num_screens; i++)
+		if (screens[i].root == e->root)
+			break;
+
+	TAILQ_FOREACH(r, &screens[i].rl, entry)
+		if (X(r) <= e->root_x && e->root_x < MAX_X(r) &&
+		    Y(r) <= e->root_y && e->root_y < MAX_Y(r))
+			break;
+
+	focus_region(r);
 }
 
 #ifdef SWM_DEBUG
@@ -7875,7 +8438,7 @@ propertynotify(xcb_property_notify_event_t *e)
 		}
 	} else if (e->atom == XCB_ATOM_WM_CLASS ||
 	    e->atom == XCB_ATOM_WM_NAME) {
-		bar_update();
+		bar_draw();
 	}
 
 	xcb_flush(conn);
@@ -7891,7 +8454,7 @@ unmapnotify(xcb_unmap_notify_event_t *e)
 
 	/* If we aren't managing the window, then ignore. */
 	win = find_window(e->window);
-	if (win == NULL)
+	if (win == NULL || win->id != e->window)
 		return;
 
 	ws = win->ws;
@@ -8092,6 +8655,7 @@ new_region(struct swm_screen *s, int x, int y, int w, int h)
 	struct swm_region	*r, *n;
 	struct workspace	*ws = NULL;
 	int			i;
+	uint32_t		wa[1];
 
 	DNPRINTF(SWM_D_MISC, "new region: screen[%d]:%dx%d+%d+%d\n",
 	     s->idx, w, h, x, y);
@@ -8101,14 +8665,13 @@ new_region(struct swm_screen *s, int x, int y, int w, int h)
 	while (n) {
 		r = n;
 		n = TAILQ_NEXT(r, entry);
-		if (X(r) < (x + w) &&
-		    (X(r) + WIDTH(r)) > x &&
-		    Y(r) < (y + h) &&
-		    (Y(r) + HEIGHT(r)) > y) {
+		if (X(r) < (x + w) && (X(r) + WIDTH(r)) > x &&
+		    Y(r) < (y + h) && (Y(r) + HEIGHT(r)) > y) {
 			if (r->ws->r != NULL)
 				r->ws->old_r = r->ws->r;
 			r->ws->r = NULL;
 			bar_cleanup(r);
+			xcb_destroy_window(conn, r->id);
 			TAILQ_REMOVE(&s->rl, r, entry);
 			TAILQ_INSERT_TAIL(&s->orl, r, entry);
 		}
@@ -8159,6 +8722,17 @@ new_region(struct swm_screen *s, int x, int y, int w, int h)
 	ws->r = r;
 	outputs++;
 	TAILQ_INSERT_TAIL(&s->rl, r, entry);
+
+	/* Invisible region window to detect pointer events on empty regions. */
+	r->id = xcb_generate_id(conn);
+	wa[0] = XCB_EVENT_MASK_POINTER_MOTION |
+	    XCB_EVENT_MASK_POINTER_MOTION_HINT;
+
+	xcb_create_window(conn, XCB_COPY_FROM_PARENT, r->id, r->s->root,
+	    X(r), Y(r), WIDTH(r), HEIGHT(r), 0, XCB_WINDOW_CLASS_INPUT_ONLY,
+	    XCB_COPY_FROM_PARENT, XCB_CW_EVENT_MASK, wa);
+
+	xcb_map_window(conn, r->id);
 }
 
 void
@@ -8169,6 +8743,7 @@ scan_xrandr(int i)
 	int						ncrtc = 0;
 #endif /* SWM_XRR_HAS_CRTC */
 	struct swm_region				*r;
+	struct ws_win					*win;
 	int						num_screens;
 	xcb_randr_get_screen_resources_current_cookie_t	src;
 	xcb_randr_get_screen_resources_current_reply_t	*srr;
@@ -8190,6 +8765,7 @@ scan_xrandr(int i)
 	while ((r = TAILQ_FIRST(&screens[i].rl)) != NULL) {
 		r->ws->old_r = r->ws->r = NULL;
 		bar_cleanup(r);
+		xcb_destroy_window(conn, r->id);
 		TAILQ_REMOVE(&screens[i].rl, r, entry);
 		TAILQ_INSERT_TAIL(&screens[i].orl, r, entry);
 	}
@@ -8241,6 +8817,16 @@ scan_xrandr(int i)
 		    screen->height_in_pixels);
 
 out:
+	/* Cleanup unused previously visible workspaces. */
+	TAILQ_FOREACH(r, &screens[i].orl, entry) {
+		TAILQ_FOREACH(win, &r->ws->winlist, entry)
+			unmap_window(win);
+
+		/* The screen shouldn't focus on an unused region. */
+		if (screens[i].r_focus == r)
+			screens[i].r_focus = NULL;
+	}
+
 	DNPRINTF(SWM_D_MISC, "scan_xrandr: done.\n");
 }
 
@@ -8267,15 +8853,30 @@ screenchange(xcb_randr_screen_change_notify_event_t *e)
 	print_win_geom(e->root);
 #endif
 	/* add bars to all regions */
-	for (i = 0; i < num_screens; i++)
+	for (i = 0; i < num_screens; i++) {
 		TAILQ_FOREACH(r, &screens[i].rl, entry)
 			bar_setup(r);
+	}
+
 	stack();
+
+	/* Make sure a region has focus on each screen. */
+	for (i = 0; i < num_screens; i++) {
+		if (screens[i].r_focus == NULL) {
+			r = TAILQ_FIRST(&screens[i].rl);
+			if (r != NULL)
+				focus_region(r);
+		}
+	}
+
+	bar_draw();
+	focus_flush();
 }
 
 void
 grab_windows(void)
 {
+	struct swm_region	*r = NULL;
 	xcb_window_t		*wins = NULL, trans;
 	int			no;
 	int			i, j, num_screens;
@@ -8283,8 +8884,8 @@ grab_windows(void)
 
 	xcb_query_tree_cookie_t			qtc;
 	xcb_query_tree_reply_t			*qtr;
-	xcb_get_window_attributes_cookie_t	c;
-	xcb_get_window_attributes_reply_t	*r;
+	xcb_get_window_attributes_cookie_t	gac;
+	xcb_get_window_attributes_reply_t	*gar;
 	xcb_get_property_cookie_t		pc;
 
 	DNPRINTF(SWM_D_INIT, "grab_windows: begin\n");
@@ -8300,17 +8901,30 @@ grab_windows(void)
 		/* normal windows */
 		DNPRINTF(SWM_D_INIT, "grab_windows: grab top level windows.\n");
 		for (j = 0; j < no; j++) {
-			c = xcb_get_window_attributes(conn, wins[j]);
-			r = xcb_get_window_attributes_reply(conn, c, NULL);
-			if (!r) {
+			TAILQ_FOREACH(r, &screens[i].rl, entry) {
+				if (r->id == wins[j]) {
+					DNPRINTF(SWM_D_INIT, "grab_windows: "
+					    "skip %#x; region input window.\n",
+					    wins[j]);
+					break;
+				}
+			}
+
+			if (r)
+				continue;
+
+			gac = xcb_get_window_attributes(conn, wins[j]);
+			gar = xcb_get_window_attributes_reply(conn, gac, NULL);
+			if (!gar) {
 				DNPRINTF(SWM_D_INIT, "grab_windows: skip %#x; "
 				    "doesn't exist.\n", wins[j]);
 				continue;
 			}
-			if (r->override_redirect) {
+
+			if (gar->override_redirect) {
 				DNPRINTF(SWM_D_INIT, "grab_windows: skip %#x; "
 				    "override_redirect set.\n", wins[j]);
-				free(r);
+				free(gar);
 				continue;
 			}
 
@@ -8319,42 +8933,43 @@ grab_windows(void)
 			    &trans, NULL)) {
 				DNPRINTF(SWM_D_INIT, "grab_windows: skip %#x; "
 				    "is transient for %#x.\n", wins[j], trans);
-				free(r);
+				free(gar);
 				continue;
 			}
 
 			state = getstate(wins[j]);
 			manage = state != XCB_ICCCM_WM_STATE_WITHDRAWN;
-			mapped = r->map_state != XCB_MAP_STATE_UNMAPPED;
+			mapped = gar->map_state != XCB_MAP_STATE_UNMAPPED;
 			if (mapped || manage)
 				manage_window(wins[j], mapped);
-			free(r);
+			free(gar);
 		}
 		/* transient windows */
 		DNPRINTF(SWM_D_INIT, "grab_windows: grab transient windows.\n");
 		for (j = 0; j < no; j++) {
-			c = xcb_get_window_attributes(conn, wins[j]);
-			r = xcb_get_window_attributes_reply(conn, c, NULL);
-			if (!r) {
+			gac = xcb_get_window_attributes(conn, wins[j]);
+			gar = xcb_get_window_attributes_reply(conn, gac, NULL);
+			if (!gar) {
 				DNPRINTF(SWM_D_INIT, "grab_windows: skip %#x; "
 				    "doesn't exist.\n", wins[j]);
 				continue;
 			}
-			if (r->override_redirect) {
+
+			if (gar->override_redirect) {
 				DNPRINTF(SWM_D_INIT, "grab_windows: skip %#x; "
 				    "override_redirect set.\n", wins[j]);
-				free(r);
+				free(gar);
 				continue;
 			}
 
 			state = getstate(wins[j]);
 			manage = state != XCB_ICCCM_WM_STATE_WITHDRAWN;
-			mapped = r->map_state != XCB_MAP_STATE_UNMAPPED;
+			mapped = gar->map_state != XCB_MAP_STATE_UNMAPPED;
 			pc = xcb_icccm_get_wm_transient_for(conn, wins[j]);
 			if (xcb_icccm_get_wm_transient_for_reply(conn, pc,
 			    &trans, NULL) && manage)
 				manage_window(wins[j], mapped);
-			free(r);
+			free(gar);
 		}
 		free(qtr);
 	}
@@ -8399,6 +9014,8 @@ setup_screens(void)
 	for (i = 0; i < num_screens; i++) {
 		DNPRINTF(SWM_D_WS, "setup_screens: init screen: %d\n", i);
 		screens[i].idx = i;
+		screens[i].r_focus = NULL;
+
 		TAILQ_INIT(&screens[i].rl);
 		TAILQ_INIT(&screens[i].orl);
 		if ((screen = get_screen(i)) == NULL)
@@ -8409,6 +9026,8 @@ setup_screens(void)
 		setscreencolor("red", i + 1, SWM_S_COLOR_FOCUS);
 		setscreencolor("rgb:88/88/88", i + 1, SWM_S_COLOR_UNFOCUS);
 		setscreencolor("rgb:00/80/80", i + 1, SWM_S_COLOR_BAR_BORDER);
+		setscreencolor("rgb:00/40/40", i + 1,
+		    SWM_S_COLOR_BAR_BORDER_UNFOCUS);
 		setscreencolor("black", i + 1, SWM_S_COLOR_BAR);
 		setscreencolor("rgb:a0/a0/a0", i + 1, SWM_S_COLOR_BAR_FONT);
 
@@ -8428,6 +9047,7 @@ setup_screens(void)
 			ws = &screens[i].ws[j];
 			ws->idx = j;
 			ws->name = NULL;
+			ws->bar_enabled = 1;
 			ws->focus = NULL;
 			ws->focus_prev = NULL;
 			ws->focus_pending = NULL;
@@ -8515,7 +9135,6 @@ shutdown_cleanup(void)
 		err(1, "can't disable alarm");
 
 	bar_extra_stop();
-	bar_extra = 1;
 	unmap_all();
 
 	cursors_cleanup();
@@ -8593,7 +9212,7 @@ event_handle(xcb_generic_event_t *evt)
 	EVENT(XCB_MAP_NOTIFY, mapnotify);
 	EVENT(XCB_MAP_REQUEST, maprequest);
 	EVENT(XCB_MAPPING_NOTIFY, mappingnotify);
-	/*EVENT(XCB_MOTION_NOTIFY, );*/
+	EVENT(XCB_MOTION_NOTIFY, motionnotify);
 	/*EVENT(XCB_NO_EXPOSURE, );*/
 	EVENT(XCB_PROPERTY_NOTIFY, propertynotify);
 	/*EVENT(XCB_REPARENT_NOTIFY, );*/
@@ -8612,15 +9231,17 @@ event_handle(xcb_generic_event_t *evt)
 int
 main(int argc, char *argv[])
 {
-	struct swm_region	*r, *rr;
-	struct ws_win		*winfocus = NULL;
+	struct swm_region	*r;
 	char			conf[PATH_MAX], *cfile = NULL;
 	struct stat		sb;
-	int			xfd, i, num_screens;
+	int			xfd, i, num_screens, startup = 1;
 	struct sigaction	sact;
 	xcb_generic_event_t	*evt;
 	struct timeval          tv;
 	fd_set			rd;
+	int			rd_max;
+	int			stdin_ready = 0;
+	int			num_readable;
 
 	/* suppress unused warning since var is needed */
 	(void)argc;
@@ -8739,17 +9360,17 @@ noconfig:
 	/* setup all bars */
 	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
 	for (i = 0; i < num_screens; i++)
-		TAILQ_FOREACH(r, &screens[i].rl, entry) {
-			if (winfocus == NULL)
-				winfocus = TAILQ_FIRST(&r->ws->winlist);
+		TAILQ_FOREACH(r, &screens[i].rl, entry)
 			bar_setup(r);
-		}
 
 	grabkeys();
 	stack();
+	bar_draw();
 
 	xcb_ungrab_server(conn);
 	xcb_flush(conn);
+
+	rd_max = xfd > STDIN_FILENO ? xfd : STDIN_FILENO;
 
 	while (running) {
 		while ((evt = xcb_poll_for_event(conn))) {
@@ -8760,37 +9381,49 @@ noconfig:
 		}
 
 		/* If just (re)started, set default focus if needed. */
-		if (winfocus && focus_mode != SWM_FOCUS_FOLLOW) {
-			rr = winfocus->ws->r;
-			if (rr == NULL) {
-				/* not a visible window */
-				winfocus = NULL;
+		if (startup) {
+			startup = 0;
+
+			if (focus_mode != SWM_FOCUS_FOLLOW) {
+				r = TAILQ_FIRST(&screens[0].rl);
+				if (r) {
+					focus_region(r);
+					focus_flush();
+				}
 				continue;
 			}
-
-			focus_win(get_region_focus(rr));
-			focus_flush();
-			winfocus = NULL;
-			continue;
 		}
 
 		FD_ZERO(&rd);
+
+		if (bar_extra)
+			FD_SET(STDIN_FILENO, &rd);
+
 		FD_SET(xfd, &rd);
 		tv.tv_sec = 1;
 		tv.tv_usec = 0;
-		if (select(xfd + 1, &rd, NULL, NULL, &tv) == -1)
-			if (errno != EINTR) {
-				DNPRINTF(SWM_D_MISC, "select failed");
-			}
+		num_readable = select(rd_max + 1, &rd, NULL, NULL, &tv);
+		if (num_readable == -1 && errno != EINTR) {
+			DNPRINTF(SWM_D_MISC, "select failed");
+		} else if (num_readable > 0 && FD_ISSET(STDIN_FILENO, &rd)) {
+			stdin_ready = 1;
+		}
+
 		if (restart_wm)
 			restart(NULL, NULL);
+
 		if (search_resp)
 			search_do_resp();
+
 		if (!running)
 			goto done;
-		if (bar_alarm) {
-			bar_alarm = 0;
-			bar_update();
+
+		if (stdin_ready) {
+			stdin_ready = 0;
+			if (bar_extra_update()) {
+				bar_draw();
+				xcb_flush(conn);
+			}
 		}
 	}
 done:
