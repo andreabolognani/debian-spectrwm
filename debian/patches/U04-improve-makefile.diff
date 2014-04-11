@@ -10,10 +10,10 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2014-04-11
 Index: spectrwm.git/linux/Makefile
 ===================================================================
---- spectrwm.git.orig/linux/Makefile	2014-04-11 20:37:18.000000000 +0200
-+++ spectrwm.git/linux/Makefile	2014-04-11 20:41:41.300055538 +0200
+--- spectrwm.git.orig/linux/Makefile	2014-04-11 21:40:29.000000000 +0200
++++ spectrwm.git/linux/Makefile	2014-04-11 21:53:37.984151313 +0200
 @@ -1,53 +1,69 @@
--CFLAGS+= -Wall -Wextra -Wshadow -g -D_GNU_SOURCE -I. -I/usr/include/freetype2
+-CFLAGS+= -std=c99 -Wall -Wextra -Wmissing-prototypes -Wshadow -g -D_GNU_SOURCE -I. -I/usr/include/freetype2
 -CFLAGS+= -DSWM_LIB=\"$(LIBDIR)/libswmhack.so.$(LVERS)\"
 -LDADD+= -lX11 -lX11-xcb -lxcb -lxcb-icccm -lxcb-randr -lxcb-keysyms -lxcb-util -lxcb-xtest -lXft -lXcursor
 +PREFIX       ?= /usr/local
@@ -26,7 +26,7 @@ Index: spectrwm.git/linux/Makefile
 +BUILDVERSION = $(shell sh $(CURDIR)/../buildver.sh)
 +LIBVERSION   = $(shell . $(CURDIR)/../lib/shlib_version; echo $$major.$$minor)
 +
-+MAINT_CFLAGS   = -Wall -Wextra -Wshadow -g
++MAINT_CFLAGS   = -std=c99 -Wall -Wextra -Wmissing-prototypes -Wshadow -g
 +MAINT_CPPFLAGS = -I. -I/usr/include/freetype2 -D_GNU_SOURCE -DSWM_LIB=\"$(LIBDIR)/libswmhack.so.$(LIBVERSION)\"
 +MAINT_LDLIBS   = -lX11 -lX11-xcb -lxcb -lxcb-icccm -lxcb-randr -lxcb-keysyms -lxcb-util -lxcb-xtest -lXft -lXcursor
  

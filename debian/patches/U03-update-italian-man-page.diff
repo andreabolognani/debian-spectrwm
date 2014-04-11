@@ -5,8 +5,8 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2013-02-09
 Index: spectrwm.git/spectrwm_it.1
 ===================================================================
---- spectrwm.git.orig/spectrwm_it.1	2013-02-03 21:47:02.144631643 +0100
-+++ spectrwm.git/spectrwm_it.1	2013-02-09 14:51:19.477009268 +0100
+--- spectrwm.git.orig/spectrwm_it.1	2014-04-11 21:40:29.000000000 +0200
++++ spectrwm.git/spectrwm_it.1	2014-04-11 21:51:29.068146415 +0200
 @@ -1,5 +1,9 @@
 -.\" Copyright (c) 2009 Marco Peereboom <marco@peereboom.us>
 +.\" Copyright (c) 2009-2012 Marco Peereboom <marco@peereboom.us>
@@ -76,254 +76,7 @@ Index: spectrwm.git/spectrwm_it.1
  Per esempio:
  .Pp
  .Dl color_focus = red
-@@ -75,66 +79,211 @@
- Per abilitare o disabilitare un'opzione, usare i valori 1 o 0
- rispettivamente.
- .Pp
-+I colori devono essere specificati usando il formato descritto in
-+.Xr XQueryColor 3 .
-+.Pp
- Il file supporta le seguenti chiavi:
- .Pp
--.Bl -tag -width "title_class_enabledXXX" -offset indent -compact
--.It Cm autorun
-+.Bl -tag -width 2m
-+.It Ic autorun
- Esegue un'applicazione nel workspace specificato all'avvio.
- Definito nel formato ws[<idx>]:applicazione, eg. ws[2]:xterm esegue un
- xterm nell'area di lavoro 2.
--.It Cm color_focus
--Colore del bordo della finestra che ha il focus.
--.It Cm color_unfocus
--Colore del bordo delle finestre che non hanno il focus.
--.It Cm bar_enabled
--Abilita o disabilita la barra di stato.
--.It Cm bar_border Ns Bq Ar x
-+.It Ic bar_action
-+Script esterno che aggiunge informazioni come la carica della batteria alla
-+barra di stato.
-+.It Ic bar_at_bottom
-+Posiziona la barra di stato sul fondo dello schermo anziché in cima.
-+.It Ic bar_border Ns Bq Ar x
- Colore del bordo della barra di stato nello schermo
- .Ar x .
--.It Cm bar_border_width
-+.It Ic bar_border_width
- Spessore del bordo attorno alla barra di stato in pixel. Il bordo
--pu? essere disabilitato usando il valore 0.
--.It Cm bar_color Ns Bq Ar x
-+può essere disabilitato usando il valore 0.
-+.It Ic bar_color Ns Bq Ar x
- Colore della barra di stato nello schermo
- .Ar x .
--.It Cm bar_font_color Ns Bq Ar x
--Colore del testo della barra di stato nello schermo
--.Ar x .
--.It Cm bar_font
--Font della barra di stato.
--.It Cm bar_action
--Script esterno che aggiunge informazioni come la carica della batteria alla
--barra di stato.
--.It Cm bar_delay
-+.It Ic bar_delay
- Frequenza di aggiornamento, in secondi, dello script esterno che aggiunge
- informazioni alla barra di stato.
--.It Cm bar_at_bottom
--Posiziona la barra di stato sul fondo dello schermo anzich? in cima.
--.It Cm stack_enabled
--Abilita o disabilita la visualizzazione dell'algoritmo di stacking
--corrente nella barra di stato.
--.It Cm clock_enabled
-+.It Ic bar_enabled
-+Abilita o disabilita la barra di stato.
-+.It Ic bar_font
-+Font usato per la barra di stato. I font possono essere specificati sia nel
-+formato Xft che seguendo la X Logical Font Description (XLFD).
-+È possibile definire dei font di fallback specificando più font separati da
-+virgola. Se tutti i font sono descritti nel formato XLFD, verranno usati dei
-+gruppi di font. Se almeno un font è descritto nel formato Xft, verrà usato
-+Xft. Se Xft è in uso, viene usato il primo font che è possibile caricare
-+correttamente, anche al font mancano dei glifi. Di default vendono usati i
-+gruppi di font. Dmenu non supporta Xft.
-+.Pp
-+Esempi del formato Xft:
-+.Bd -literal -offset indent
-+bar_font = Terminus:style=Regular:pixelsize=14:antialias=true
-+
-+bar_font = -*-profont-medium-*-*-*-11-*-*-*-*-*-*-*,Terminus:pixelsize=14,\
-+-*-clean-medium-*-*-*-12-*-*-*-*-*-*-*
-+.Ed
-+.Pp
-+Esempi del formato XLFD:
-+.Bd -literal -offset indent
-+bar_font = -*-terminus-medium-*-*-*-14-*-*-*-*-*-*-*
-+
-+bar_font = -*-profont-medium-*-*-*-11-*-*-*-*-*-*-*,\
-+-*-terminus-medium-*-*-*-14-*-*-*-*-*-*-*,\
-+-*-clean-medium-*-*-*-12-*-*-*-*-*-*-*
-+.Ed
-+.Pp
-+Per avere un'elenco dei font disponibile sul sistema usare
-+.Xr fc-list 1
-+o
-+.Xr xlsfonts 1 .
-+L'applicazione
-+.Xr xfontsel 1
-+può essere utile per il formato XLFD.
-+.It Ic bar_font_color Ns Bq Ar x
-+Colore del testo della barra di stato nello schermo
-+.Ar x .
-+.It Ic bar_format
-+Definisce il formato da utilizzare per il testo visualizzato nella barra di
-+stato, sovrascrivendo quanto definito dall'opzione
-+.Ic clock_format
-+e da tutte le opzioni il cui nome termina con
-+.Ic enabled .
-+Il formato viene processato con
-+.Xr strftime 3
-+prima di essere usato.
-+Può contenere le seguenti sequenze di caratteri:
-+.Bl -column "Sequenza di caratteri" "Sostituita con" -offset indent
-+.It Sy "Sequenza di caratteri" Ta Sy "Sostituita con"
-+.It Li "+<" Ta "Allinea usando degli spazi"
-+.It Li "+A" Ta "Output dello script esterno"
-+.It Li "+C" Ta "Classe della finestra"
-+.It Li "+D" Ta "Nome dell'area di lavoro"
-+.It Li "+F" Ta "Stato floating"
-+.It Li "+I" Ta "Indice dell'area di lavoro"
-+.It Li "+N" Ta "Numero dello schermo"
-+.It Li "+P" Ta "Classe e titolo della finestra, separati da due punti"
-+.It Li "+S" Ta "Algoritmo di stacking"
-+.It Li "+T" Ta "Titolo della finestra"
-+.It Li "+U" Ta "Urgenza"
-+.It Li "+V" Ta "Numero di versione"
-+.It Li "+W" Ta "Nome della finestra"
-+.It Li "++" Ta "Il carattere" Ql +
-+.El
-+.Pp
-+Tutte le sequenze possono limitare la lunghezza del testo generato, usando
-+ad esempio +64A. I caratteri che non corrispondono a nessuna sequenza
-+vengono lasciati inalterati.
-+.It Ic bar_justify
-+Giustifica il testo nella barra di stato. I valori possibili sono
-+.Pa left
-+(sinistra),
-+.Pa center
-+(centro),
-+e
-+.Pa right
-+(destra).
-+.Pp
-+Se l'output non è giustificato a sinistra, potrebbe non essere visualizzato
-+correttamente in alcune circostanze, a causa degli spazi presenti nel formato
-+di default. Vedere l'opzione
-+.Ic bar_format
-+per maggiori dettagli.
-+.It Ic bind Ns Bq Ar x
-+Assegna una combinazione di tasti all'azione
-+.Ar x .
-+Vedere la sezione
-+.Sx SCORCIATOIE
-+più sotto.
-+.It Ic border_width
-+Spessore del bordo delle finestre in pixel. Il valore 0 disabilita il bordo.
-+.It Ic clock_enabled
- Abilita o disabilita l'orologio nella barra di stato. Se disabilitato,
--usando il valore 0, ? possibile usare un orologio personalizzato nello
-+usando il valore 0, è possibile usare un orologio personalizzato nello
- script specificato in
- .Pa bar_action .
--.It Cm dialog_ratio
-+.It Ic color_focus
-+Colore del bordo della finestra che ha il focus.
-+.It Ic color_unfocus
-+Colore del bordo delle finestre che non hanno il focus.
-+.It Ic dialog_ratio
- Alcune applicazioni hanno finestre di dialogo troppo piccole per risultare
--utili. Questa ? la percentuale dello schermo che verr? usata per le finestre
-+utili. Questa è la percentuale dello schermo che verrà usata per le finestre
- di dialogo: ad esempio, 0.6 indica il 60% della dimensione fisica dello
- schermo.
--.It Cm layout
-+.It Ic disable_border
-+Rimuove il bordo dalle finestre se la barra di stato è nascosta e c'è
-+una sola finestra sullo schermo.
-+.It Ic focus_close
-+Finestra alla quale dare il focus quando la finestra che ha il focus viene
-+chiusa. I valori possibili sono
-+.Pa first
-+(prima),
-+.Pa next
-+(successiva),
-+.Pa previous
-+(precedente),
-+.Pa last
-+(ultima). Il default è
-+.Pa previous ;
-+.Pa next
-+e
-+.Pa previous
-+sono da intendersi relativi alla finestra appena chiusa.
-+.It Ic focus_close_wrap
-+Il focus viene passato all'ultima finestra quando la prima viene chiusa, e
-+viceversa. Il valore 0 disabilita questo comportamento.
-+.It Ic focus_default
-+Finestra alla quale dare il focus quando nessuna finestra ha mai avuto il
-+focus. I valori possibili sono
-+.Pa first
-+(prima) e
-+.Pa last
-+(ultima); il default è
-+.Pa last .
-+.It Ic focus_mode
-+Comportamento del focus in seguito allo spostamento del puntatore del mouse. I
-+valori possibili sono:
-+.Pp
-+.Bl -tag -width "default" -offset indent -compact
-+.It Cm default
-+Cambia il focus quando il puntatore passa da una finestra all'altra in
-+seguito ad uno spostamento o all'interazione con una finestra.
-+.It Cm follow
-+Cambia il focus ogni volta che il puntatore passa da una finestra all'altra,
-+anche quando questo succede in seguito al cambiamento dell'area di lavoro
-+o dell'algoritmo di stacking.
-+.It Cm manual
-+Cambia il focus soltanto in seguito all'interazione con una finestra.
-+.El
-+.It Ic keyboard_mapping
-+Ignora tutte le scorciatoie esistenti e carica delle nuove scorciatoie dal
-+file specificato.
-+Vedere la sezione
-+.Sx FILE DI MAPPATURA DELLA TASTIERA
-+per la lista dei file di mappatura che vengono forniti per diversi layout
-+di tastiera.
-+.It Ic layout
- Layout da utilizzare all'avvio. Definito nel formato
--ws[<idx>]:master_grow:master_add:stack_inc:layout:always_raise:stack_mode,
-+ws[idx]:master_grow:master_add:stack_inc:layout:always_raise:stack_mode,
- eg. ws[2]:-4:0:1:0:horizontal assegna il layout orizzontale all'area di
--lavoro 2, riduce l'area principale di 4 unit?, aggiunge una finestra allo
-+lavoro 2, riduce l'area principale di 4 unità, aggiunge una finestra allo
- stack e mantiene il comportamento predefinito per quanto riguarda le
- finestre floating.
- I valori possibili per stack_mode sono
--.Pa vertical ,
-+.Pa vertical
-+(verticale),
-+.Pa vertical_flip
-+(verticale invertito),
- .Pa horizontal
-+(orizzontale),
-+.Pa horizontal_flip
-+(orizzontale invertito)
- e
--.Pa fullscreen .
-+.Pa fullscreen
-+(a schermo intero).
- .Pp
- Fare riferimento a
- .Pa master_grow ,
-@@ -142,120 +291,116 @@
+@@ -139,120 +143,116 @@
  .Pa master_add ,
  .Pa master_del ,
  .Pa stack_inc ,
@@ -471,15 +224,15 @@ Index: spectrwm.git/spectrwm_it.1
 -.Sx QUIRKS
 -pi? sotto.
 -.El
--.Pp
--I colori devono essere specificati nel formato usato da
--.Xr XQueryColor 3
--e i font in quello usato da
--.Xr XQueryFont 3 .
 +.It Ic window_name_enabled
 +Abilita o disabilita la visualizzazione del nome della finestra nella
 +barra di stato. Impostare a 1 per abilitare.
  .Pp
+-I colori devono essere specificati nel formato usato da
+-.Xr XQueryColor 3
+-e i font in quello usato da
+-.Xr XQueryFont 3 .
+-.Pp
 -Per avere una lista dei font disponibili sul proprio sistema utilizzare
 -.Xr fc-list 1
 -o
@@ -516,7 +269,7 @@ Index: spectrwm.git/spectrwm_it.1
  .Pp
  .Bl -tag -width "screenshot_wind" -offset indent -compact
  .It Cm term
-@@ -269,20 +414,21 @@
+@@ -266,20 +266,21 @@
  .It Cm initscr
  initscreen.sh
  .It Cm menu
@@ -543,7 +296,7 @@ Index: spectrwm.git/spectrwm_it.1
  .Pp
  Le seguenti variabili rappresentano valori impostabili in
  .Nm
-@@ -304,15 +450,14 @@
+@@ -301,15 +302,14 @@
  Esempio:
  .Bd -literal -offset indent
  program[ff] = /usr/local/bin/firefox http://spectrwm.org/
@@ -561,7 +314,7 @@ Index: spectrwm.git/spectrwm_it.1
  .Sh SCORCIATOIE
  .Nm
  fornisce molte funzioni (o azioni) accessibili tramite combinazioni di
-@@ -322,7 +467,7 @@
+@@ -319,7 +319,7 @@
  .Pp
  .Bl -tag -width "M-j, M-<TAB>XXX" -offset indent -compact
  .It Cm M1
@@ -570,7 +323,7 @@ Index: spectrwm.git/spectrwm_it.1
  .It Cm M-M1
  Muove la finestra
  .It Cm M-M3
-@@ -331,9 +476,9 @@
+@@ -328,9 +328,9 @@
  Ridimensiona la finestra mantenendola centrata
  .El
  .Pp
@@ -582,7 +335,7 @@ Index: spectrwm.git/spectrwm_it.1
  .It Cm M-S- Ns Aq Cm Return
  term
  .It Cm M-p
-@@ -344,8 +489,10 @@
+@@ -341,8 +341,10 @@
  restart
  .It Cm M- Ns Aq Cm Space
  cycle_layout
@@ -594,7 +347,7 @@ Index: spectrwm.git/spectrwm_it.1
  .It Cm M-h
  master_shrink
  .It Cm M-l
-@@ -357,7 +504,7 @@
+@@ -354,7 +356,7 @@
  .It Cm M-S-,
  stack_inc
  .It Cm M-S-.
@@ -603,7 +356,7 @@ Index: spectrwm.git/spectrwm_it.1
  .It Cm M- Ns Aq Cm Return
  swap_main
  .It Xo
-@@ -382,14 +529,18 @@
+@@ -379,14 +381,18 @@
  wind_del
  .It Cm M-S-x
  wind_kill
@@ -626,7 +379,7 @@ Index: spectrwm.git/spectrwm_it.1
  .It Cm M-a
  ws_prior
  .It Cm M-S- Ns Aq Cm Right
-@@ -404,7 +555,7 @@
+@@ -401,7 +407,7 @@
  version
  .It Cm M-t
  float_toggle
@@ -635,7 +388,7 @@ Index: spectrwm.git/spectrwm_it.1
  lock
  .It Cm M-S-i
  initscr
-@@ -416,21 +567,43 @@
+@@ -413,21 +419,43 @@
  always_raise
  .It Cm M-v
  button2
@@ -684,7 +437,7 @@ Index: spectrwm.git/spectrwm_it.1
  .It Cm quit
  Chiude
  .Nm .
-@@ -439,7 +612,9 @@
+@@ -436,7 +464,9 @@
  .Nm .
  .It Cm cycle_layout
  Cambia layout.
@@ -695,7 +448,7 @@ Index: spectrwm.git/spectrwm_it.1
  Re-inizializza il layout.
  .It Cm master_shrink
  Restringe l'area principale.
-@@ -450,23 +625,23 @@
+@@ -447,23 +477,23 @@
  .It Cm master_del
  Rimuove finestre dall'area principale.
  .It Cm stack_inc
@@ -726,7 +479,7 @@ Index: spectrwm.git/spectrwm_it.1
  .It Cm wind_del
  Chiude la finestra corrente.
  .It Cm wind_kill
-@@ -476,17 +651,21 @@
+@@ -473,17 +503,21 @@
  .Ar n ,
  dove
  .Ar n
@@ -750,7 +503,7 @@ Index: spectrwm.git/spectrwm_it.1
  .It Cm ws_prior
  Passa all'ultima area di lavoro visitata.
  .It Cm screen_next
-@@ -496,12 +675,12 @@
+@@ -493,12 +527,12 @@
  .It Cm screenshot_all
  Cattura uno screenshot dell'intero schermo, se abilitato (vedere la sezione
  .Sx PROGRAMMI
@@ -765,7 +518,7 @@ Index: spectrwm.git/spectrwm_it.1
  .It Cm version
  Abilita/disabilita il numero di versione nella barra di stato.
  .It Cm float_toggle
-@@ -509,20 +688,42 @@
+@@ -506,20 +540,42 @@
  .It Cm lock
  Blocca lo schermo (vedere la sezione
  .Sx PROGRAMMI
@@ -811,7 +564,7 @@ Index: spectrwm.git/spectrwm_it.1
  .El
  .Pp
  Le scorciatoie personalizzate sono specificate nel file di configurazione
-@@ -531,9 +732,9 @@
+@@ -528,9 +584,9 @@
  .Dl bind[<azione>] = <tasti>
  .Pp
  .Aq azione
@@ -823,7 +576,7 @@ Index: spectrwm.git/spectrwm_it.1
  tasti normali (b, space, ecc.), separati da "+".
  Per esempio:
  .Bd -literal -offset indent
-@@ -541,17 +742,66 @@
+@@ -538,17 +594,66 @@
  bind[] = Mod1+q # rimuovi l'assegnazione di Alt + q
  .Ed
  .Pp
@@ -893,7 +646,7 @@ Index: spectrwm.git/spectrwm_it.1
  .It Firefox\-bin:firefox\-bin
  TRANSSZ
  .It Firefox:Dialog
-@@ -597,8 +847,8 @@
+@@ -594,8 +699,8 @@
  Rimuove i bordi, consentendo alla finestra di usare l'intera dimensione
  dello schermo.
  .It FOCUSPREV
@@ -904,7 +657,7 @@ Index: spectrwm.git/spectrwm_it.1
  .El
  .Pp
  I quirk personalizzati vanno specificati nel file di configurazione come
-@@ -611,35 +861,37 @@
+@@ -608,35 +713,37 @@
  .Aq nome
  specificano a quali finestre i quirk vanno applicati, e
  .Aq quirk
@@ -951,7 +704,7 @@ Index: spectrwm.git/spectrwm_it.1
  .Pp
  .Bl -tag -width "_NET_WM_WINDOW_TYPE_TOOLBAR<TAB>XXX" -offset indent -compact
  .It _NET_WM_WINDOW_TYPE_DOCK
-@@ -654,25 +906,25 @@
+@@ -651,25 +758,25 @@
  FLOAT
  .El
  .Pp
@@ -985,7 +738,7 @@ Index: spectrwm.git/spectrwm_it.1
  della finestra attiva usando
  .Xr xprop 1
  e
-@@ -682,7 +934,7 @@
+@@ -679,7 +786,7 @@
  $ xprop \-id $WINDOWID WM_NAME | grep \-o "\\".*\\""
  .Ed
  .Pp
@@ -994,7 +747,7 @@ Index: spectrwm.git/spectrwm_it.1
  _NET_ACTIVE_WINDOW alla root window. Ad esempio, usando
  .Xr wmctrl 1
  (supponendo che 0x4a0000b sia l'id della finestra a cui dare il focus):
-@@ -690,7 +942,7 @@
+@@ -687,7 +794,7 @@
  $ wmctrl \-i \-c 0x4a0000b
  .Ed
  .Pp
@@ -1003,7 +756,7 @@ Index: spectrwm.git/spectrwm_it.1
  alla root window. Ad esempio, usando
  .Xr wmctrl 1
  (supponendo che 0x4a0000b sia l'id della finestra da chiudere):
-@@ -698,8 +950,8 @@
+@@ -695,8 +802,8 @@
  $ wmctrl \-i \-c 0x4a0000b
  .Ed
  .Pp
@@ -1014,7 +767,7 @@ Index: spectrwm.git/spectrwm_it.1
  inviando il messaggio _NET_WM_STATE alla root window. Ad esempio, usando
  .Xr wmctrl 1
  (supponendo che 0x4a0000b sia l'id della finestra):
-@@ -719,7 +971,7 @@
+@@ -716,7 +823,7 @@
  .Pp
  I messaggi _NET_MOVERESIZE_WINDOW vengono ignorati per le finestre stacked.
  .Sh SEGNALI
@@ -1023,7 +776,7 @@ Index: spectrwm.git/spectrwm_it.1
  .Nm
  inviandogli il segnale HUP.
  .Sh FILE
-@@ -739,7 +991,7 @@
+@@ -736,7 +843,7 @@
  .An -nosplit
  .Pp
  .Nm
@@ -1032,7 +785,7 @@ Index: spectrwm.git/spectrwm_it.1
  .Pp
  .Bl -tag -width "Ryan Thomas McBride Aq mcbride@countersiege.com " -offset indent -compact
  .It Cm Marco Peereboom Aq marco@peereboom.us
-@@ -748,8 +1000,8 @@
+@@ -745,8 +852,8 @@
  .It Cm Pierre-Yves Ritschard Aq pyr@spootnik.org
  .It Cm Tuukka Kataja Aq stuge@xor.fi
  .It Cm Jason L. Wright Aq jason@thought.net
