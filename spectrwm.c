@@ -703,7 +703,7 @@ struct cursors {
 void	 buttonpress(xcb_button_press_event_t *);
 void	 check_conn(void);
 void	 clientmessage(xcb_client_message_event_t *);
-int	 conf_load(char *, int);
+int	 conf_load(const char *, int);
 void	 configurenotify(xcb_configure_notify_event_t *);
 void	 configurerequest(xcb_configure_request_event_t *);
 void	 constrain_window(struct ws_win *, struct swm_region *, int);
@@ -712,7 +712,7 @@ void	 enternotify(xcb_enter_notify_event_t *);
 void	 event_drain(uint8_t);
 void	 event_error(xcb_generic_error_t *);
 void	 event_handle(xcb_generic_event_t *);
-char	*expand_tilde(char *);
+char	*expand_tilde(const char *);
 void	 expose(xcb_expose_event_t *);
 struct ws_win	*find_window(xcb_window_t);
 int	 floating_toggle_win(struct ws_win *);
@@ -749,7 +749,7 @@ void	 maprequest(xcb_map_request_event_t *);
 void	 new_region(struct swm_screen *, int, int, int, int);
 int	 parse_rgb(const char *, uint16_t *, uint16_t *, uint16_t *);
 void	 propertynotify(xcb_property_notify_event_t *);
-void	 spawn_select(struct swm_region *, union arg *, char *, int *);
+void	 spawn_select(struct swm_region *, union arg *, const char *, int *);
 void	 screenchange(xcb_randr_screen_change_notify_event_t *);
 void	 shutdown_cleanup(void);
 void	 store_float_geom(struct ws_win *, struct swm_region *);
@@ -799,7 +799,7 @@ cursors_cleanup(void)
 }
 
 char *
-expand_tilde(char *s)
+expand_tilde(const char *s)
 {
 	struct passwd           *ppwd;
 	int                     i, max;
@@ -2051,7 +2051,7 @@ isxlfd(char *s)
 }
 
 void
-fontset_init()
+fontset_init(void)
 {
 	char			*default_string;
 	char			**missing_charsets;
@@ -4239,7 +4239,7 @@ get_win_name(xcb_window_t win)
 		    xcb_get_property_value_length(r));
 
 	free(r);
-	return name;
+	return (name);
 }
 
 void
@@ -4464,7 +4464,7 @@ search_win(struct swm_region *r, union arg *args)
 }
 
 void
-search_resp_uniconify(char *resp, unsigned long len)
+search_resp_uniconify(const char *resp, unsigned long len)
 {
 	char			*name;
 	struct ws_win		*win;
@@ -4494,7 +4494,7 @@ search_resp_uniconify(char *resp, unsigned long len)
 }
 
 void
-search_resp_name_workspace(char *resp, unsigned long len)
+search_resp_name_workspace(const char *resp, unsigned long len)
 {
 	struct workspace	*ws;
 
@@ -4520,7 +4520,7 @@ search_resp_name_workspace(char *resp, unsigned long len)
 }
 
 void
-search_resp_search_workspace(char *resp)
+search_resp_search_workspace(const char *resp)
 {
 	char			*p, *q;
 	int			ws_idx;
@@ -4551,7 +4551,7 @@ search_resp_search_workspace(char *resp)
 }
 
 void
-search_resp_search_window(char *resp)
+search_resp_search_window(const char *resp)
 {
 	char			*s;
 	int			idx;
@@ -5372,7 +5372,7 @@ TAILQ_HEAD(spawn_list, spawn_prog);
 struct spawn_list		spawns = TAILQ_HEAD_INITIALIZER(spawns);
 
 int
-spawn_expand(struct swm_region *r, union arg *args, char *spawn_name,
+spawn_expand(struct swm_region *r, union arg *args, const char *spawn_name,
     char ***ret_args)
 {
 	struct spawn_prog	*prog = NULL;
@@ -5451,7 +5451,7 @@ spawn_expand(struct swm_region *r, union arg *args, char *spawn_name,
 }
 
 void
-spawn_custom(struct swm_region *r, union arg *args, char *spawn_name)
+spawn_custom(struct swm_region *r, union arg *args, const char *spawn_name)
 {
 	union arg		a;
 	char			**real_args;
@@ -5469,7 +5469,8 @@ spawn_custom(struct swm_region *r, union arg *args, char *spawn_name)
 }
 
 void
-spawn_select(struct swm_region *r, union arg *args, char *spawn_name, int *pid)
+spawn_select(struct swm_region *r, union arg *args, const char *spawn_name,
+    int *pid)
 {
 	union arg		a;
 	char			**real_args;
@@ -5511,7 +5512,7 @@ spawn_select(struct swm_region *r, union arg *args, char *spawn_name, int *pid)
 }
 
 void
-spawn_insert(char *name, char *args)
+spawn_insert(const char *name, const char *args)
 {
 	char			*arg, *cp, *ptr;
 	struct spawn_prog	*sp;
@@ -5562,7 +5563,7 @@ spawn_remove(struct spawn_prog *sp)
 }
 
 void
-spawn_replace(struct spawn_prog *sp, char *name, char *args)
+spawn_replace(struct spawn_prog *sp, const char *name, const char *args)
 {
 	DNPRINTF(SWM_D_SPAWN, "spawn_replace: %s [%s]\n", sp->name, name);
 
@@ -5573,7 +5574,7 @@ spawn_replace(struct spawn_prog *sp, char *name, char *args)
 }
 
 void
-setspawn(char *name, char *args)
+setspawn(const char *name, const char *args)
 {
 	struct spawn_prog	*sp;
 
@@ -5705,7 +5706,7 @@ parsekeys(char *keystr, unsigned int currmod, unsigned int *mod, KeySym *ks)
 }
 
 char *
-strdupsafe(char *str)
+strdupsafe(const char *str)
 {
 	if (str == NULL)
 		return (NULL);
@@ -5714,7 +5715,8 @@ strdupsafe(char *str)
 }
 
 void
-key_insert(unsigned int mod, KeySym ks, enum keyfuncid kfid, char *spawn_name)
+key_insert(unsigned int mod, KeySym ks, enum keyfuncid kfid,
+    const char *spawn_name)
 {
 	struct key		*kp;
 
@@ -5758,7 +5760,7 @@ key_remove(struct key *kp)
 
 void
 key_replace(struct key *kp, unsigned int mod, KeySym ks, enum keyfuncid kfid,
-    char *spawn_name)
+    const char *spawn_name)
 {
 	DNPRINTF(SWM_D_KEY, "key_replace: %s [%s]\n", keyfuncs[kp->funcid].name,
 	    spawn_name);
@@ -5771,7 +5773,7 @@ key_replace(struct key *kp, unsigned int mod, KeySym ks, enum keyfuncid kfid,
 
 void
 setkeybinding(unsigned int mod, KeySym ks, enum keyfuncid kfid,
-    char *spawn_name)
+    const char *spawn_name)
 {
 	struct key		*kp;
 
@@ -6504,7 +6506,7 @@ setautorun(char *selector, char *value, int flags)
 {
 	int			ws_id;
 	char			s[1024];
-	char			*ap, *sp = s;
+	char			*ap, *sp;
 	union arg		a;
 	int			argc = 0;
 	pid_t			pid;
@@ -6524,6 +6526,8 @@ setautorun(char *selector, char *value, int flags)
 	if (ws_id < 0 || ws_id >= workspace_limit)
 		errx(1, "autorun: invalid workspace %d", ws_id + 1);
 
+	sp = expand_tilde((char *)&s);
+
 	/*
 	 * This is a little intricate
 	 *
@@ -6541,6 +6545,7 @@ setautorun(char *selector, char *value, int flags)
 			err(1, "setautorun: realloc");
 		a.argv[argc - 1] = ap;
 	}
+	free(sp);
 
 	if ((a.argv = realloc(a.argv, (argc + 1) * sizeof(char *))) == NULL)
 		err(1, "setautorun: realloc");
@@ -6707,7 +6712,7 @@ struct config_option configopt[] = {
 };
 
 int
-conf_load(char *filename, int keymapping)
+conf_load(const char *filename, int keymapping)
 {
 	FILE			*config;
 	char			*line, *cp, *optsub, *optval;
@@ -8172,6 +8177,8 @@ scan_xrandr(int i)
 	xcb_randr_crtc_t				*crtc;
 	xcb_screen_t					*screen;
 
+	DNPRINTF(SWM_D_MISC, "scan_xrandr: screen: %d\n", i);
+
 	if ((screen = get_screen(i)) == NULL)
 		errx(1, "ERROR: can't get screen %d.", i);
 
@@ -8199,7 +8206,7 @@ scan_xrandr(int i)
 			new_region(&screens[i], 0, 0,
 			    screen->width_in_pixels,
 			    screen->height_in_pixels);
-			return;
+			goto out;
 		} else
 			ncrtc = srr->num_crtcs;
 
@@ -8225,12 +8232,16 @@ scan_xrandr(int i)
 			free(cir);
 		}
 		free(srr);
-	} else
+	}
 #endif /* SWM_XRR_HAS_CRTC */
-	{
+
+	/* If detection failed, create a single region that spans the screen. */
+	if (TAILQ_EMPTY(&screens[i].rl))
 		new_region(&screens[i], 0, 0, screen->width_in_pixels,
 		    screen->height_in_pixels);
-	}
+
+out:
+	DNPRINTF(SWM_D_MISC, "scan_xrandr: done.\n");
 }
 
 void
