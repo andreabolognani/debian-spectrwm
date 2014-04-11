@@ -6,11 +6,11 @@ Description: Try versioned dlopen()
  print an explanatory error message and abort the process.
 Bug-Debian: http://bugs.debian.org/551732
 Author: Andrea Bolognani <eof@kiyuko.org>
-Last-Update: 2012-09-14
+Last-Update: 2014-04-11
 Index: spectrwm.git/lib/swm_hack.c
 ===================================================================
---- spectrwm.git.orig/lib/swm_hack.c	2012-09-15 12:55:51.041495244 +0200
-+++ spectrwm.git/lib/swm_hack.c	2012-09-15 12:57:41.423681561 +0200
+--- spectrwm.git.orig/lib/swm_hack.c	2014-04-11 20:37:18.000000000 +0200
++++ spectrwm.git/lib/swm_hack.c	2014-04-11 21:00:53.800030989 +0200
 @@ -44,6 +44,7 @@
  #include <stdio.h>
  #include <stdlib.h>
@@ -19,7 +19,7 @@ Index: spectrwm.git/lib/swm_hack.c
  #include <X11/Xlib.h>
  #include <X11/X.h>
  #include <X11/Xatom.h>
-@@ -90,17 +91,40 @@
+@@ -90,16 +91,36 @@
  {
  	Atom			atom = 0;
  	char			prop[SWM_PROPLEN];
@@ -32,7 +32,6 @@ Index: spectrwm.git/lib/swm_hack.c
  		lib_xlib = dlopen("libX11.so", RTLD_GLOBAL | RTLD_LAZY);
 +	if (!lib_xlib)
 +		lib_xlib = dlopen("libX11.so.6", RTLD_GLOBAL | RTLD_LAZY);
-+
 +	if (!lib_xlib)
 +		if ((error = dlerror()) != NULL) {
 +			fprintf(stderr, "%s\n", error);
@@ -41,7 +40,6 @@ Index: spectrwm.git/lib/swm_hack.c
 +
  	if (!xia)
  		xia = (XIA *) dlsym(lib_xlib, "XInternAtom");
-+
 +	if (!xia)
 +		if ((error = dlerror()) != NULL) {
 +			fprintf(stderr, "%s\n", error);
@@ -50,17 +48,15 @@ Index: spectrwm.git/lib/swm_hack.c
 +
  	if (!xcp)
  		xcp = (XCP *) dlsym(lib_xlib, "XChangeProperty");
- 
 +	if (!xcp)
 +		if ((error = dlerror()) != NULL) {
 +			fprintf(stderr, "%s\n", error);
 +			assert(xcp);
 +		}
-+
+ 
  	/* Try to update the window's workspace property */
  	atom = (*xia)(dpy, name, False);
- 	if (atom)
-@@ -128,16 +152,32 @@
+@@ -128,15 +149,29 @@
  {
  	static CWF	*func = NULL;
  	char		*env;
@@ -72,7 +68,6 @@ Index: spectrwm.git/lib/swm_hack.c
  		lib_xlib = dlopen("libX11.so", RTLD_GLOBAL | RTLD_LAZY);
 +	if (!lib_xlib)
 +		lib_xlib = dlopen("libX11.so.6", RTLD_GLOBAL | RTLD_LAZY);
-+
 +	if (!lib_xlib)
 +		if ((error = dlerror()) != NULL) {
 +			fprintf(stderr, "%s\n", error);
@@ -83,17 +78,15 @@ Index: spectrwm.git/lib/swm_hack.c
  		func = (CWF *) dlsym(lib_xlib, "XCreateWindow");
  		display = dpy;
  	}
- 
 +	if (!func)
 +		if ((error = dlerror()) != NULL) {
 +			fprintf(stderr, "%s\n", error);
 +			assert(func);
 +		}
-+
- 	if (parent == DefaultRootWindow(display))
- 		parent = MyRoot(display);
- 	
-@@ -173,14 +213,30 @@
+ 
+ 	if (parent == DefaultRootWindow(dpy))
+ 		parent = MyRoot(dpy);
+@@ -173,13 +208,27 @@
  {
  	static CSWF	*func = NULL;
  	char		*env;
@@ -105,7 +98,6 @@ Index: spectrwm.git/lib/swm_hack.c
  		lib_xlib = dlopen("libX11.so", RTLD_GLOBAL | RTLD_LAZY);
 +	if (!lib_xlib)
 +		lib_xlib = dlopen("libX11.so.6", RTLD_GLOBAL | RTLD_LAZY);
-+
 +	if (!lib_xlib)
 +		if ((error = dlerror()) != NULL) {
 +			fprintf(stderr, "%s\n", error);
@@ -114,17 +106,15 @@ Index: spectrwm.git/lib/swm_hack.c
 +
  	if (!func)
  		func = (CSWF *) dlsym(lib_xlib, "XCreateSimpleWindow");
- 
 +	if (!func)
 +		if ((error = dlerror()) != NULL) {
 +			fprintf(stderr, "%s\n", error);
 +			assert(func);
 +		}
-+
+ 
  	if (parent == DefaultRootWindow(dpy))
  		parent = MyRoot(dpy);
- 
-@@ -208,13 +264,29 @@
+@@ -208,12 +257,26 @@
  XReparentWindow(Display *dpy, Window window, Window parent, int x, int y)
  {
  	static RWF         *func = NULL;
@@ -135,7 +125,6 @@ Index: spectrwm.git/lib/swm_hack.c
  		lib_xlib = dlopen("libX11.so", RTLD_GLOBAL | RTLD_LAZY);
 +	if (!lib_xlib)
 +		lib_xlib = dlopen("libX11.so.6", RTLD_GLOBAL | RTLD_LAZY);
-+
 +	if (!lib_xlib)
 +		if ((error = dlerror()) != NULL) {
 +			fprintf(stderr, "%s\n", error);
@@ -144,28 +133,25 @@ Index: spectrwm.git/lib/swm_hack.c
 +
  	if (!func)
  		func = (RWF *) dlsym(lib_xlib, "XReparentWindow");
- 
 +	if (!func)
 +		if ((error = dlerror()) != NULL) {
 +			fprintf(stderr, "%s\n", error);
 +			assert(func);
 +		}
-+
+ 
  	if (parent == DefaultRootWindow(dpy))
  		parent = MyRoot(dpy);
- 
-@@ -235,10 +307,20 @@
+@@ -235,10 +298,19 @@
  {
  	static ANEF	*func = NULL;
  	static KeyCode	kp_add = 0, kp_subtract = 0;
-+	char            *error;
++	char		*error;
  
  	/* find the real Xlib and the real X function */
  	if (!lib_xtlib)
  		lib_xtlib = dlopen("libXt.so", RTLD_GLOBAL | RTLD_LAZY);
 +	if (!lib_xtlib)
 +		lib_xtlib = dlopen("libXt.so.6", RTLD_GLOBAL | RTLD_LAZY);
-+
 +	if (!lib_xtlib)
 +		if ((error = dlerror()) != NULL) {
 +			fprintf(stderr, "%s\n", error);
@@ -175,16 +161,15 @@ Index: spectrwm.git/lib/swm_hack.c
  	if (!func) {
  		func = (ANEF *) dlsym(lib_xtlib, "XtAppNextEvent");
  		if (display != NULL) {
-@@ -247,6 +329,12 @@
+@@ -246,6 +318,11 @@
+ 			kp_subtract = XKeysymToKeycode(display, XK_KP_Subtract);
  		}
  	}
- 
 +	if (!func)
 +		if ((error = dlerror()) != NULL) {
 +			fprintf(stderr, "%s\n", error);
 +			assert(func);
 +		}
-+
+ 
  	(*func) (app_context, event_return);
  
- 	/* Return here if it's not an Xterm. */

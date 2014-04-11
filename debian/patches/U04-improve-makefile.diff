@@ -7,15 +7,15 @@ Description: Improve GNU/Linux Makefile
  symlink hackery.
 Forwarded: Marco Peereboom <marco@peereboom.us>
 Author: Andrea Bolognani <eof@kiyuko.org>
-Last-Update: 2012-09-16
+Last-Update: 2014-04-11
 Index: spectrwm.git/linux/Makefile
 ===================================================================
---- spectrwm.git.orig/linux/Makefile	2012-09-16 16:53:50.780419552 +0200
-+++ spectrwm.git/linux/Makefile	2012-09-16 16:56:26.558855864 +0200
+--- spectrwm.git.orig/linux/Makefile	2014-04-11 20:37:18.000000000 +0200
++++ spectrwm.git/linux/Makefile	2014-04-11 20:41:41.300055538 +0200
 @@ -1,53 +1,69 @@
 -CFLAGS+= -Wall -Wextra -Wshadow -g -D_GNU_SOURCE -I. -I/usr/include/freetype2
 -CFLAGS+= -DSWM_LIB=\"$(LIBDIR)/libswmhack.so.$(LVERS)\"
--LDADD+= -lX11 -lX11-xcb -lxcb -lxcb-icccm -lxcb-randr -lxcb-keysyms -lxcb-util -lxcb-xtest -lXft
+-LDADD+= -lX11 -lX11-xcb -lxcb -lxcb-icccm -lxcb-randr -lxcb-keysyms -lxcb-util -lxcb-xtest -lXft -lXcursor
 +PREFIX       ?= /usr/local
 +BINDIR       ?= $(PREFIX)/bin
 +LIBDIR       ?= $(PREFIX)/lib
@@ -28,7 +28,7 @@ Index: spectrwm.git/linux/Makefile
 +
 +MAINT_CFLAGS   = -Wall -Wextra -Wshadow -g
 +MAINT_CPPFLAGS = -I. -I/usr/include/freetype2 -D_GNU_SOURCE -DSWM_LIB=\"$(LIBDIR)/libswmhack.so.$(LIBVERSION)\"
-+MAINT_LDLIBS   = -lX11 -lX11-xcb -lxcb -lxcb-icccm -lxcb-randr -lxcb-keysyms -lxcb-util -lxcb-xtest -lXft
++MAINT_LDLIBS   = -lX11 -lX11-xcb -lxcb -lxcb-icccm -lxcb-randr -lxcb-keysyms -lxcb-util -lxcb-xtest -lXft -lXcursor
  
 -PREFIX?= /usr/local
 -BINDIR?= $(PREFIX)/bin
