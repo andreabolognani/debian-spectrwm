@@ -6,9 +6,9 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2012-09-09
 Index: spectrwm.git/spectrwm.c
 ===================================================================
---- spectrwm.git.orig/spectrwm.c	2014-04-11 20:37:18.408045539 +0200
-+++ spectrwm.git/spectrwm.c	2014-04-11 20:41:48.604055815 +0200
-@@ -5623,8 +5623,8 @@
+--- spectrwm.git.orig/spectrwm.c	2014-04-11 21:34:23.908107428 +0200
++++ spectrwm.git/spectrwm.c	2014-04-11 21:36:13.244111586 +0200
+@@ -5624,8 +5624,8 @@
  void
  setup_spawn(void)
  {
@@ -21,8 +21,8 @@ Index: spectrwm.git/spectrwm.c
  	setconfspawn("lock",		"xlock",		0);
 Index: spectrwm.git/spectrwm.conf
 ===================================================================
---- spectrwm.git.orig/spectrwm.conf	2013-07-24 11:55:26.000000000 +0200
-+++ spectrwm.git/spectrwm.conf	2014-04-11 20:41:48.604055815 +0200
+--- spectrwm.git.orig/spectrwm.conf	2014-04-11 21:27:18.692091258 +0200
++++ spectrwm.git/spectrwm.conf	2014-04-11 21:36:13.244111586 +0200
 @@ -40,7 +40,7 @@
  
  # Spawn Applications
