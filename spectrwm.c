@@ -577,6 +577,8 @@ union arg {
 #define SWM_ARG_ID_CYCLERG_DOWN	(43)
 #define SWM_ARG_ID_CYCLEWS_UP_ALL	(44)
 #define SWM_ARG_ID_CYCLEWS_DOWN_ALL	(45)
+#define SWM_ARG_ID_CYCLEWS_MOVE_UP	(46)
+#define SWM_ARG_ID_CYCLEWS_MOVE_DOWN	(47)
 #define SWM_ARG_ID_STACKINC	(50)
 #define SWM_ARG_ID_STACKDEC	(51)
 #define SWM_ARG_ID_SS_ALL	(60)
@@ -610,6 +612,8 @@ struct quirk {
 #define SWM_Q_XTERM_FONTADJ	(1<<3)	/* adjust xterm fonts when resizing */
 #define SWM_Q_FULLSCREEN	(1<<4)	/* remove border */
 #define SWM_Q_FOCUSPREV		(1<<5)	/* focus on caller */
+#define SWM_Q_NOFOCUSONMAP	(1<<6)	/* Don't focus on window when mapped. */
+#define SWM_Q_FOCUSONMAP_SINGLE	(1<<7)	/* Only focus if single win of type. */
 };
 TAILQ_HEAD(quirk_list, quirk);
 struct quirk_list		quirks = TAILQ_HEAD_INITIALIZER(quirks);
@@ -829,8 +833,10 @@ enum keyfuncid {
 	KF_WS_22,
 	KF_WS_NEXT,
 	KF_WS_NEXT_ALL,
+	KF_WS_NEXT_MOVE,
 	KF_WS_PREV,
 	KF_WS_PREV_ALL,
+	KF_WS_PREV_MOVE,
 	KF_WS_PRIOR,
 	KF_DUMPWINS, /* MUST BE LAST */
 	KF_INVALID
@@ -930,6 +936,7 @@ struct ws_win	*get_pointer_win(xcb_window_t);
 struct ws_win	*get_region_focus(struct swm_region *);
 int	 get_region_index(struct swm_region *);
 xcb_screen_t	*get_screen(int);
+int	 get_screen_count(void);
 #ifdef SWM_DEBUG
 char	*get_stack_mode_name(uint8_t);
 #endif
@@ -963,7 +970,7 @@ void	 maprequest(xcb_map_request_event_t *);
 void	 motionnotify(xcb_motion_notify_event_t *);
 void	 move(struct ws_win *, union arg *);
 void	 move_step(struct swm_region *, union arg *);
-uint32_t name_to_pixel(const char *);
+uint32_t name_to_pixel(int, const char *);
 void	 name_workspace(struct swm_region *, union arg *);
 void	 new_region(struct swm_screen *, int, int, int, int);
 int	 parsekeys(char *, unsigned int, unsigned int *, KeySym *);
@@ -988,10 +995,10 @@ struct swm_region	*root_to_region(xcb_window_t, int);
 void	 screenchange(xcb_randr_screen_change_notify_event_t *);
 void	 scan_xrandr(int);
 void	 search_do_resp(void);
-void	 search_resp_name_workspace(const char *, unsigned long);
+void	 search_resp_name_workspace(const char *, size_t);
 void	 search_resp_search_window(const char *);
 void	 search_resp_search_workspace(const char *);
-void	 search_resp_uniconify(const char *, unsigned long);
+void	 search_resp_uniconify(const char *, size_t);
 void	 search_win(struct swm_region *, union arg *);
 void	 search_win_cleanup(void);
 void	 search_workspace(struct swm_region *, union arg *);
@@ -1185,6 +1192,19 @@ get_screen(int screen)
 }
 
 int
+get_screen_count(void)
+{
+	const xcb_setup_t	*r;
+
+	if ((r = xcb_get_setup(conn)) == NULL) {
+		DNPRINTF(SWM_D_MISC, "get_screen_count: xcb_get_setup\n");
+		check_conn();
+	}
+
+	return xcb_setup_roots_length(r);
+}
+
+int
 get_region_index(struct swm_region *r)
 {
 	struct swm_region	*rr;
@@ -1278,7 +1298,7 @@ setup_ewmh(void)
 	for (i = 0; i < LENGTH(ewmh); i++)
 		ewmh[i].atom = get_atom_from_string(ewmh[i].name);
 
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	num_screens = get_screen_count();
 	for (i = 0; i < num_screens; i++) {
 		/* Support check window will be created by workaround(). */
 
@@ -1302,7 +1322,7 @@ teardown_ewmh(void)
 
 	sup_check = get_atom_from_string("_NET_SUPPORTING_WM_CHECK");
 	sup_list = get_atom_from_string("_NET_SUPPORTED");
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	num_screens = get_screen_count();
 
 	for (i = 0; i < num_screens; i++) {
 		/* Get the support check window and destroy it */
@@ -1651,7 +1671,7 @@ find_pid(pid_t pid)
 }
 
 uint32_t
-name_to_pixel(const char *colorname)
+name_to_pixel(int sidx, const char *colorname)
 {
 	uint32_t			result = 0;
 	char				cname[32] = "#";
@@ -1661,7 +1681,7 @@ name_to_pixel(const char *colorname)
 	xcb_alloc_named_color_reply_t	*nr;
 	uint16_t			rr, gg, bb;
 
-	screen = xcb_setup_roots_iterator(xcb_get_setup(conn)).data;
+	screen = get_screen(sidx);
 	cmap = screen->default_colormap;
 
 	/* color is in format rgb://rr/gg/bb */
@@ -1703,15 +1723,15 @@ setscreencolor(char *val, int i, int c)
 {
 	int	num_screens;
 
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	num_screens = get_screen_count();
 	if (i > 0 && i <= num_screens) {
-		screens[i - 1].c[c].pixel = name_to_pixel(val);
+		screens[i - 1].c[c].pixel = name_to_pixel(i - 1, val);
 		free(screens[i - 1].c[c].name);
 		if ((screens[i - 1].c[c].name = strdup(val)) == NULL)
 			err(1, "strdup");
 	} else if (i == -1) {
 		for (i = 0; i < num_screens; i++) {
-			screens[i].c[c].pixel = name_to_pixel(val);
+			screens[i].c[c].pixel = name_to_pixel(0, val);
 			free(screens[i].c[c].name);
 			if ((screens[i].c[c].name = strdup(val)) == NULL)
 				err(1, "strdup");
@@ -1754,7 +1774,7 @@ custom_region(char *val)
 	int				sidx, num_screens;
 	xcb_screen_t			*screen;
 
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	num_screens = get_screen_count();
 	if (sscanf(val, "screen[%d]:%ux%u+%u+%u", &sidx, &w, &h, &x, &y) != 5)
 		errx(1, "invalid custom region, "
 		    "should be 'screen[<n>]:<n>x<n>+<n>+<n>");
@@ -1982,7 +2002,7 @@ bar_urgent(char *s, size_t sz)
 	for (i = 0; i < workspace_limit; i++)
 		urgent[i] = 0;
 
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	num_screens = get_screen_count();
 	for (i = 0; i < num_screens; i++)
 		for (j = 0; j < workspace_limit; j++)
 			TAILQ_FOREACH(win, &screens[i].ws[j].winlist, entry) {
@@ -2232,7 +2252,7 @@ bar_draw(void)
 	/* expand the format by first passing it through strftime(3) */
 	bar_fmt_expand(fmtexp, sizeof fmtexp);
 
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	num_screens = get_screen_count();
 	for (i = 0; i < num_screens; i++) {
 		TAILQ_FOREACH(r, &screens[i].rl, entry) {
 			if (r->bar == NULL)
@@ -2336,7 +2356,7 @@ bar_toggle(struct swm_region *r, union arg *args)
 	}
 
 	/* update bars as necessary */
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	num_screens = get_screen_count();
 	for (i = 0; i < num_screens; i++)
 		TAILQ_FOREACH(tmpr, &screens[i].rl, entry)
 			if (tmpr->bar) {
@@ -2821,7 +2841,7 @@ unmap_all(void)
 	struct ws_win		*win;
 	int			i, j, num_screens;
 
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	num_screens = get_screen_count();
 	for (i = 0; i < num_screens; i++)
 		for (j = 0; j < workspace_limit; j++)
 			TAILQ_FOREACH(win, &screens[i].ws[j].winlist, entry)
@@ -2916,7 +2936,7 @@ root_to_region(xcb_window_t root, int check)
 
 	DNPRINTF(SWM_D_MISC, "root_to_region: window: 0x%x\n", root);
 
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	num_screens = get_screen_count();
 	for (i = 0; i < num_screens; i++)
 		if (screens[i].root == root)
 			break;
@@ -2959,6 +2979,8 @@ root_to_region(xcb_window_t root, int check)
 	if (r == NULL && check & SWM_CK_FALLBACK)
 		r = TAILQ_FIRST(&screens[i].rl);
 
+	DNPRINTF(SWM_D_MISC, "root_to_region: idx: %d\n", get_region_index(r));
+
 	return (r);
 }
 
@@ -2968,7 +2990,7 @@ find_unmanaged_window(xcb_window_t id)
 	struct ws_win		*win;
 	int			i, j, num_screens;
 
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	num_screens = get_screen_count();
 	for (i = 0; i < num_screens; i++)
 		for (j = 0; j < workspace_limit; j++)
 			TAILQ_FOREACH(win, &screens[i].ws[j].unmanagedlist,
@@ -2985,7 +3007,7 @@ find_window(xcb_window_t id)
 	int			i, j, num_screens;
 	xcb_query_tree_reply_t	*r;
 
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	num_screens = get_screen_count();
 	for (i = 0; i < num_screens; i++)
 		for (j = 0; j < workspace_limit; j++)
 			TAILQ_FOREACH(win, &screens[i].ws[j].winlist, entry)
@@ -3080,7 +3102,7 @@ kill_refs(struct ws_win *win)
 	if (win == NULL)
 		return;
 
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	num_screens = get_screen_count();
 	for (i = 0; i < num_screens; i++)
 		TAILQ_FOREACH(r, &screens[i].rl, entry)
 			for (x = 0; x < workspace_limit; x++) {
@@ -3103,7 +3125,7 @@ validate_win(struct ws_win *testwin)
 	if (testwin == NULL)
 		return (0);
 
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	num_screens = get_screen_count();
 	for (i = 0; i < num_screens; i++)
 		TAILQ_FOREACH(r, &screens[i].rl, entry)
 			for (x = 0; x < workspace_limit; x++) {
@@ -3123,7 +3145,7 @@ validate_ws(struct workspace *testws)
 	int			i, x, num_screens;
 
 	/* validate all ws */
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	num_screens = get_screen_count();
 	for (i = 0; i < num_screens; i++)
 		TAILQ_FOREACH(r, &screens[i].rl, entry)
 			for (x = 0; x < workspace_limit; x++) {
@@ -3392,7 +3414,7 @@ focus_region(struct swm_region *r)
 		if (old_r)
 			unfocus_win(old_r->ws->focus);
 
-		xcb_set_input_focus(conn, XCB_INPUT_FOCUS_PARENT, r->s->root,
+		xcb_set_input_focus(conn, XCB_INPUT_FOCUS_PARENT, r->id,
 		    XCB_CURRENT_TIME);
 
 		/* Clear bar since empty. */
@@ -3458,17 +3480,16 @@ switchws(struct swm_region *r, union arg *args)
 	if (old_ws->r && focus_mode != SWM_FOCUS_FOLLOW) {
 		if (new_ws->focus_pending) {
 			focus_win(new_ws->focus_pending);
-		} else {
-			/* Empty region, focus on root. */
-			xcb_set_input_focus(conn, XCB_INPUT_FOCUS_PARENT,
-			    new_ws->r->s[new_ws->r->s->idx].root,
-			    XCB_CURRENT_TIME);
+			new_ws->focus_pending = NULL;
 		}
 	}
 
-	/* Clear bar if new ws is empty. */
-	if (new_ws->focus_pending == NULL)
+	/* Clear bar and set focus on region input win if new ws is empty. */
+	if (new_ws->focus_pending == NULL && new_ws->focus == NULL) {
+		xcb_set_input_focus(conn, XCB_INPUT_FOCUS_PARENT, r->id,
+		    XCB_CURRENT_TIME);
 		bar_draw();
+	}
 
 	focus_flush();
 
@@ -3481,30 +3502,32 @@ cyclews(struct swm_region *r, union arg *args)
 	union			arg a;
 	struct swm_screen	*s = r->s;
 	int			cycle_all = 0;
+	int			move = 0;
 
 	DNPRINTF(SWM_D_WS, "cyclews: id: %d, screen[%d]:%dx%d+%d+%d, ws: %d\n",
 	    args->id, r->s->idx, WIDTH(r), HEIGHT(r), X(r), Y(r), r->ws->idx);
 
 	a.id = r->ws->idx;
+
 	do {
 		switch (args->id) {
+		case SWM_ARG_ID_CYCLEWS_MOVE_UP:
+			move = 1;
+			/* FALLTHROUGH */
 		case SWM_ARG_ID_CYCLEWS_UP_ALL:
 			cycle_all = 1;
 			/* FALLTHROUGH */
 		case SWM_ARG_ID_CYCLEWS_UP:
-			if (a.id < workspace_limit - 1)
-				a.id++;
-			else
-				a.id = 0;
+			a.id = (a.id < workspace_limit - 1) ? a.id + 1 : 0;
 			break;
+		case SWM_ARG_ID_CYCLEWS_MOVE_DOWN:
+			move = 1;
+			/* FALLTHROUGH */
 		case SWM_ARG_ID_CYCLEWS_DOWN_ALL:
 			cycle_all = 1;
 			/* FALLTHROUGH */
 		case SWM_ARG_ID_CYCLEWS_DOWN:
-			if (a.id > 0)
-				a.id--;
-			else
-				a.id = workspace_limit - 1;
+			a.id = (a.id > 0) ? a.id - 1 : workspace_limit - 1;
 			break;
 		default:
 			return;
@@ -3515,6 +3538,9 @@ cyclews(struct swm_region *r, union arg *args)
 			continue;
 		if (!cycle_visible && s->ws[a.id].r != NULL)
 			continue;
+
+		if (move)
+			send_to_ws(r, &a);
 
 		switchws(r, &a);
 	} while (a.id != r->ws->idx);
@@ -3543,7 +3569,7 @@ focusrg(struct swm_region *r, union arg *args)
 	int			ridx = args->id, i, num_screens;
 	struct swm_region	*rr = NULL;
 
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	num_screens = get_screen_count();
 	/* do nothing if we don't have more than one screen */
 	if (!(num_screens > 1 || outputs > 1))
 		return;
@@ -3567,7 +3593,7 @@ cyclerg(struct swm_region *r, union arg *args)
 	struct swm_region	*rr = NULL;
 	int			i, num_screens;
 
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	num_screens = get_screen_count();
 	/* do nothing if we don't have more than one screen */
 	if (!(num_screens > 1 || outputs > 1))
 		return;
@@ -3970,7 +3996,7 @@ stack(void) {
 
 	DNPRINTF(SWM_D_STACK, "stack: begin\n");
 
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	num_screens = get_screen_count();
 	for (i = 0; i < num_screens; i++) {
 #ifdef SWM_DEBUG
 		j = 0;
@@ -4473,6 +4499,8 @@ max_stack(struct workspace *ws, struct swm_geometry *g)
 		win = ws->focus_pending;
 	else if (ws->focus)
 		win = ws->focus;
+	else if (ws->focus_prev)
+		win = ws->focus_prev;
 	else
 		win = TAILQ_FIRST(&ws->winlist);
 
@@ -4545,7 +4573,7 @@ send_to_rg(struct swm_region *r, union arg *args)
 	struct swm_region	*rr = NULL;
 	union arg		a;
 
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	num_screens = get_screen_count();
 	/* do nothing if we don't have more than one screen */
 	if (!(num_screens > 1 || outputs > 1))
 		return;
@@ -4607,11 +4635,10 @@ send_to_ws(struct swm_region *r, union arg *args)
 
 					unfocus_win(parent);
 
-					if (focus_mode != SWM_FOCUS_FOLLOW)
+					if (focus_mode != SWM_FOCUS_FOLLOW) {
 						pws->focus = pws->focus_pending;
-
-					if (focus_mode != SWM_FOCUS_FOLLOW)
 						pws->focus_pending = NULL;
+					}
 				}
 
 				/* Don't unmap parent if new ws is visible */
@@ -4656,8 +4683,14 @@ send_to_ws(struct swm_region *r, union arg *args)
 		stack();
 
 		if (focus_mode != SWM_FOCUS_FOLLOW) {
-			focus_win(ws->focus_pending);
-			ws->focus_pending = NULL;
+			if (ws->focus_pending) {
+				focus_win(ws->focus_pending);
+				ws->focus_pending = NULL;
+			} else {
+				xcb_set_input_focus(conn,
+				    XCB_INPUT_FOCUS_PARENT, r->id,
+				    XCB_CURRENT_TIME);
+			}
 		}
 
 		focus_flush();
@@ -4969,7 +5002,7 @@ search_win(struct swm_region *r, union arg *args)
 }
 
 void
-search_resp_uniconify(const char *resp, unsigned long len)
+search_resp_uniconify(const char *resp, size_t len)
 {
 	char			*name;
 	struct ws_win		*win;
@@ -4999,7 +5032,7 @@ search_resp_uniconify(const char *resp, unsigned long len)
 }
 
 void
-search_resp_name_workspace(const char *resp, unsigned long len)
+search_resp_name_workspace(const char *resp, size_t len)
 {
 	struct workspace	*ws;
 
@@ -5095,7 +5128,7 @@ search_do_resp(void)
 {
 	ssize_t			rbytes;
 	char			*resp;
-	unsigned long		len;
+	size_t			len;
 
 	DNPRINTF(SWM_D_MISC, "search_do_resp:\n");
 
@@ -5295,7 +5328,7 @@ resize(struct ws_win *win, union arg *args)
 	int			top = 0, left = 0, resizing;
 	int			dx, dy;
 	xcb_cursor_t			cursor;
-	xcb_query_pointer_reply_t	*xpr;
+	xcb_query_pointer_reply_t	*xpr = NULL;
 	xcb_generic_event_t		*evt;
 	xcb_motion_notify_event_t	*mne;
 
@@ -5493,7 +5526,7 @@ move(struct ws_win *win, union arg *args)
 	xcb_timestamp_t		timestamp = 0;
 	int			move_stp = 0, moving;
 	struct swm_region	*r = NULL;
-	xcb_query_pointer_reply_t	*qpr;
+	xcb_query_pointer_reply_t	*qpr = NULL;
 	xcb_generic_event_t		*evt;
 	xcb_motion_notify_event_t	*mne;
 
@@ -5746,8 +5779,10 @@ struct keyfunc {
 	{ "ws_22",		switchws,	{.id = 21} },
 	{ "ws_next",		cyclews,	{.id = SWM_ARG_ID_CYCLEWS_UP} },
 	{ "ws_next_all",	cyclews,	{.id = SWM_ARG_ID_CYCLEWS_UP_ALL} },
+	{ "ws_next_move",	cyclews,	{.id = SWM_ARG_ID_CYCLEWS_MOVE_UP} },
 	{ "ws_prev",		cyclews,	{.id = SWM_ARG_ID_CYCLEWS_DOWN} },
 	{ "ws_prev_all",	cyclews,	{.id = SWM_ARG_ID_CYCLEWS_DOWN_ALL} },
+	{ "ws_prev_move",	cyclews,	{.id = SWM_ARG_ID_CYCLEWS_MOVE_DOWN} },
 	{ "ws_prior",		priorws,	{0} },
 	{ "dumpwins",		dumpwins,	{0} }, /* MUST BE LAST */
 	{ "invalid key func",	NULL,		{0} },
@@ -6292,8 +6327,8 @@ setconfbinding(char *selector, char *value, int flags)
 	for (kfid = 0; kfid < KF_INVALID; (kfid)++) {
 		if (strncasecmp(selector, keyfuncs[kfid].name,
 		    SWM_FUNCNAME_LEN) == 0) {
-			DNPRINTF(SWM_D_KEY, "setconfbinding: %s: match\n",
-			    selector);
+			DNPRINTF(SWM_D_KEY, "setconfbinding: %s: match "
+			    "keyfunc\n", selector);
 			if (parsekeys(value, mod_key, &mod, &ks) == 0) {
 				setkeybinding(mod, ks, kfid, NULL);
 				return (0);
@@ -6304,13 +6339,11 @@ setconfbinding(char *selector, char *value, int flags)
 	/* search by custom spawn name */
 	TAILQ_FOREACH(sp, &spawns, entry) {
 		if (strcasecmp(selector, sp->name) == 0) {
-			DNPRINTF(SWM_D_KEY, "setconfbinding: %s: match\n",
-			    selector);
+			DNPRINTF(SWM_D_KEY, "setconfbinding: %s: match "
+			    "spawn\n", selector);
 			if (parsekeys(value, mod_key, &mod, &ks) == 0) {
 				setkeybinding(mod, ks, KF_SPAWN_CUSTOM,
 				    sp->name);
-				/* Custom binding; validate spawn. */
-				sp->flags ^= SWM_SPAWN_OPTIONAL;
 				return (0);
 			} else
 				return (1);
@@ -6438,6 +6471,8 @@ setup_keys(void)
 	setkeybinding(MODKEY,		XK_Left,	KF_WS_PREV,	NULL);
 	setkeybinding(MODKEY,		XK_Up,		KF_WS_NEXT_ALL,	NULL);
 	setkeybinding(MODKEY,		XK_Down,	KF_WS_PREV_ALL,	NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_Up,		KF_WS_NEXT_MOVE,NULL);
+	setkeybinding(MODKEY_SHIFT,	XK_Down,	KF_WS_PREV_MOVE,NULL);
 	setkeybinding(MODKEY,		XK_a,		KF_WS_PRIOR,	NULL);
 #ifdef SWM_DEBUG
 	setkeybinding(MODKEY_SHIFT,	XK_d,		KF_DUMPWINS,	NULL);
@@ -6459,24 +6494,25 @@ clear_keys(void)
 int
 setkeymapping(char *selector, char *value, int flags)
 {
-	char			keymapping_file[PATH_MAX];
+	char			*keymapping_file;
 
 	/* suppress unused warnings since vars are needed */
 	(void)selector;
 	(void)flags;
 
 	DNPRINTF(SWM_D_KEY, "setkeymapping: enter\n");
-	if (value[0] == '~')
-		snprintf(keymapping_file, sizeof keymapping_file, "%s/%s",
-		    pwd->pw_dir, &value[1]);
-	else
-		strlcpy(keymapping_file, value, sizeof keymapping_file);
+
+	keymapping_file = expand_tilde(value);
+
 	clear_keys();
 	/* load new key bindings; if it fails, revert to default bindings */
 	if (conf_load(keymapping_file, SWM_CONF_KEYMAPPING)) {
 		clear_keys();
 		setup_keys();
 	}
+
+	free(keymapping_file);
+
 	DNPRINTF(SWM_D_KEY, "setkeymapping: leave\n");
 	return (0);
 }
@@ -6527,13 +6563,23 @@ grabkeys(void)
 	modifiers[2] = XCB_MOD_MASK_LOCK;
 	modifiers[3] = numlockmask | XCB_MOD_MASK_LOCK;
 
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	num_screens = get_screen_count();
 	for (k = 0; k < num_screens; k++) {
 		if (TAILQ_EMPTY(&screens[k].rl))
 			continue;
 		xcb_ungrab_key(conn, XCB_GRAB_ANY, screens[k].root,
 			XCB_MOD_MASK_ANY);
 		RB_FOREACH(kp, key_tree, &keys) {
+			/* Skip unused ws binds. */
+			if ((int)kp->funcid > KF_WS_1 + workspace_limit - 1 &&
+			    kp->funcid <= KF_WS_22)
+				continue;
+
+			/* Skip unused mvws binds. */
+			if ((int)kp->funcid > KF_MVWS_1 + workspace_limit - 1 &&
+			    kp->funcid <= KF_MVWS_22)
+				continue;
+
 			if ((code = xcb_key_symbols_get_keycode(syms,
 					kp->keysym))) {
 				for (j = 0; j < LENGTH(modifiers); j++)
@@ -6580,6 +6626,8 @@ const char *quirkname[] = {
 	"XTERM_FONTADJ",
 	"FULLSCREEN",
 	"FOCUSPREV",
+	"NOFOCUSONMAP",
+	"FOCUSONMAP_SINGLE",
 };
 
 /* SWM_Q_WS: retain '|' for back compat for now (2009-08-11) */
@@ -6811,7 +6859,7 @@ setconfvalue(char *selector, char *value, int flags)
 			errx(1, "setconfvalue: bar_enabled_ws: invalid "
 			    "workspace %d.", ws_id + 1);
 
-		num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+		num_screens = get_screen_count();
 		for (i = 0; i < num_screens; i++) {
 			ws = (struct workspace *)&screens[i].ws;
 			ws[ws_id].bar_enabled = atoi(value);
@@ -7142,7 +7190,7 @@ setlayout(char *selector, char *value, int flags)
 		    "<master_grow>:<master_add>:<stack_inc>:<always_raise>:"
 		    "<type>'");
 
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	num_screens = get_screen_count();
 	for (i = 0; i < num_screens; i++) {
 		ws = (struct workspace *)&screens[i].ws;
 		ws[ws_id].cur_layout = &layouts[st];
@@ -7282,6 +7330,9 @@ conf_load(const char *filename, int keymapping)
 		warnx("conf_load: no filename");
 		return (1);
 	}
+
+	DNPRINTF(SWM_D_CONF, "conf_load: open %s\n", filename);
+
 	if ((config = fopen(filename, "r")) == NULL) {
 		warn("conf_load: fopen: %s", filename);
 		return (1);
@@ -7787,7 +7838,7 @@ expose(xcb_expose_event_t *e)
 
 	DNPRINTF(SWM_D_EVENT, "expose: window: 0x%x\n", e->window);
 
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	num_screens = get_screen_count();
 	for (i = 0; i < num_screens; i++)
 		TAILQ_FOREACH(r, &screens[i].rl, entry)
 			if (e->window == WINID(r->bar))
@@ -8154,6 +8205,9 @@ destroynotify(xcb_destroy_notify_event_t *e)
 		if (win->ws->focus_pending) {
 			focus_win(win->ws->focus_pending);
 			win->ws->focus_pending = NULL;
+		} else if (win == win->ws->focus && win->ws->r) {
+			xcb_set_input_focus(conn, XCB_INPUT_FOCUS_PARENT,
+			    win->ws->r->id, XCB_CURRENT_TIME);
 		}
 	}
 
@@ -8323,7 +8377,7 @@ mappingnotify(xcb_mapping_notify_event_t *e)
 void
 maprequest(xcb_map_request_event_t *e)
 {
-	struct ws_win		*win;
+	struct ws_win		*win, *w = NULL;
 	xcb_get_window_attributes_reply_t *war;
 
 	DNPRINTF(SWM_D_EVENT, "maprequest: win 0x%x\n",
@@ -8347,8 +8401,25 @@ maprequest(xcb_map_request_event_t *e)
 	    (war->map_state == XCB_MAP_STATE_VIEWABLE));
 
 	/* The new window should get focus; prepare. */
-	if (focus_mode != SWM_FOCUS_FOLLOW)
-		win->ws->focus_pending = get_focus_magic(win);
+	if (focus_mode != SWM_FOCUS_FOLLOW &&
+	    !(win->quirks & SWM_Q_NOFOCUSONMAP)) {
+		if (win->quirks & SWM_Q_FOCUSONMAP_SINGLE) {
+			/* See if other wins of same type are already mapped. */
+			TAILQ_FOREACH(w, &win->ws->winlist, entry) {
+				if (w == win || !w->mapped)
+					continue;
+
+				if (!strcmp(w->ch.class_name,
+				    win->ch.class_name) &&
+				    !strcmp(w->ch.instance_name,
+				    win->ch.instance_name))
+					break;
+			}
+		}
+
+		if (w == NULL)
+			win->ws->focus_pending = get_focus_magic(win);
+	}
 
 	/* All windows need to be mapped if they are in the current workspace.*/
 	if (win->ws->r)
@@ -8378,7 +8449,10 @@ motionnotify(xcb_motion_notify_event_t *e)
 
 	last_event_time = e->time;
 
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	if (focus_mode == SWM_FOCUS_MANUAL)
+		return;
+
+	num_screens = get_screen_count();
 	for (i = 0; i < num_screens; i++)
 		if (screens[i].root == e->root)
 			break;
@@ -8429,6 +8503,7 @@ void
 propertynotify(xcb_property_notify_event_t *e)
 {
 	struct ws_win		*win;
+	struct workspace	*ws;
 #ifdef SWM_DEBUG
 	char			*name;
 
@@ -8442,28 +8517,39 @@ propertynotify(xcb_property_notify_event_t *e)
 	if (win == NULL)
 		return;
 
+	ws = win->ws;
+
 	last_event_time = e->time;
 
 	if (e->atom == a_swm_iconic) {
 		if (e->state == XCB_PROPERTY_NEW_VALUE) {
 			if (focus_mode != SWM_FOCUS_FOLLOW)
-				win->ws->focus_pending = get_focus_prev(win);
+				ws->focus_pending = get_focus_prev(win);
 
 			unfocus_win(win);
 			unmap_window(win);
 
-			if (win->ws->r) {
+			if (ws->r) {
 				stack();
+
 				if (focus_mode != SWM_FOCUS_FOLLOW) {
-					focus_win(win->ws->focus_pending);
-					win->ws->focus_pending = NULL;
+					if (ws->focus_pending) {
+						focus_win(ws->focus_pending);
+						ws->focus_pending = NULL;
+					} else {
+						xcb_set_input_focus(conn,
+						    XCB_INPUT_FOCUS_PARENT,
+						    ws->r->id,
+						    XCB_CURRENT_TIME);
+					}
 				}
+
 				focus_flush();
 			}
 		} else if (e->state == XCB_PROPERTY_DELETE) {
 			/* The window is no longer iconic, restack ws. */
 			if (focus_mode != SWM_FOCUS_FOLLOW)
-				win->ws->focus_pending = get_focus_magic(win);
+				ws->focus_pending = get_focus_magic(win);
 
 			stack();
 
@@ -8475,9 +8561,9 @@ propertynotify(xcb_property_notify_event_t *e)
 		if (e->state == XCB_PROPERTY_NEW_VALUE) {
 			if (focus_mode != SWM_FOCUS_FOLLOW) {
 				if (win->mapped &&
-				    win->ws->focus_pending == win) {
-					focus_win(win->ws->focus_pending);
-					win->ws->focus_pending = NULL;
+				    ws->focus_pending == win) {
+					focus_win(ws->focus_pending);
+					ws->focus_pending = NULL;
 				}
 			}
 		}
@@ -8532,11 +8618,12 @@ unmapnotify(xcb_unmap_notify_event_t *e)
 		if (focus_mode == SWM_FOCUS_FOLLOW) {
 			if (ws->r)
 				focus_win(get_pointer_win(ws->r->s->root));
-		} else {
-			if (ws->focus_pending) {
-				focus_win(ws->focus_pending);
-				ws->focus_pending = NULL;
-			}
+		} else if (ws->focus_pending) {
+			focus_win(ws->focus_pending);
+			ws->focus_pending = NULL;
+		} else if (ws->focus == NULL && ws->r) {
+			xcb_set_input_focus(conn, XCB_INPUT_FOCUS_PARENT,
+			    ws->r->id, XCB_CURRENT_TIME);
 		}
 	}
 
@@ -8670,7 +8757,7 @@ enable_wm(void)
 	xcb_generic_error_t	*error;
 
 	/* this causes an error if some other window manager is running */
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	num_screens = get_screen_count();
 	for (i = 0; i < num_screens; i++) {
 		if ((sc = get_screen(i)) == NULL)
 			errx(1, "ERROR: can't get screen %d.", i);
@@ -8802,7 +8889,7 @@ scan_xrandr(int i)
 	if ((screen = get_screen(i)) == NULL)
 		errx(1, "ERROR: can't get screen %d.", i);
 
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	num_screens = get_screen_count();
 	if (i >= num_screens)
 		errx(1, "scan_xrandr: invalid screen");
 
@@ -8883,7 +8970,7 @@ screenchange(xcb_randr_screen_change_notify_event_t *e)
 
 	DNPRINTF(SWM_D_EVENT, "screenchange: root: 0x%x\n", e->root);
 
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	num_screens = get_screen_count();
 	/* silly event doesn't include the screen index */
 	for (i = 0; i < num_screens; i++)
 		if (screens[i].root == e->root)
@@ -8934,7 +9021,7 @@ grab_windows(void)
 	xcb_get_property_cookie_t		pc;
 
 	DNPRINTF(SWM_D_INIT, "grab_windows: begin\n");
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	num_screens = get_screen_count();
 	for (i = 0; i < num_screens; i++) {
 		qtc = xcb_query_tree(conn, screens[i].root);
 		qtr = xcb_query_tree_reply(conn, qtc, NULL);
@@ -9032,7 +9119,7 @@ setup_screens(void)
 	xcb_randr_query_version_cookie_t	c;
 	xcb_randr_query_version_reply_t		*r;
 
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	num_screens = get_screen_count();
 	if ((screens = calloc(num_screens,
 	     sizeof(struct swm_screen))) == NULL)
 		err(1, "setup_screens: calloc: failed to allocate memory for "
@@ -9151,7 +9238,7 @@ workaround(void)
 	/* work around sun jdk bugs, code from wmname */
 	netwmcheck = get_atom_from_string("_NET_SUPPORTING_WM_CHECK");
 
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	num_screens = get_screen_count();
 	for (i = 0; i < num_screens; i++) {
 		root = screens[i].root;
 
@@ -9186,7 +9273,7 @@ shutdown_cleanup(void)
 
 	teardown_ewmh();
 
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	num_screens = get_screen_count();
 	for (i = 0; i < num_screens; ++i) {
 		if (screens[i].bar_gc != 0)
 			xcb_free_gc(conn, screens[i].bar_gc);
@@ -9405,7 +9492,7 @@ noconfig:
 		setenv("SWM_STARTED", "YES", 1);
 
 	/* setup all bars */
-	num_screens = xcb_setup_roots_length(xcb_get_setup(conn));
+	num_screens = get_screen_count();
 	for (i = 0; i < num_screens; i++)
 		TAILQ_FOREACH(r, &screens[i].rl, entry)
 			bar_setup(r);
