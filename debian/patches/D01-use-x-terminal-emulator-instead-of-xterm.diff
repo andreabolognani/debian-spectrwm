@@ -6,9 +6,9 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2014-04-21
 Index: spectrwm.git/spectrwm.c
 ===================================================================
---- spectrwm.git.orig/spectrwm.c	2014-04-21 20:00:24.000000000 +0200
-+++ spectrwm.git/spectrwm.c	2014-04-21 20:06:18.076038650 +0200
-@@ -6124,8 +6124,8 @@
+--- spectrwm.git.orig/spectrwm.c	2014-04-21 20:26:18.292009951 +0200
++++ spectrwm.git/spectrwm.c	2014-04-21 20:39:15.456039504 +0200
+@@ -6318,8 +6318,8 @@
  {
  	setconfspawn("lock",		"xlock",		0);
  
@@ -21,9 +21,9 @@ Index: spectrwm.git/spectrwm.c
  					" -fn $bar_font"
 Index: spectrwm.git/spectrwm.conf
 ===================================================================
---- spectrwm.git.orig/spectrwm.conf	2014-04-21 20:00:24.000000000 +0200
-+++ spectrwm.git/spectrwm.conf	2014-04-21 20:05:53.072037698 +0200
-@@ -52,7 +52,7 @@
+--- spectrwm.git.orig/spectrwm.conf	2014-04-21 20:26:18.292009951 +0200
++++ spectrwm.git/spectrwm.conf	2014-04-21 20:39:15.456039504 +0200
+@@ -54,7 +54,7 @@
  # region		= screen[1]:1280x1024+1280+0
  
  # Launch applications in a workspace of choice
@@ -32,7 +32,7 @@ Index: spectrwm.git/spectrwm.conf
  # autorun		= ws[2]:xombrero http://www.openbsd.org
  
  # Customize workspace layout at start
-@@ -72,7 +72,7 @@
+@@ -74,7 +74,7 @@
  
  # Validated default programs:
  # program[lock]		= xlock
