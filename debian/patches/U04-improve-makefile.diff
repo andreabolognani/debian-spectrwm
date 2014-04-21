@@ -10,8 +10,8 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2014-04-11
 Index: spectrwm.git/linux/Makefile
 ===================================================================
---- spectrwm.git.orig/linux/Makefile	2014-04-11 21:40:29.000000000 +0200
-+++ spectrwm.git/linux/Makefile	2014-04-11 21:53:37.984151313 +0200
+--- spectrwm.git.orig/linux/Makefile	2014-04-21 19:42:07.176007720 +0200
++++ spectrwm.git/linux/Makefile	2014-04-21 19:42:23.588008344 +0200
 @@ -1,53 +1,69 @@
 -CFLAGS+= -std=c99 -Wall -Wextra -Wmissing-prototypes -Wshadow -g -D_GNU_SOURCE -I. -I/usr/include/freetype2
 -CFLAGS+= -DSWM_LIB=\"$(LIBDIR)/libswmhack.so.$(LVERS)\"

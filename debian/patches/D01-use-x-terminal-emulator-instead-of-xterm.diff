@@ -3,11 +3,11 @@ Description: use x-terminal-emulator instead of xterm
  use it instead of xterm in the default configuration.
 Forwarded: not-needed
 Author: Andrea Bolognani <eof@kiyuko.org>
-Last-Update: 2014-04-11
+Last-Update: 2014-04-21
 Index: spectrwm.git/spectrwm.conf
 ===================================================================
---- spectrwm.git.orig/spectrwm.conf	2014-04-11 21:40:29.000000000 +0200
-+++ spectrwm.git/spectrwm.conf	2014-04-11 21:56:39.508158219 +0200
+--- spectrwm.git.orig/spectrwm.conf	2014-04-11 21:58:24.000000000 +0200
++++ spectrwm.git/spectrwm.conf	2014-04-21 19:43:25.176010687 +0200
 @@ -42,7 +42,7 @@
  
  # Spawn Applications
@@ -28,16 +28,16 @@ Index: spectrwm.git/spectrwm.conf
  # workspace layout
 Index: spectrwm.git/spectrwm.c
 ===================================================================
---- spectrwm.git.orig/spectrwm.c	2014-04-11 21:40:29.000000000 +0200
-+++ spectrwm.git/spectrwm.c	2014-04-11 21:57:41.168160563 +0200
-@@ -6048,8 +6048,8 @@
- void
- setup_spawn(void)
+--- spectrwm.git.orig/spectrwm.c	2014-04-18 21:52:38.000000000 +0200
++++ spectrwm.git/spectrwm.c	2014-04-21 19:44:11.748012459 +0200
+@@ -6089,8 +6089,8 @@
  {
+ 	setconfspawn("lock",		"xlock",		0);
+ 
 -	setconfspawn("term",		"xterm",		0);
 -	setconfspawn("spawn_term",	"xterm",		0);
 +	setconfspawn("term",		"x-terminal-emulator",	0);
 +	setconfspawn("spawn_term",	"x-terminal-emulator",	0);
+ 
  	setconfspawn("menu",		"dmenu_run"
  					" -fn $bar_font"
- 					" -nb $bar_color"
