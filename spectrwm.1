@@ -1,6 +1,6 @@
 .\" Copyright (c) 2009-2012 Marco Peereboom <marco@peereboom.us>
 .\" Copyright (c) 2009 Darrin Chandler <dwchandler@stilyagin.com>
-.\" Copyright (c) 2011-2012 Reginald Kennedy <rk@rejii.com>
+.\" Copyright (c) 2011-2013 Reginald Kennedy <rk@rejii.com>
 .\" Copyright (c) 2011-2012 Lawrence Teo <lteo@lteo.net>
 .\" Copyright (c) 2011-2012 Tiago Cunha <tcunha@gmx.com>
 .\" Copyright (c) 2012 David Hill <dhill@mindcry.org>
@@ -210,6 +210,11 @@ section below.
 .It Ic border_width
 Set window border thickness in pixels.
 Disable all borders by setting to 0.
+.It Ic boundary_width
+Set region containment boundary width in pixels.  This is how far a window
+must be dragged/resized beyond the region edge before it is allowed outside
+the region.  This has no effect when manipulating the window with key
+bindings.  Disable the window containment effect by setting to 0.
 .It Ic clock_enabled
 Enable or disable displaying the clock in the status bar.
 Disable by setting to 0
@@ -361,7 +366,8 @@ section) to use an alternate copy of the
 .Xr xterm 1
 binary without the setgid bit set.
 .It Ic tile_gap
-Pixel width of empty space between tiled windows.
+Pixel width of empty space between tiled windows.  Negative values cause overlap.
+Set this to the opposite of border_width to collapse the border between tiles.
 Disable by setting to 0.
 .It Ic title_class_enabled
 Enable or disable displaying the window class in the status bar.

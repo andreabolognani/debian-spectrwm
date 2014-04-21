@@ -5,10 +5,10 @@
  * Copyright (c) 2009 Pierre-Yves Ritschard <pyr@spootnik.org>
  * Copyright (c) 2010 Tuukka Kataja <stuge@xor.fi>
  * Copyright (c) 2011 Jason L. Wright <jason@thought.net>
- * Copyright (c) 2011-2012 Reginald Kennedy <rk@rejii.com>
+ * Copyright (c) 2011-2013 Reginald Kennedy <rk@rejii.com>
  * Copyright (c) 2011-2012 Lawrence Teo <lteo@lteo.net>
  * Copyright (c) 2011-2012 Tiago Cunha <tcunha@gmx.com>
- * Copyright (c) 2012 David Hill <dhill@mindcry.org>
+ * Copyright (c) 2012-2013 David Hill <dhill@mindcry.org>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -243,8 +243,18 @@ u_int32_t		swm_debug = 0
 #define SH_INC_W(w)		(w)->sh.width_inc
 #define SH_INC_H(w)		(w)->sh.height_inc
 #define SWM_MAX_FONT_STEPS	(3)
-#define WINID(w)		((w) ? (w)->id : 0)
+#define WINID(w)		((w) ? (w)->id : XCB_WINDOW_NONE)
 #define YESNO(x)		((x) ? "yes" : "no")
+
+/* Constrain Window flags */
+#define SWM_CW_RESIZABLE	(0x01)
+#define SWM_CW_SOFTBOUNDARY	(0x02)
+#define SWM_CW_HARDBOUNDARY	(0x04)
+#define SWM_CW_RIGHT		(0x10)
+#define SWM_CW_LEFT		(0x20)
+#define SWM_CW_BOTTOM		(0x40)
+#define SWM_CW_TOP		(0x80)
+#define SWM_CW_ALLSIDES		(0xf0)
 
 #define SWM_FOCUS_DEFAULT	(0)
 #define SWM_FOCUS_FOLLOW	(1)
@@ -288,6 +298,7 @@ Display			*display;
 xcb_connection_t	*conn;
 xcb_key_symbols_t	*syms;
 
+int			boundary_width = 50;
 int			cycle_empty = 0;
 int			cycle_visible = 0;
 int			term_width = 0;
@@ -883,7 +894,7 @@ int	 conf_load(const char *, int);
 void	 configurenotify(xcb_configure_notify_event_t *);
 void	 configurerequest(xcb_configure_request_event_t *);
 void	 config_win(struct ws_win *, xcb_configure_request_event_t *);
-void	 constrain_window(struct ws_win *, struct swm_region *, int);
+void	 constrain_window(struct ws_win *, struct swm_geometry *, int *);
 int	 count_win(struct workspace *, int);
 void	 cursors_cleanup(void);
 void	 cursors_load(void);
@@ -936,6 +947,7 @@ struct ws_win	*get_pointer_win(xcb_window_t);
 struct ws_win	*get_region_focus(struct swm_region *);
 int	 get_region_index(struct swm_region *);
 xcb_screen_t	*get_screen(int);
+xcb_window_t	 get_sibling(struct ws_win *, int);
 int	 get_screen_count(void);
 #ifdef SWM_DEBUG
 char	*get_stack_mode_name(uint8_t);
@@ -961,9 +973,9 @@ void	 kill_refs(struct ws_win *);
 #ifdef SWM_DEBUG
 void	 leavenotify(xcb_leave_notify_event_t *);
 #endif
-void	 load_float_geom(struct ws_win *, struct swm_region *);
+void	 load_float_geom(struct ws_win *);
 struct ws_win	*manage_window(xcb_window_t, uint16_t);
-void	 map_window(struct ws_win *);
+void	 map_window(struct ws_win *, xcb_window_t);
 void	 mapnotify(xcb_map_notify_event_t *);
 void	 mappingnotify(xcb_mapping_notify_event_t *);
 void	 maprequest(xcb_map_request_event_t *);
@@ -988,6 +1000,9 @@ void	 quirk_replace(struct quirk *, const char *, const char *,
 	     unsigned long);
 void	 quit(struct swm_region *, union arg *);
 void	 raise_toggle(struct swm_region *, union arg *);
+void	 region_containment(struct ws_win *, struct swm_region *, int);
+struct swm_region	*region_under(struct swm_screen *, int, int);
+void	 regionize(struct ws_win *, int, int);
 void	 resize(struct ws_win *, union arg *);
 void	 resize_step(struct swm_region *, union arg *);
 void	 restart(struct swm_region *, union arg *);
@@ -1042,7 +1057,7 @@ void	 spawn_select(struct swm_region *, union arg *, const char *, int *);
 void	 stack_config(struct swm_region *, union arg *);
 void	 stack_floater(struct ws_win *, struct swm_region *);
 void	 stack_master(struct workspace *, struct swm_geometry *, int, int);
-void	 store_float_geom(struct ws_win *, struct swm_region *);
+void	 store_float_geom(struct ws_win *);
 char	*strdupsafe(const char *);
 void	 swapwin(struct swm_region *, union arg *);
 void	 switchws(struct swm_region *, union arg *);
@@ -1061,6 +1076,7 @@ int	 validate_win(struct ws_win *);
 int	 validate_ws(struct workspace *);
 /*void	 visibilitynotify(xcb_visibility_notify_event_t *);*/
 void	 version(struct swm_region *, union arg *);
+void	 win_to_ws(struct ws_win *, int, int);
 pid_t	 window_get_pid(xcb_window_t);
 void	 wkill(struct swm_region *, union arg *);
 void	 workaround(void);
@@ -1401,12 +1417,12 @@ ewmh_set_win_fullscreen(struct ws_win *win, int fs)
 
 	if (fs) {
 		if (!win->g_floatvalid)
-			store_float_geom(win, win->ws->r);
+			store_float_geom(win);
 
 		win->g = win->ws->r->g;
 		win->bordered = 0;
 	} else {
-		load_float_geom(win, win->ws->r);
+		load_float_geom(win);
 	}
 
 	return (1);
@@ -1989,12 +2005,12 @@ bar_window_name(char *s, size_t sz, struct swm_region *r)
 	free(title);
 }
 
-int		urgent[SWM_WS_MAX];
 void
 bar_urgent(char *s, size_t sz)
 {
 	struct ws_win		*win;
 	int			i, j, num_screens;
+	int			urgent[SWM_WS_MAX];
 	char			b[8];
 	xcb_get_property_cookie_t	c;
 	xcb_icccm_wm_hints_t	hints;
@@ -2797,18 +2813,27 @@ quit(struct swm_region *r, union arg *args)
 }
 
 void
-map_window(struct ws_win *win)
+map_window(struct ws_win *win, xcb_window_t sibling)
 {
-	uint32_t	val = XCB_STACK_MODE_ABOVE;
+	uint16_t		mode = XCB_CONFIG_WINDOW_STACK_MODE;
+	uint32_t		val[2];
+	int			i = 0;
+
+	/* If sibling is specified, stack right above it. */
+	if (sibling != XCB_WINDOW_NONE) {
+		mode |= XCB_CONFIG_WINDOW_SIBLING;
+		val[i++] = sibling;
+	}
+
+	val[i] = XCB_STACK_MODE_ABOVE;
 
 	if (win == NULL)
 		return;
 
-	DNPRINTF(SWM_D_EVENT, "map_window: win 0x%x, mapped: %s\n", win->id,
-	    YESNO(win->mapped));
+	DNPRINTF(SWM_D_EVENT, "map_window: win 0x%x, mapped: %s, "
+	    "sibling: 0x%x\n", win->id, YESNO(win->mapped), sibling);
 
-	xcb_configure_window(conn, win->id,
-	    XCB_CONFIG_WINDOW_STACK_MODE, &val);
+	xcb_configure_window(conn, win->id, mode, val);
 
 	if (win->mapped)
 		return;
@@ -3156,6 +3181,42 @@ validate_ws(struct workspace *testws)
 	return (1);
 }
 
+xcb_window_t
+get_sibling(struct ws_win *win, int mode)
+{
+	struct ws_win		*w = win;
+
+	switch (mode) {
+	case SWM_STACK_TOP:
+		TAILQ_FOREACH_REVERSE(w, &w->ws->winlist, ws_win_list, entry)
+			if (w != win && !w->floating && !w->iconic)
+				break;
+		break;
+	case SWM_STACK_ABOVE:
+		do {
+			w = TAILQ_NEXT(w, entry);
+		} while (w != NULL && (w == win || w->floating || w->iconic));
+		break;
+	case SWM_STACK_BELOW:
+		do {
+			w = TAILQ_PREV(w, ws_win_list, entry);
+		} while (w != NULL && (w == win || w->floating || w->iconic));
+		break;
+	case SWM_STACK_BOTTOM:
+		TAILQ_FOREACH(w, &w->ws->winlist, entry)
+			if (w != win && !w->floating && !w->iconic)
+				break;
+		break;
+	default:
+		w = NULL;
+	}
+
+	if (w == NULL)
+		return (win->ws->r->id);
+	else
+		return (w->id);
+}
+
 void
 unfocus_win(struct ws_win *win)
 {
@@ -3187,6 +3248,8 @@ unfocus_win(struct ws_win *win)
 	}
 
 	if (win->ws->focus == win) {
+		if (tile_gap < 0 && !win->floating)
+			map_window(win, get_sibling(win, SWM_STACK_BELOW));
 		win->ws->focus = NULL;
 		win->ws->focus_prev = win;
 	}
@@ -3288,22 +3351,30 @@ focus_win(struct ws_win *win)
 		    ws->always_raise) {
 			/* If a parent exists, map it first. */
 			if (parent) {
-				map_window(parent);
+				map_window(parent, XCB_WINDOW_NONE);
 
 				/* Map siblings next. */
 				TAILQ_FOREACH(w, &ws->winlist, entry)
 					if (w != win && !w->iconic &&
 					    w->transient == parent->id)
-						map_window(w);
+						map_window(w, XCB_WINDOW_NONE);
 			}
 
 			/* Map focused window. */
-			map_window(win);
+			map_window(win, XCB_WINDOW_NONE);
 
 			/* Finally, map children of focus window. */
 			TAILQ_FOREACH(w, &ws->winlist, entry)
 				if (w->transient == win->id && !w->iconic)
-					map_window(w);
+					map_window(w, XCB_WINDOW_NONE);
+		} else if (tile_gap < 0 && !win->floating) {
+			/*
+			 * Windows overlap in the layout.
+			 * Raise focused win above all tiled wins.
+			 */
+			if (tile_gap < 0 && !win->floating)
+				map_window(win,
+				    get_sibling(win, SWM_STACK_TOP));
 		}
 
 		set_region(ws->r);
@@ -3465,8 +3536,9 @@ switchws(struct swm_region *r, union arg *args)
 	this_r->ws = new_ws;
 	new_ws->r = this_r;
 
-	/* Set focus_pending before stacking. */
-	if (focus_mode != SWM_FOCUS_FOLLOW)
+	/* Set focus_pending before stacking, if needed. */
+	if (focus_mode != SWM_FOCUS_FOLLOW && (!new_ws->focus_pending ||
+	    validate_win(new_ws->focus_pending)))
 		new_ws->focus_pending = get_region_focus(new_ws->r);
 
 	stack();
@@ -4029,15 +4101,15 @@ stack(void) {
 }
 
 void
-store_float_geom(struct ws_win *win, struct swm_region *r)
+store_float_geom(struct ws_win *win)
 {
-	if (win == NULL || r == NULL)
+	if (win == NULL || win->ws->r == NULL)
 		return;
 
 	/* retain window geom and region geom */
 	win->g_float = win->g;
-	win->g_float.x -= X(r);
-	win->g_float.y -= Y(r);
+	win->g_float.x -= X(win->ws->r);
+	win->g_float.y -= Y(win->ws->r);
 	win->g_floatvalid = 1;
 	DNPRINTF(SWM_D_MISC, "store_float_geom: window: 0x%x, g: (%d,%d)"
 	    " %d x %d, g_float: (%d,%d) %d x %d\n", win->id, X(win), Y(win),
@@ -4046,15 +4118,15 @@ store_float_geom(struct ws_win *win, struct swm_region *r)
 }
 
 void
-load_float_geom(struct ws_win *win, struct swm_region *r)
+load_float_geom(struct ws_win *win)
 {
-	if (win == NULL || r == NULL)
+	if (win == NULL || win->ws->r == NULL)
 		return;
 
 	if (win->g_floatvalid) {
 		win->g = win->g_float;
-		X(win) += X(r);
-		Y(win) += Y(r);
+		X(win) += X(win->ws->r);
+		Y(win) += Y(win->ws->r);
 		DNPRINTF(SWM_D_MISC, "load_float_geom: window: 0x%x, g: (%d,%d)"
 		    "%d x %d\n", win->id, X(win), Y(win), WIDTH(win),
 		    HEIGHT(win));
@@ -4079,7 +4151,7 @@ stack_floater(struct ws_win *win, struct swm_region *r)
 	if (win->floatmaxed || (r != r->ws->old_r &&
 	    !(win->ewmh_flags & EWMH_F_FULLSCREEN))) {
 		/* update geometry for the new region */
-		load_float_geom(win, r);
+		load_float_geom(win);
 	}
 
 	win->floatmaxed = 0;
@@ -4089,7 +4161,7 @@ stack_floater(struct ws_win *win, struct swm_region *r)
 	 */
 	if (win->ewmh_flags & EWMH_F_FULLSCREEN) {
 		if (!win->g_floatvalid)
-			store_float_geom(win, win->ws->r);
+			store_float_geom(win);
 
 		win->g = r->g;
 	}
@@ -4126,11 +4198,11 @@ stack_floater(struct ws_win *win, struct swm_region *r)
 		X(win) = X(r) + (WIDTH(r) - WIDTH(win)) /  2 - BORDER(win);
 		Y(win) = Y(r) + (HEIGHT(r) - HEIGHT(win)) / 2 - BORDER(win);
 
-		store_float_geom(win, r);
+		store_float_geom(win);
 	}
 
-	/* keep window within region bounds */
-	constrain_window(win, r, 0);
+	/* Ensure at least 1 pixel of the window is in the region. */
+	region_containment(win, r, SWM_CW_ALLSIDES);
 
 	update_window(win);
 }
@@ -4258,20 +4330,24 @@ stack_master(struct workspace *ws, struct swm_geometry *g, int rot, int flip)
 			colno = (winno - mwin) / stacks;
 			if (s <= (winno - mwin) % stacks)
 				colno++;
-			split = split + colno;
-			hrh = (r_g.h / colno);
+			split += colno;
+			hrh = r_g.h / colno;
 			extra = r_g.h - (colno * hrh);
-			if (flip)
-				win_g.x = r_g.x;
-			else
+
+			if (!flip)
 				win_g.x += win_g.w + 2 * border_width +
 				    tile_gap;
+
 			win_g.w = (r_g.w - msize -
 			    (stacks * (2 * border_width + tile_gap))) / stacks;
 			if (s == 1)
 				win_g.w += (r_g.w - msize -
 				    (stacks * (2 * border_width + tile_gap))) %
 				    stacks;
+
+			if (flip)
+				win_g.x -= win_g.w + 2 * border_width +
+				    tile_gap;
 			s--;
 			j = 0;
 		}
@@ -4346,12 +4422,16 @@ stack_master(struct workspace *ws, struct swm_geometry *g, int rot, int flip)
 			update_window(win);
 		}
 
-		map_window(win);
+		map_window(win, get_sibling(win, SWM_STACK_BELOW));
 
 		last_h = win_g.h;
 		i++;
 		j++;
 	}
+
+	/* Map/raise focused tiled window to top if windows could overlap. */
+	if (tile_gap < 0 && ws->focus != NULL && !ws->focus->floating)
+		map_window(ws->focus, get_sibling(ws->focus, SWM_STACK_TOP));
 
 notiles:
 	/* now, stack all the floaters and transients */
@@ -4366,13 +4446,13 @@ notiles:
 		}
 
 		stack_floater(win, ws->r);
-		map_window(win);
+		map_window(win, XCB_WINDOW_NONE);
 	}
 
 	/* Make sure fs_win is stacked last so it's on top. */
 	if (fs_win) {
 		stack_floater(fs_win, ws->r);
-		map_window(fs_win);
+		map_window(fs_win, XCB_WINDOW_NONE);
 	}
 }
 
@@ -4515,14 +4595,14 @@ max_stack(struct workspace *ws, struct swm_geometry *g)
 			continue;
 
 		if (!w->mapped && w != win)
-			map_window(w);
+			map_window(w, XCB_WINDOW_NONE);
 
 		if (w->floating && !w->floatmaxed) {
 			/*
 			 * retain geometry for retrieval on exit from
 			 * max_stack mode
 			 */
-			store_float_geom(w, ws->r);
+			store_float_geom(w);
 			w->floatmaxed = 1;
 		}
 
@@ -4544,25 +4624,25 @@ max_stack(struct workspace *ws, struct swm_geometry *g)
 
 	/* If a parent exists, map/raise it first. */
 	if (parent) {
-		map_window(parent);
+		map_window(parent, XCB_WINDOW_NONE);
 
 		/* Map siblings next. */
 		TAILQ_FOREACH(w, &ws->winlist, entry)
 			if (w != win && !w->iconic &&
 			    w->transient == parent->id) {
 				stack_floater(w, ws->r);
-				map_window(w);
+				map_window(w, XCB_WINDOW_NONE);
 			}
 	}
 
 	/* Map/raise focused window. */
-	map_window(win);
+	map_window(win, XCB_WINDOW_NONE);
 
 	/* Finally, map/raise children of focus window. */
 	TAILQ_FOREACH(w, &ws->winlist, entry)
 		if (w->transient == win->id && !w->iconic) {
 			stack_floater(w, ws->r);
-			map_window(w);
+			map_window(w, XCB_WINDOW_NONE);
 		}
 }
 
@@ -4592,30 +4672,73 @@ send_to_rg(struct swm_region *r, union arg *args)
 	send_to_ws(r, &a);
 }
 
+struct swm_region *
+region_under(struct swm_screen *s, int x, int y)
+{
+	struct swm_region	*r = NULL;
+
+	TAILQ_FOREACH(r, &s->rl, entry) {
+		DNPRINTF(SWM_D_MISC, "region_under: ws: %d, region g: (%d,%d) "
+		    "%d x %d, coords: (%d,%d)\n", r->ws->idx, X(r), Y(r),
+		    WIDTH(r), HEIGHT(r), x, y);
+		if (X(r) <= x && x < MAX_X(r))
+			if (Y(r) <= y && y < MAX_Y(r))
+				return (r);
+	}
+
+	return (NULL);
+}
+
 void
 send_to_ws(struct swm_region *r, union arg *args)
 {
 	int			wsid = args->id;
-	struct ws_win		*win = NULL, *parent;
-	struct workspace	*ws, *nws, *pws;
-	char			ws_idx_str[SWM_PROPLEN];
-
-	if (wsid >= workspace_limit)
-		return;
+	struct ws_win		*win = NULL;
 
 	if (r && r->ws && r->ws->focus)
 		win = r->ws->focus;
 	else
 		return;
 
+	DNPRINTF(SWM_D_MOVE, "send_to_ws: win 0x%x, ws %d\n", win->id, wsid);
+
+	win_to_ws(win, wsid, 1);
+
+	/* Restack and set new focus. */
+	stack();
+
+	if (focus_mode != SWM_FOCUS_FOLLOW) {
+		if (r->ws->focus_pending) {
+			focus_win(r->ws->focus_pending);
+			r->ws->focus_pending = NULL;
+		} else {
+			xcb_set_input_focus(conn,
+			    XCB_INPUT_FOCUS_PARENT, r->id,
+			    XCB_CURRENT_TIME);
+		}
+	}
+
+	focus_flush();
+}
+
+void
+win_to_ws(struct ws_win *win, int wsid, int unfocus)
+{
+	struct ws_win		*parent;
+	struct workspace	*ws, *nws, *pws;
+	char			ws_idx_str[SWM_PROPLEN];
+
+	if (wsid >= workspace_limit)
+		return;
+
 	if (win->ws->idx == wsid)
 		return;
 
-	DNPRINTF(SWM_D_MOVE, "send_to_ws: win 0x%x, ws %d -> %d\n", win->id,
-	    win->ws->idx, wsid);
-
 	ws = win->ws;
 	nws = &win->s->ws[wsid];
+
+	DNPRINTF(SWM_D_MOVE, "win_to_ws: win 0x%x, ws %d -> %d\n", win->id,
+	    ws->idx, wsid);
 
 	/* Update the window's workspace property: _SWM_WS */
 	if (snprintf(ws_idx_str, SWM_PROPLEN, "%d", nws->idx) < SWM_PROPLEN) {
@@ -4650,7 +4773,7 @@ send_to_ws(struct swm_region *r, union arg *args)
 				TAILQ_INSERT_TAIL(&nws->winlist, parent, entry);
 				parent->ws = nws;
 
-				DNPRINTF(SWM_D_PROP, "send_to_ws: set "
+				DNPRINTF(SWM_D_PROP, "win_to_ws: set "
 				    "property: _SWM_WS: %s\n", ws_idx_str);
 				xcb_change_property(conn, XCB_PROP_MODE_REPLACE,
 				    parent->id, a_swm_ws, XCB_ATOM_STRING, 8,
@@ -4658,7 +4781,8 @@ send_to_ws(struct swm_region *r, union arg *args)
 			}
 		}
 
-		unfocus_win(win);
+		if (unfocus)
+			unfocus_win(win);
 
 		/* Don't unmap if new ws is visible */
 		if (nws->r == NULL)
@@ -4673,30 +4797,14 @@ send_to_ws(struct swm_region *r, union arg *args)
 		unfocus_win(nws->focus);
 		nws->focus = win;
 
-		DNPRINTF(SWM_D_PROP, "send_to_ws: set property: _SWM_WS: %s\n",
+		DNPRINTF(SWM_D_PROP, "win_to_ws: set property: _SWM_WS: %s\n",
 		    ws_idx_str);
 		xcb_change_property(conn, XCB_PROP_MODE_REPLACE, win->id,
 		    a_swm_ws, XCB_ATOM_STRING, 8, strlen(ws_idx_str),
 		    ws_idx_str);
-
-		/* Restack and set new focus. */
-		stack();
-
-		if (focus_mode != SWM_FOCUS_FOLLOW) {
-			if (ws->focus_pending) {
-				focus_win(ws->focus_pending);
-				ws->focus_pending = NULL;
-			} else {
-				xcb_set_input_focus(conn,
-				    XCB_INPUT_FOCUS_PARENT, r->id,
-				    XCB_CURRENT_TIME);
-			}
-		}
-
-		focus_flush();
 	}
 
-	DNPRINTF(SWM_D_MOVE, "send_to_ws: done.\n");
+	DNPRINTF(SWM_D_MOVE, "win_to_ws: done.\n");
 }
 
 void
@@ -5217,11 +5325,11 @@ floating_toggle_win(struct ws_win *win)
 	if (win->floating) {
 		if (!win->floatmaxed) {
 			/* retain position for refloat */
-			store_float_geom(win, r);
+			store_float_geom(win);
 		}
 		win->floating = 0;
 	} else {
-		load_float_geom(win, r);
+		load_float_geom(win);
 		win->floating = 1;
 	}
 
@@ -5256,37 +5364,85 @@ floating_toggle(struct swm_region *r, union arg *args)
 }
 
 void
-constrain_window(struct ws_win *win, struct swm_region *r, int resizable)
+region_containment(struct ws_win *win, struct swm_region *r, int opts)
 {
-	if (MAX_X(win) + BORDER(win) > MAX_X(r)) {
-		if (resizable)
-			WIDTH(win) = MAX_X(r) - X(win) - BORDER(win);
+	struct swm_geometry		g = r->g;
+	int				rt, lt, tp, bm, bw;
+
+	bw = (opts & SWM_CW_SOFTBOUNDARY) ? boundary_width : 0;
+
+	/*
+	 * Perpendicular distance of each side of the window to the respective
+	 * side of the region boundary.  Positive values indicate the side of
+	 * the window has passed beyond the region boundary.
+	 */
+	rt = opts & SWM_CW_RIGHT ? MAX_X(win) + BORDER(win) - MAX_X(r) : bw;
+	lt = opts & SWM_CW_LEFT ? X(r) - X(win) + BORDER(win) : bw;
+	bm = opts & SWM_CW_BOTTOM ? MAX_Y(win) + BORDER(win) - MAX_Y(r) : bw;
+	tp = opts & SWM_CW_TOP ? Y(r) - Y(win) + BORDER(win) : bw;
+
+	DNPRINTF(SWM_D_MISC, "region_containment: win 0x%x, rt: %d, lt: %d, "
+	    "bm: %d, tp: %d, SOFTBOUNDARY: %s, HARDBOUNDARY: %s\n", win->id, rt,
+	    lt, bm, tp, YESNO(opts & SWM_CW_SOFTBOUNDARY),
+	    YESNO(opts & SWM_CW_HARDBOUNDARY));
+
+	/*
+	 * Disable containment if any of the flagged sides went beyond the
+	 * containment boundary, or if containment is disabled.
+	 */
+	if (!(opts & SWM_CW_HARDBOUNDARY || opts & SWM_CW_SOFTBOUNDARY) ||
+	    (bw != 0 && ((rt > bw) || (lt > bw) || (bm > bw) || (tp > bw)))) {
+		/* Make sure window has at least 1 pixel in the region */
+		g.x += 1 - WIDTH(win);
+		g.y += 1 - HEIGHT(win);
+		g.w += 2 * WIDTH(win) - 2;
+		g.h += 2 * HEIGHT(win) - 2;
+	}
+
+	constrain_window(win, &g, &opts);
+}
+
+/* Move or resize a window so that flagged side(s) fit into the supplied box. */
+void
+constrain_window(struct ws_win *win, struct swm_geometry *b, int *opts)
+{
+	DNPRINTF(SWM_D_MISC, "constrain_window: window: 0x%x, (x,y) w x h: "
+	    "(%d,%d) %d x %d, box: (x,y) w x h: (%d,%d) %d x %d, rt: %s, "
+	    "lt: %s, bt: %s, tp: %s, allow resize: %s\n", win->id, X(win),
+	    Y(win), WIDTH(win), HEIGHT(win), b->x, b->y, b->w, b->h,
+	    YESNO(*opts & SWM_CW_RIGHT), YESNO(*opts & SWM_CW_LEFT),
+	    YESNO(*opts & SWM_CW_BOTTOM), YESNO(*opts & SWM_CW_TOP),
+	    YESNO(*opts & SWM_CW_RESIZABLE));
+
+	if ((*opts & SWM_CW_RIGHT) && MAX_X(win) + BORDER(win) > b->x + b->w) {
+		if (*opts & SWM_CW_RESIZABLE)
+			WIDTH(win) = b->x + b->w - X(win) - BORDER(win);
 		else
-			X(win) = MAX_X(r)- WIDTH(win) - BORDER(win);
+			X(win) = b->x + b->w - WIDTH(win) - BORDER(win);
 	}
 
-	if (X(win) + BORDER(win) < X(r)) {
-		if (resizable)
-			WIDTH(win) -= X(r) - X(win) - BORDER(win);
+	if ((*opts & SWM_CW_LEFT) && X(win) + BORDER(win) < b->x) {
+		if (*opts & SWM_CW_RESIZABLE)
+			WIDTH(win) -= b->x - X(win) - BORDER(win);
 
-		X(win) = X(r) - BORDER(win);
+		X(win) = b->x - BORDER(win);
 	}
 
-	if (MAX_Y(win) + BORDER(win) > MAX_Y(r)) {
-		if (resizable)
-			HEIGHT(win) = MAX_Y(r) - Y(win) - BORDER(win);
+	if ((*opts & SWM_CW_BOTTOM) && MAX_Y(win) + BORDER(win) > b->y + b->h) {
+		if (*opts & SWM_CW_RESIZABLE)
+			HEIGHT(win) = b->y + b->h - Y(win) - BORDER(win);
 		else
-			Y(win) = MAX_Y(r) - HEIGHT(win) - BORDER(win);
+			Y(win) = b->y + b->h - HEIGHT(win) - BORDER(win);
 	}
 
-	if (Y(win) + BORDER(win) < Y(r)) {
-		if (resizable)
-			HEIGHT(win) -= Y(r) - Y(win) - BORDER(win);
+	if ((*opts & SWM_CW_TOP) && Y(win) + BORDER(win) < b->y) {
+		if (*opts & SWM_CW_RESIZABLE)
+			HEIGHT(win) -= b->y - Y(win) - BORDER(win);
 
-		Y(win) = Y(r) - BORDER(win);
+		Y(win) = b->y - BORDER(win);
 	}
 
-	if (resizable) {
+	if (*opts & SWM_CW_RESIZABLE) {
 		if (WIDTH(win) < 1)
 			WIDTH(win) = 1;
 		if (HEIGHT(win) < 1)
@@ -5360,7 +5516,7 @@ resize(struct ws_win *win, union arg *args)
 
 	/* It's possible for win to have been freed during focus_flush(). */
 	if (validate_win(win)) {
-		DNPRINTF(SWM_D_EVENT, "move: invalid win.\n");
+		DNPRINTF(SWM_D_EVENT, "resize: invalid win.\n");
 		goto out;
 	}
 
@@ -5385,11 +5541,16 @@ resize(struct ws_win *win, union arg *args)
 		break;
 	}
 	if (resize_stp) {
-		constrain_window(win, r, 1);
+		region_containment(win, r, SWM_CW_ALLSIDES | SWM_CW_RESIZABLE |
+		    SWM_CW_HARDBOUNDARY);
 		update_window(win);
-		store_float_geom(win,r);
+		store_float_geom(win);
 		return;
 	}
+
+	region_containment(win, r, SWM_CW_ALLSIDES | SWM_CW_RESIZABLE |
+	    SWM_CW_SOFTBOUNDARY);
+	update_window(win);
 
 	/* get cursor offset from window root */
 	xpr = xcb_query_pointer_reply(conn, xcb_query_pointer(conn, win->id),
@@ -5472,11 +5633,13 @@ resize(struct ws_win *win, union arg *args)
 				WIDTH(win) = g.w + dx;
 			}
 
-			constrain_window(win, r, 1);
-
 			/* not free, don't sync more than 120 times / second */
 			if ((mne->time - timestamp) > (1000 / 120) ) {
 				timestamp = mne->time;
+				regionize(win, mne->root_x, mne->root_y);
+				region_containment(win, r, SWM_CW_ALLSIDES |
+				    SWM_CW_RESIZABLE | SWM_CW_HARDBOUNDARY |
+				    SWM_CW_SOFTBOUNDARY);
 				update_window(win);
 				xcb_flush(conn);
 			}
@@ -5486,7 +5649,7 @@ resize(struct ws_win *win, union arg *args)
 
 			/* It's possible for win to have been freed above. */
 			if (validate_win(win)) {
-				DNPRINTF(SWM_D_EVENT, "move: invalid win.\n");
+				DNPRINTF(SWM_D_EVENT, "resize: invalid win.\n");
 				goto out;
 			}
 			break;
@@ -5494,10 +5657,12 @@ resize(struct ws_win *win, union arg *args)
 		free(evt);
 	}
 	if (timestamp) {
+		region_containment(win, r, SWM_CW_ALLSIDES | SWM_CW_RESIZABLE |
+		    SWM_CW_HARDBOUNDARY | SWM_CW_SOFTBOUNDARY);
 		update_window(win);
 		xcb_flush(conn);
 	}
-	store_float_geom(win,r);
+	store_float_geom(win);
 out:
 	xcb_ungrab_pointer(conn, XCB_CURRENT_TIME);
 	free(xpr);
@@ -5516,6 +5681,23 @@ resize_step(struct swm_region *r, union arg *args)
 
 	resize(win, args);
 	focus_flush();
+}
+
+/* Try to set window region based on supplied coordinates or window center. */
+void
+regionize(struct ws_win *win, int x, int y)
+{
+	struct swm_region *r = NULL;
+
+	r = region_under(win->s, x, y);
+	if (r == NULL)
+		r = region_under(win->s, X(win) + WIDTH(win) / 2,
+		    Y(win) + HEIGHT(win) / 2);
+
+	if (r && r != win->ws->r) {
+		win_to_ws(win, r->ws->idx, 0);
+		set_region(r);
+	}
 }
 
 #define SWM_MOVE_STEPS	(50)
@@ -5544,16 +5726,19 @@ move(struct ws_win *win, union arg *args)
 	if (win->ws->cur_layout == &layouts[SWM_MAX_STACK] && !win->transient)
 		return;
 
-	win->manual = 1;
-	if (!win->floating && !win->transient) {
-		store_float_geom(win, r);
-		ewmh_update_win_state(win, ewmh[_NET_WM_STATE_ABOVE].atom,
+	if (!win->manual) {
+		win->manual = 1;
+		ewmh_update_win_state(win, ewmh[_SWM_WM_STATE_MANUAL].atom,
 		    _NET_WM_STATE_ADD);
 	}
-	ewmh_update_win_state(win, ewmh[_SWM_WM_STATE_MANUAL].atom,
-	    _NET_WM_STATE_ADD);
 
-	stack();
+	/* When a stacked win is moved, float it and restack. */
+	if (!win->floating && !win->transient) {
+		store_float_geom(win);
+		ewmh_update_win_state(win, ewmh[_NET_WM_STATE_ABOVE].atom,
+		    _NET_WM_STATE_ADD);
+		stack();
+	}
 
 	focus_flush();
 
@@ -5585,9 +5770,10 @@ move(struct ws_win *win, union arg *args)
 		break;
 	}
 	if (move_stp) {
-		constrain_window(win, r, 0);
+		regionize(win, -1, -1);
+		region_containment(win, win->ws->r, SWM_CW_ALLSIDES);
 		update_window(win);
-		store_float_geom(win, r);
+		store_float_geom(win);
 		return;
 	}
 
@@ -5603,6 +5789,10 @@ move(struct ws_win *win, union arg *args)
 		return;
 	}
 
+	regionize(win, qpr->root_x, qpr->root_y);
+	region_containment(win, win->ws->r, SWM_CW_ALLSIDES |
+	    SWM_CW_SOFTBOUNDARY);
+	update_window(win);
 	xcb_flush(conn);
 	moving = 1;
 	while (moving && (evt = xcb_wait_for_event(conn))) {
@@ -5613,14 +5803,16 @@ move(struct ws_win *win, union arg *args)
 			break;
 		case XCB_MOTION_NOTIFY:
 			mne = (xcb_motion_notify_event_t *)evt;
+			DNPRINTF(SWM_D_EVENT, "motion: root: 0x%x\n", mne->root);
 			X(win) = mne->root_x - qpr->win_x - border_width;
 			Y(win) = mne->root_y - qpr->win_y - border_width;
-
-			constrain_window(win, r, 0);
 
 			/* not free, don't sync more than 120 times / second */
 			if ((mne->time - timestamp) > (1000 / 120) ) {
 				timestamp = mne->time;
+				regionize(win, mne->root_x, mne->root_y);
+				region_containment(win, win->ws->r,
+				    SWM_CW_ALLSIDES | SWM_CW_SOFTBOUNDARY);
 				update_window(win);
 				xcb_flush(conn);
 			}
@@ -5638,10 +5830,12 @@ move(struct ws_win *win, union arg *args)
 		free(evt);
 	}
 	if (timestamp) {
+		region_containment(win, win->ws->r, SWM_CW_ALLSIDES |
+		    SWM_CW_SOFTBOUNDARY);
 		update_window(win);
 		xcb_flush(conn);
 	}
-	store_float_geom(win, r);
+	store_float_geom(win);
 out:
 	free(qpr);
 	xcb_ungrab_pointer(conn, XCB_CURRENT_TIME);
@@ -6797,6 +6991,7 @@ enum {
 	SWM_S_BAR_FORMAT,
 	SWM_S_BAR_JUSTIFY,
 	SWM_S_BORDER_WIDTH,
+	SWM_S_BOUNDARY_WIDTH,
 	SWM_S_CLOCK_ENABLED,
 	SWM_S_CLOCK_FORMAT,
 	SWM_S_CYCLE_EMPTY,
@@ -6906,6 +7101,11 @@ setconfvalue(char *selector, char *value, int flags)
 		if (border_width < 0)
 			border_width = 0;
 		break;
+	case SWM_S_BOUNDARY_WIDTH:
+		boundary_width = atoi(value);
+		if (boundary_width < 0)
+			boundary_width = 0;
+		break;
 	case SWM_S_CLOCK_ENABLED:
 		clock_enabled = atoi(value);
 		break;
@@ -7001,8 +7201,6 @@ setconfvalue(char *selector, char *value, int flags)
 		break;
 	case SWM_S_TILE_GAP:
 		tile_gap = atoi(value);
-		if (tile_gap < 0)
-			tile_gap = 0;
 		break;
 	case SWM_S_TITLE_CLASS_ENABLED:
 		title_class_enabled = atoi(value);
@@ -7256,6 +7454,7 @@ struct config_option configopt[] = {
 	{ "bar_justify",		setconfvalue,	SWM_S_BAR_JUSTIFY },
 	{ "bind",			setconfbinding,	0 },
 	{ "border_width",		setconfvalue,	SWM_S_BORDER_WIDTH },
+	{ "boundary_width",		setconfvalue,	SWM_S_BOUNDARY_WIDTH },
 	{ "clock_enabled",		setconfvalue,	SWM_S_CLOCK_ENABLED },
 	{ "clock_format",		setconfvalue,	SWM_S_CLOCK_FORMAT },
 	{ "color_focus",		setconfcolor,	SWM_S_COLOR_FOCUS },
@@ -7630,8 +7829,6 @@ manage_window(xcb_window_t id, uint16_t mapped)
 	win->ewmh_flags = 0;
 	win->s = r->s;	/* this never changes */
 
-	store_float_geom(win, r);
-
 	/* Get WM_SIZE_HINTS. */
 	xcb_icccm_get_wm_normal_hints_reply(conn,
 	    xcb_icccm_get_wm_normal_hints(conn, win->id),
@@ -7693,6 +7890,9 @@ manage_window(xcb_window_t id, uint16_t mapped)
 		    ws_idx_str);
 	}
 
+	/* WS must already be set for this to work. */
+	store_float_geom(win);
+
 	/* Handle EWMH */
 	ewmh_autoquirk(win);
 
@@ -7736,7 +7936,8 @@ manage_window(xcb_window_t id, uint16_t mapped)
 
 	/* Make sure window is positioned inside its region, if its active. */
 	if (win->ws->r) {
-		constrain_window(win, win->ws->r, 0);
+		region_containment(win, r, SWM_CW_ALLSIDES |
+		    SWM_CW_HARDBOUNDARY);
 		update_window(win);
 	}
 
@@ -8409,8 +8610,12 @@ maprequest(xcb_map_request_event_t *e)
 				if (w == win || !w->mapped)
 					continue;
 
-				if (!strcmp(w->ch.class_name,
+				if (w->ch.class_name &&
+				    win->ch.class_name &&
+				    !strcmp(w->ch.class_name,
 				    win->ch.class_name) &&
+				    w->ch.instance_name &&
+				    win->ch.instance_name &&
 				    !strcmp(w->ch.instance_name,
 				    win->ch.instance_name))
 					break;
