@@ -378,8 +378,16 @@ In xterm, for example, one needs to add the following line
 to
 .Pa .Xdefaults .
 .It Ic verbose_layout
-Enable or disable displaying the current master and stack values in the
-status bar. Enable by setting to 1.
+Enable or disable displaying the current master window count and stack column/row
+count in the status bar.
+Enable by setting to 1.
+See
+.Pa master_add ,
+.Pa master_del ,
+.Pa stack_inc
+and
+.Pa stack_dec
+for more information.
 .It Ic window_name_enabled
 Enable or disable displaying the window name in the status bar.
 Enable by setting to 1.
@@ -401,29 +409,11 @@ See the
 .Sx BINDINGS
 section below.
 .Pp
-The default programs are described below:
-.Pp
-.Bl -tag -width "screenshot_wind" -offset indent -compact
-.It Cm term
-xterm
-.It Cm screenshot_all
-screenshot.sh full
-.It Cm screenshot_wind
-screenshot.sh window
-.It Cm lock
-xlock
-.It Cm initscr
-initscreen.sh
-.It Cm menu
-dmenu_run \-fn $bar_font \-nb $bar_color \-nf $bar_font_color \-sb
-$bar_border \-sf $bar_color
-.El
-.Pp
 Custom programs in the configuration file are specified as follows:
 .Pp
-.Dl program[<name>] = <progpath> [<arg> [... <arg>]]
+.Dl program[<action>] = <progpath> [<arg> [... <arg>]]
 .Pp
-.Aq name
+.Aq action
 is any identifier that does not conflict with a built-in action or keyword,
 .Aq progpath
 is the desired program, and
@@ -450,13 +440,47 @@ is spawned:
 Example:
 .Bd -literal -offset indent
 program[ff] = /usr/local/bin/firefox http://spectrwm.org/
-bind[ff] = Mod+Shift+b # Now Mod+Shift+B launches firefox
+bind[ff] = Mod+Shift+b # Now M-S-b launches firefox
 .Ed
 .Pp
-To undo the previous:
+To cancel the previous, unbind it:
 .Bd -literal -offset indent
 bind[] = Mod+Shift+b
-program[ff] =
+.Ed
+.Pp
+Default programs:
+.Bl -tag -width "screenshot_wind" -offset indent -compact
+.It Cm lock
+xlock
+.It Cm menu
+dmenu_run \-fn $bar_font \-nb $bar_color \-nf $bar_font_color \-sb
+$bar_border \-sf $bar_color
+.It Cm term
+xterm
+.It Cm initscr
+initscreen.sh        # optional
+.It Cm screenshot_all
+screenshot.sh full   # optional
+.It Cm screenshot_wind
+screenshot.sh window # optional
+.El
+.Pp
+Note that optional default programs will not be validated unless overridden.
+If a default program fails validation, you can resolve the exception
+by installing the program, modifying the program call or disabling the program
+by freeing the respective key binding.
+.Pp
+For example, to override
+.Ic lock :
+.Bd -literal -offset indent
+program[lock] = xscreensaver-command --lock
+.Ed
+.Pp
+To unbind
+.Ic lock
+and prevent it from being validated:
+.Bd -literal -offset indent
+bind[] = MOD+Shift+Delete
 .Ed
 .Sh BINDINGS
 .Nm
@@ -547,6 +571,10 @@ ws_next_all
 .It Cm M- Ns Aq Cm Down
 ws_prev_all
 .It Cm M-a
+ws_next_move
+.It Cm M-S- Ns Aq Cm Left
+ws_prev_move
+.It Cm M-S- Ns Aq Cm Up
 ws_prior
 .It Cm M-S- Ns Aq Cm Right
 rg_next
@@ -685,6 +713,10 @@ Switch to previous workspace with a window in it.
 Switch to next workspace.
 .It Cm ws_prev_all
 Switch to previous workspace.
+.It Cm ws_next_move
+Switch to next workspace with the current window.
+.It Cm ws_prev_move
+Switch to previous workspace with the current window.
 .It Cm ws_prior
 Switch to last visited workspace.
 .It Cm rg_next
@@ -752,12 +784,13 @@ Custom bindings in the configuration file are specified as follows:
 .Dl bind[<action>] = <keys>
 .Pp
 .Aq action
-is one of the actions listed above (or empty) and
+is one of the actions listed above (or empty to unbind) and
 .Aq keys
 is in the form of zero or more modifier keys
 (MOD, Mod1, Shift, etc.) and one or more normal keys
 (b, space, etc.), separated by "+".
-For example:
+.Pp
+Example:
 .Bd -literal -offset indent
 bind[reset] = Mod4+q # bind Windows-key + q to reset
 bind[] = Mod1+q # unbind Alt + q
@@ -863,6 +896,17 @@ Remove border to allow window to use full region size.
 .It FOCUSPREV
 On exit force focus on previously focused application not previous
 application in the stack.
+.It NOFOCUSONMAP
+Don't change focus to the window when it first appears on the screen.
+Has no effect when
+.Ic focus_mode
+is set to follow.
+.It FOCUSONMAP_SINGLE
+When the window first appears on the screen, change focus to the window
+if there are no other windows on the workspace with the same class/name.
+Has no effect when
+.Ic focus_mode
+is set to follow.
 .El
 .Pp
 Custom quirks in the configuration file are specified as follows:
