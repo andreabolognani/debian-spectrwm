@@ -10,12 +10,13 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2014-04-27
 Index: spectrwm.git/linux/Makefile
 ===================================================================
---- spectrwm.git.orig/linux/Makefile	2014-04-27 18:18:01.060085369 +0200
-+++ spectrwm.git/linux/Makefile	2014-04-27 18:25:09.000106081 +0200
+--- spectrwm.git.orig/linux/Makefile	2014-04-27 20:02:00.332387332 +0200
++++ spectrwm.git/linux/Makefile	2014-04-27 20:04:48.716395482 +0200
 @@ -1,55 +1,74 @@
--CFLAGS+= -std=c99 -Wmissing-prototypes -Wall -Wextra -Wshadow -Wno-uninitialized -g
--CFLAGS+= -D_GNU_SOURCE -I. -I/usr/include/freetype2 -DSWM_LIB=\"libswmhack.so.$(LVERS)\"
--LDADD+= -lX11 -lX11-xcb -lxcb -lxcb-icccm -lxcb-randr -lxcb-keysyms -lxcb-util -lxcb-xtest -lXft -lXcursor
+-PREFIX?= /usr/local
+-BINDIR?= $(PREFIX)/bin
+-LIBDIR?= $(PREFIX)/lib
+-MANDIR?= $(PREFIX)/share/man
 +PREFIX       ?= /usr/local
 +BINDIR       ?= $(PREFIX)/bin
 +LIBDIR       ?= $(PREFIX)/lib
@@ -31,14 +32,13 @@ Index: spectrwm.git/linux/Makefile
 +MAINT_CPPFLAGS = -D_GNU_SOURCE -I. -I/usr/include/freetype2 -DSWM_LIB=\"$(LIBDIR)/libswmhack.so.$(LIBVERSION)\"
 +MAINT_LDLIBS   = -lX11 -lX11-xcb -lxcb -lxcb-icccm -lxcb-randr -lxcb-keysyms -lxcb-util -lxcb-xtest -lXft -lXcursor
  
--PREFIX?= /usr/local
--BINDIR?= $(PREFIX)/bin
--LIBDIR?= $(PREFIX)/lib
--MANDIR?= $(PREFIX)/share/man
+-LVERS= $(shell . ../lib/shlib_version; echo $$major.$$minor)
+-
+-CFLAGS+= -std=c99 -Wmissing-prototypes -Wall -Wextra -Wshadow -Wno-uninitialized -g
+-CFLAGS+= -D_GNU_SOURCE -I. -I/usr/include/freetype2 -DSWM_LIB=\"$(LIBDIR)/libswmhack.so.$(LVERS)\"
+-LDADD+= -lX11 -lX11-xcb -lxcb -lxcb-icccm -lxcb-randr -lxcb-keysyms -lxcb-util -lxcb-xtest -lXft -lXcursor
 -
 -CC?= cc
--
--LVERS= $(shell . ../lib/shlib_version; echo $$major.$$minor)
 -
 -BUILDVERSION= $(shell sh $(CURDIR)/../buildver.sh)
  ifneq ("${BUILDVERSION}", "")

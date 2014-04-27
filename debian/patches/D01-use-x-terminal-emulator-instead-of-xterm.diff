@@ -6,9 +6,9 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2014-04-27
 Index: spectrwm.git/spectrwm.conf
 ===================================================================
---- spectrwm.git.orig/spectrwm.conf	2014-04-27 17:02:15.000000000 +0200
-+++ spectrwm.git/spectrwm.conf	2014-04-27 19:22:23.808272315 +0200
-@@ -55,7 +55,7 @@
+--- spectrwm.git.orig/spectrwm.conf	2014-04-27 19:34:56.320308735 +0200
++++ spectrwm.git/spectrwm.conf	2014-04-27 20:04:55.132395793 +0200
+@@ -57,7 +57,7 @@
  # region		= screen[1]:1280x1024+1280+0
  
  # Launch applications in a workspace of choice
@@ -17,7 +17,7 @@ Index: spectrwm.git/spectrwm.conf
  # autorun		= ws[2]:xombrero http://www.openbsd.org
  
  # Customize workspace layout at start
-@@ -75,7 +75,7 @@
+@@ -83,7 +83,7 @@
  
  # Validated default programs:
  # program[lock]		= xlock
@@ -28,9 +28,9 @@ Index: spectrwm.git/spectrwm.conf
  # To disable validation of the above, free the respective binding(s):
 Index: spectrwm.git/spectrwm.c
 ===================================================================
---- spectrwm.git.orig/spectrwm.c	2014-04-27 17:08:52.000000000 +0200
-+++ spectrwm.git/spectrwm.c	2014-04-27 19:22:52.600273709 +0200
-@@ -6451,8 +6451,8 @@
+--- spectrwm.git.orig/spectrwm.c	2014-04-27 19:34:56.320308735 +0200
++++ spectrwm.git/spectrwm.c	2014-04-27 20:04:55.140395792 +0200
+@@ -7010,8 +7010,8 @@
  {
  	setconfspawn("lock",		"xlock",		0);
  
