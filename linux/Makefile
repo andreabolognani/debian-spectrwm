@@ -1,5 +1,5 @@
-CFLAGS+= -std=c99 -Wall -Wextra -Wmissing-prototypes -Wshadow -g -D_GNU_SOURCE -I. -I/usr/include/freetype2
-CFLAGS+= -DSWM_LIB=\"$(LIBDIR)/libswmhack.so.$(LVERS)\"
+CFLAGS+= -std=c99 -Wmissing-prototypes -Wall -Wextra -Wshadow -Wno-uninitialized -g
+CFLAGS+= -D_GNU_SOURCE -I. -I/usr/include/freetype2 -DSWM_LIB=\"libswmhack.so.$(LVERS)\"
 LDADD+= -lX11 -lX11-xcb -lxcb -lxcb-icccm -lxcb-randr -lxcb-keysyms -lxcb-util -lxcb-xtest -lXft -lXcursor
 
 PREFIX?= /usr/local
@@ -7,7 +7,7 @@ BINDIR?= $(PREFIX)/bin
 LIBDIR?= $(PREFIX)/lib
 MANDIR?= $(PREFIX)/share/man
 
-CC?= gcc
+CC?= cc
 
 LVERS= $(shell . ../lib/shlib_version; echo $$major.$$minor)
 
@@ -32,7 +32,7 @@ spectrwm: spectrwm.o linux.o
 	$(CC) $(CFLAGS) -c -fpic -DPIC $+ -o $@
 
 libswmhack.so.$(LVERS): swm_hack.so
-	$(CC) -shared -fpic -o libswmhack.so.$(LVERS) swm_hack.so $(LDADD)
+	$(CC) $(LDFLAGS) -Wl,-soname,$@ -shared -fpic -o libswmhack.so.$(LVERS) swm_hack.so $(LDADD)
 
 install: all
 	install -m 755 -d $(DESTDIR)$(BINDIR)
@@ -45,9 +45,9 @@ install: all
 	install -m 644 ../spectrwm_it.1 $(DESTDIR)$(MANDIR)/man1/spectrwm_it.1
 	install -m 644 ../spectrwm_pt.1 $(DESTDIR)$(MANDIR)/man1/spectrwm_pt.1
 	install -m 644 ../spectrwm_ru.1 $(DESTDIR)$(MANDIR)/man1/spectrwm_ru.1
-	ln -sf $(BINDIR)/spectrwm $(DESTDIR)$(BINDIR)/scrotwm
-	ln -sf $(LIBDIR)/libswmhack.so.0.0 $(DESTDIR)$(LIBDIR)/libswmhack.so.0
-	ln -sf $(LIBDIR)/libswmhack.so.0.0 $(DESTDIR)$(LIBDIR)/libswmhack.so
+	ln -sf spectrwm $(DESTDIR)$(BINDIR)/scrotwm
+	ln -sf libswmhack.so.0.0 $(DESTDIR)$(LIBDIR)/libswmhack.so.0
+	ln -sf libswmhack.so.0.0 $(DESTDIR)$(LIBDIR)/libswmhack.so
 
 clean:
 	rm -f spectrwm *.o *.so libswmhack.so.* spectrwm.c swm_hack.c version.h
