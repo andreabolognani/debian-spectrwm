@@ -3,12 +3,34 @@ Description: use x-terminal-emulator instead of xterm
  use it instead of xterm in the default configuration.
 Forwarded: not-needed
 Author: Andrea Bolognani <eof@kiyuko.org>
-Last-Update: 2014-04-21
+Last-Update: 2014-04-27
+Index: spectrwm.git/spectrwm.conf
+===================================================================
+--- spectrwm.git.orig/spectrwm.conf	2014-04-27 17:02:15.000000000 +0200
++++ spectrwm.git/spectrwm.conf	2014-04-27 19:22:23.808272315 +0200
+@@ -55,7 +55,7 @@
+ # region		= screen[1]:1280x1024+1280+0
+ 
+ # Launch applications in a workspace of choice
+-# autorun		= ws[1]:xterm
++# autorun		= ws[1]:x-terminal-emulator
+ # autorun		= ws[2]:xombrero http://www.openbsd.org
+ 
+ # Customize workspace layout at start
+@@ -75,7 +75,7 @@
+ 
+ # Validated default programs:
+ # program[lock]		= xlock
+-# program[term]		= xterm
++# program[term]		= x-terminal-emulator
+ # program[menu]		= dmenu_run $dmenu_bottom -fn $bar_font -nb $bar_color -nf $bar_font_color -sb $bar_border -sf $bar_color
+ 
+ # To disable validation of the above, free the respective binding(s):
 Index: spectrwm.git/spectrwm.c
 ===================================================================
---- spectrwm.git.orig/spectrwm.c	2014-04-21 20:26:18.292009951 +0200
-+++ spectrwm.git/spectrwm.c	2014-04-21 20:39:15.456039504 +0200
-@@ -6318,8 +6318,8 @@
+--- spectrwm.git.orig/spectrwm.c	2014-04-27 17:08:52.000000000 +0200
++++ spectrwm.git/spectrwm.c	2014-04-27 19:22:52.600273709 +0200
+@@ -6451,8 +6451,8 @@
  {
  	setconfspawn("lock",		"xlock",		0);
  
@@ -18,26 +40,4 @@ Index: spectrwm.git/spectrwm.c
 +	setconfspawn("spawn_term",	"x-terminal-emulator",	0);
  
  	setconfspawn("menu",		"dmenu_run"
- 					" -fn $bar_font"
-Index: spectrwm.git/spectrwm.conf
-===================================================================
---- spectrwm.git.orig/spectrwm.conf	2014-04-21 20:26:18.292009951 +0200
-+++ spectrwm.git/spectrwm.conf	2014-04-21 20:39:15.456039504 +0200
-@@ -54,7 +54,7 @@
- # region		= screen[1]:1280x1024+1280+0
- 
- # Launch applications in a workspace of choice
--# autorun		= ws[1]:xterm
-+# autorun		= ws[1]:x-terminal-emulator
- # autorun		= ws[2]:xombrero http://www.openbsd.org
- 
- # Customize workspace layout at start
-@@ -74,7 +74,7 @@
- 
- # Validated default programs:
- # program[lock]		= xlock
--# program[term]		= xterm
-+# program[term]		= x-terminal-emulator
- # program[menu]		= dmenu_run -fn $bar_font -nb $bar_color -nf $bar_font_color -sb $bar_border -sf $bar_color
- 
- # To disable validation of the above, free the respective binding(s):
+ 					" $dmenu_bottom"
