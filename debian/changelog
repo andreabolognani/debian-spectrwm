@@ -1,9 +1,9 @@
-spectrwm (2.4.0-1) unstable; urgency=low
+spectrwm (2.5.0-1) unstable; urgency=low
 
   * New upstream release. Closes: #689226 (please package the
     latest version)
 
- -- Andrea Bolognani <eof@kiyuko.org>  Sun, 27 Apr 2014 19:25:29 +0200
+ -- Andrea Bolognani <eof@kiyuko.org>  Sun, 27 Apr 2014 20:05:59 +0200
 
 spectrwm (1.0.0-1) unstable; urgency=low
 
