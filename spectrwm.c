@@ -3341,11 +3341,6 @@ focus_win(struct ws_win *win)
 	if (validate_ws(ws))
 		goto out;
 
-	ws = win->ws;
-
-	if (validate_ws(ws))
-		goto out;
-
 	if (validate_win(win)) {
 		kill_refs(win);
 		goto out;
@@ -5774,9 +5769,10 @@ regionize(struct ws_win *win, int x, int y)
 	}
 }
 
-/* Try to set window region based on supplied coordinates or window center. */
+#define SWM_MOVE_STEPS	(50)
+
 void
-regionize(struct ws_win *win, int x, int y)
+move(struct ws_win *win, union arg *args)
 {
 	xcb_timestamp_t		timestamp = 0;
 	int			move_stp = 0, moving;
@@ -8894,31 +8890,6 @@ maprequest(xcb_map_request_event_t *e)
 				    win->ch.instance_name &&
 				    strcmp(w->ch.instance_name,
 				    win->ch.instance_name) == 0)
-					break;
-			}
-		}
-
-		if (w == NULL)
-			win->ws->focus_pending = get_focus_magic(win);
-	}
-
-	/* The new window should get focus; prepare. */
-	if (focus_mode != SWM_FOCUS_FOLLOW &&
-	    !(win->quirks & SWM_Q_NOFOCUSONMAP)) {
-		if (win->quirks & SWM_Q_FOCUSONMAP_SINGLE) {
-			/* See if other wins of same type are already mapped. */
-			TAILQ_FOREACH(w, &win->ws->winlist, entry) {
-				if (w == win || !w->mapped)
-					continue;
-
-				if (w->ch.class_name &&
-				    win->ch.class_name &&
-				    !strcmp(w->ch.class_name,
-				    win->ch.class_name) &&
-				    w->ch.instance_name &&
-				    win->ch.instance_name &&
-				    !strcmp(w->ch.instance_name,
-				    win->ch.instance_name))
 					break;
 			}
 		}
