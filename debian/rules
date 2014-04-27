@@ -45,11 +45,12 @@ binary-arch: build
 	dh_md5sums
 	dh_builddeb
 
-# Rebuild the series file by looking at the contents of the patches directory.
+# Rebuild the patches series by looking at the contents of the
+# debian/patches directory.
 #
 # Patches with names starting with D (Debian-specific) should be applied
 # after those with names starting with U (to be forwarded upstream).
-rebuild-series:
+rebuild-patches-series:
 	@( \
 		SERIES=debian/patches/series; \
 		{ \

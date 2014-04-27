@@ -1,4 +1,4 @@
-# To rebuild this file, use `debian/rules rebuild-series'
+# To rebuild this file, use `debian/rules rebuild-patches-series'
 U01-remove-bash-assumptions.diff
 U02-improve-man-page.diff
 U03-update-italian-man-page.diff
