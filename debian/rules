@@ -58,10 +58,10 @@ rebuild-patches-series:
 			for patch in debian/patches/U*.diff debian/patches/D*.diff; \
 			do \
 				test -f "$${patch}" || continue; \
-				patch=$$(basename $${patch}); \
-				echo $${patch}; \
+				patch=$$(basename "$${patch}"); \
+				echo "$${patch}"; \
 			done; \
-		} >$${SERIES}; \
+		} >"$${SERIES}"; \
 	)
 
 .PHONY: build clean binary binary-indep binary-arch rebuild-series
