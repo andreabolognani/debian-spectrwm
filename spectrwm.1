@@ -152,7 +152,6 @@ manpages.
 The
 .Xr xfontsel 1
 application can help with the XLFD setting.
-.Pp
 .It Ic bar_font_color Ns Bq Ar x
 Color of the font in status bar in screen
 .Ar x .
@@ -288,7 +287,7 @@ section below for a list of keyboard mapping files that have been provided
 for several keyboard layouts.
 .It Ic layout
 Select layout to use at start-of-day. Defined in the format
-ws[idx]:master_grow:master_add:stack_inc:layout:always_raise:stack_mode, e.g.
+ws[idx]:master_grow:master_add:stack_inc:always_raise:stack_mode, e.g.
 ws[2]:-4:0:1:0:horizontal sets worskspace 2 to the horizontal stack mode and
 shrinks the master area by 4 ticks and adds one window to the stack, while
 maintaining default floating window behavior.
@@ -319,10 +318,11 @@ This setting is not retained at restart.
 .It Ic modkey
 Change mod key.
 Mod1 is generally the ALT key and Mod4 is the windows key on a PC.
-.It Ic name Ns Bq Ar n
-Set name of workspace
-.Ar n
-at start-of-day.
+.It Ic name
+Set the name of a workspace at start-of-day.
+Defined in the format ws[<idx>]:<name>, e.g. ws[1]:Console sets the name of
+workspace 1 to
+.Dq Console .
 .It Ic program Ns Bq Ar p
 Define new action to spawn a program
 .Ar p .
@@ -626,6 +626,8 @@ initscr
 iconify
 .It Cm M-S-w
 uniconify
+.It Cm M-e
+maximize_toggle
 .It Cm M-S-r
 always_raise
 .It Cm M-v
