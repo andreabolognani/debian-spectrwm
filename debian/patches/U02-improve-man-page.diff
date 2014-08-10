@@ -1,12 +1,12 @@
 Description: Improve manual page
  Fixes and improvements to the English manual page.
-Forwarded: Marco Peereboom <marco@peereboom.us>
+Forwarded: https://github.com/conformal/spectrwm/pull/59
 Author: Andrea Bolognani <eof@kiyuko.org>
-Last-Update: 2014-08-09
+Last-Update: 2014-08-10
 Index: spectrwm.git/spectrwm.1
 ===================================================================
---- spectrwm.git.orig/spectrwm.1	2014-08-08 21:49:41.788075824 +0200
-+++ spectrwm.git/spectrwm.1	2014-08-09 17:44:12.056106366 +0200
+--- spectrwm.git.orig/spectrwm.1	2014-08-10 16:19:45.000000000 +0200
++++ spectrwm.git/spectrwm.1	2014-08-10 16:35:03.716273880 +0200
 @@ -71,7 +71,10 @@
  it then tries to open the global configuration file
  .Pa /etc/spectrwm.conf .
@@ -35,7 +35,7 @@ Index: spectrwm.git/spectrwm.1
  Launch an application in a specified workspace at start-of-day.
 -Defined in the format ws[<idx>]:application, e.g. ws[2]:xterm launches an
 +Defined in the format
-+.Li ws Ns Bo Ar idx Bc Ns : Ns Ar application ,
++.Li ws Ns Bo Ar idx Bc : Ns Ar application ,
 +e.g. ws[2]:xterm launches an
  xterm in workspace 2.
  .It Ic bar_action
@@ -69,12 +69,7 @@ Index: spectrwm.git/spectrwm.1
  .Pp
  Xft examples:
  .Bd -literal -offset indent
-@@ -152,12 +160,11 @@
- The
- .Xr xfontsel 1
- application can help with the XLFD setting.
--.Pp
- .It Ic bar_font_color Ns Bq Ar x
+@@ -156,7 +164,7 @@
  Color of the font in status bar in screen
  .Ar x .
  .It Ic bar_format
@@ -83,7 +78,7 @@ Index: spectrwm.git/spectrwm.1
  .Ic clock_format
  and all of the
  .Ic enabled
-@@ -190,15 +197,14 @@
+@@ -189,15 +197,14 @@
  as-is.
  .It Ic bar_justify
  Justify the status bar text. Possible values are
@@ -105,7 +100,7 @@ Index: spectrwm.git/spectrwm.1
  See the
  .Ic bar_format
  option for more details.
-@@ -220,7 +226,7 @@
+@@ -219,7 +226,7 @@
  Enable or disable displaying the clock in the status bar.
  Disable by setting to 0
  so a custom clock could be used in the
@@ -114,7 +109,7 @@ Index: spectrwm.git/spectrwm.1
  script.
  .It Ic iconic_enabled
  Display the number of iconic (minimized) windows in the status bar.
-@@ -229,12 +235,13 @@
+@@ -228,12 +235,13 @@
  Border color of the currently focused window.  Default is red.
  .It Ic color_focus_maximized
  Border color of the currently focused, maximized window.  Defaults to the
@@ -130,7 +125,7 @@ Index: spectrwm.git/spectrwm.1
  .It Ic dialog_ratio
  Some applications have dialogue windows that are too small to be useful.
  This ratio is the screen size to what they will be resized.
-@@ -245,40 +252,40 @@
+@@ -244,40 +252,40 @@
  .It Ic focus_close
  Window to put focus when the focused window is closed.
  Possible values are
@@ -183,11 +178,11 @@ Index: spectrwm.git/spectrwm.1
  .It Ic keyboard_mapping
  Clear all key bindings and load new key bindings from the specified file.
  This allows you to load pre-defined key bindings for your keyboard layout.
-@@ -288,31 +295,33 @@
+@@ -287,31 +295,33 @@
  for several keyboard layouts.
  .It Ic layout
  Select layout to use at start-of-day. Defined in the format
--ws[idx]:master_grow:master_add:stack_inc:layout:always_raise:stack_mode, e.g.
+-ws[idx]:master_grow:master_add:stack_inc:always_raise:stack_mode, e.g.
 -ws[2]:-4:0:1:0:horizontal sets worskspace 2 to the horizontal stack mode and
 -shrinks the master area by 4 ticks and adds one window to the stack, while
 -maintaining default floating window behavior.
@@ -196,7 +191,7 @@ Index: spectrwm.git/spectrwm.1
 -.Pa vertical_flip ,
 -.Pa horizontal ,
 -.Pa horizontal_flip
-+.Li ws Ns Bo Ar idx Bc : Ns Ar master_grow : Ns Ar master_add : Ns Ar stack_inc : Ns Ar layout : Ns Ar always_raise : Ns Ar stack_mode ,
++.Li ws Ns Bo Ar idx Bc : Ns Ar master_grow : Ns Ar master_add : Ns Ar stack_inc : Ns Ar always_raise : Ns Ar stack_mode ,
 +e.g. ws[2]:-4:0:1:0:horizontal sets worskspace 2 to the horizontal stack
 +mode, shrinks the master area by 4 ticks and adds one window to the
 +stack, while maintaining default floating window behavior.
@@ -235,7 +230,19 @@ Index: spectrwm.git/spectrwm.1
  option.
  .Pp
  This setting is not retained at restart.
-@@ -329,7 +338,7 @@
+@@ -320,8 +330,9 @@
+ Mod1 is generally the ALT key and Mod4 is the windows key on a PC.
+ .It Ic name
+ Set the name of a workspace at start-of-day.
+-Defined in the format ws[<idx>]:<name>, e.g. ws[1]:Console sets the name of
+-workspace 1 to
++Defined in the format
++.Li ws Ns Bo Ar idx Bc : Ns Ar name ,
++e.g. ws[1]:Console sets the name of workspace 1 to
+ .Dq Console .
+ .It Ic program Ns Bq Ar p
+ Define new action to spawn a program
+@@ -329,7 +340,7 @@
  See the
  .Sx PROGRAMS
  section below.
@@ -244,7 +251,7 @@ Index: spectrwm.git/spectrwm.1
  Add "quirk" for windows with class
  .Ar c ,
  instance
-@@ -342,8 +351,9 @@
+@@ -342,8 +353,9 @@
  .It Ic region
  Allocates a custom region, removing any autodetected regions which occupy the
  same space on the screen.
@@ -256,7 +263,7 @@ Index: spectrwm.git/spectrwm.1
  .Pp
  To make a region span multiple monitors, create a region big enough to cover
  them all, e.g. screen[1]:2048x768+0+0 makes the region span two monitors with
-@@ -354,15 +364,15 @@
+@@ -354,15 +366,15 @@
  .It Ic spawn_position
  Position in stack to place newly spawned windows.
  Possible values are
@@ -278,7 +285,7 @@ Index: spectrwm.git/spectrwm.1
  are relative to the focused window.
  .It Ic stack_enabled
  Enable or disable displaying the current stacking algorithm in the status
-@@ -391,8 +401,9 @@
+@@ -391,8 +403,9 @@
  .It Ic urgent_enabled
  Enable or disable the urgency hint indicator in the status bar.
  Note that many terminal emulators require an explicit setting for the bell
@@ -290,7 +297,7 @@ Index: spectrwm.git/spectrwm.1
  .Pa .Xdefaults :
  .Bd -literal -offset indent
  xterm.bellIsUrgent: true
-@@ -402,11 +413,11 @@
+@@ -402,11 +415,11 @@
  count in the status bar.
  Enable by setting to 1.
  See
@@ -306,7 +313,7 @@ Index: spectrwm.git/spectrwm.1
  for more information.
  .It Ic window_class_enabled
  Enable or disable displaying the window class name (from WM_CLASS) in the
-@@ -437,13 +448,13 @@
+@@ -437,13 +450,13 @@
  .Pp
  Custom programs in the configuration file are specified as follows:
  .Pp
@@ -324,7 +331,7 @@ Index: spectrwm.git/spectrwm.1
  is zero or more arguments to the program.
  .Pp
  Remember that when using # in your program call, it must be escaped with a
-@@ -460,7 +471,7 @@
+@@ -460,7 +473,7 @@
  .It Cm $color_focus
  .It Cm $color_unfocus
  .It Cm $dmenu_bottom
@@ -333,7 +340,7 @@ Index: spectrwm.git/spectrwm.1
  .It Cm $region_index
  .It Cm $workspace_index
  .El
-@@ -468,12 +479,12 @@
+@@ -468,12 +481,12 @@
  Example:
  .Bd -literal -offset indent
  program[ff] = /usr/local/bin/firefox http://spectrwm.org/
@@ -348,7 +355,7 @@ Index: spectrwm.git/spectrwm.1
  .Ed
  .Pp
  Default programs:
-@@ -501,7 +512,7 @@
+@@ -501,7 +514,7 @@
  For example, to override
  .Ic lock :
  .Bd -literal -offset indent
@@ -357,7 +364,7 @@ Index: spectrwm.git/spectrwm.1
  .Ed
  .Pp
  To unbind
-@@ -540,7 +551,7 @@
+@@ -540,7 +553,7 @@
  restart
  .It Cm M- Ns Aq Cm Space
  cycle_layout
@@ -366,7 +373,7 @@ Index: spectrwm.git/spectrwm.1
  flip_layout
  .It Cm M-S- Ns Aq Cm Space
  stack_reset
-@@ -718,13 +729,15 @@
+@@ -720,13 +733,15 @@
  .Ar n ,
  where
  .Ar n
@@ -384,7 +391,7 @@ Index: spectrwm.git/spectrwm.1
  .It Cm rg_ Ns Ar n
  Focus on region
  .Ar n ,
-@@ -782,7 +795,9 @@
+@@ -784,7 +799,9 @@
  .It Cm iconify
  Minimize (unmap) currently focused window.
  .It Cm uniconify
@@ -395,7 +402,7 @@ Index: spectrwm.git/spectrwm.1
  .It Cm maximize_toggle
  Toggle maximization of focused window.
  .It Cm always_raise
-@@ -815,14 +830,15 @@
+@@ -817,14 +834,15 @@
  .Pp
  Custom bindings in the configuration file are specified as follows:
  .Pp
@@ -415,7 +422,7 @@ Index: spectrwm.git/spectrwm.1
  .Pp
  Example:
  .Bd -literal -offset indent
-@@ -836,20 +852,22 @@
+@@ -838,20 +856,22 @@
  .Pp
  Multiple key combinations may be bound to the same action.
  .Pp
@@ -443,7 +450,7 @@ Index: spectrwm.git/spectrwm.1
  .Bd -literal -offset indent
  bind[program] = MOD+aring
  .Ed
-@@ -857,7 +875,7 @@
+@@ -859,7 +879,7 @@
  Keyboard mapping files for several keyboard layouts are listed
  below.
  These files can be used with the
@@ -452,7 +459,7 @@ Index: spectrwm.git/spectrwm.1
  setting to load pre-defined key bindings for the specified
  keyboard layout.
  .Pp
-@@ -918,7 +936,8 @@
+@@ -920,7 +940,8 @@
  .It FLOAT
  This window should not be tiled, but allowed to float freely.
  .It TRANSSZ
@@ -462,7 +469,7 @@ Index: spectrwm.git/spectrwm.1
  (see
  .Sx CONFIGURATION FILES ) .
  .It ANYWHERE
-@@ -934,13 +953,15 @@
+@@ -936,13 +957,15 @@
  Don't change focus to the window when it first appears on the screen.
  Has no effect when
  .Ic focus_mode
@@ -480,7 +487,7 @@ Index: spectrwm.git/spectrwm.1
  .It OBEYAPPFOCUSREQ
  When an application requests focus on the window via a _NET_ACTIVE_WINDOW
  client message (source indication of 1), comply with the request.
-@@ -950,15 +971,15 @@
+@@ -952,15 +975,15 @@
  .Pp
  Custom quirks in the configuration file are specified as follows:
  .Pp
@@ -502,7 +509,7 @@ Index: spectrwm.git/spectrwm.1
  is one of the quirks from the list above.
  .Pp
  Note that patterns are interpreted as POSIX Extended Regular Expressions.
-@@ -983,16 +1004,16 @@
+@@ -985,16 +1008,16 @@
  .Ed
  .Pp
  You can obtain
@@ -523,7 +530,7 @@ Index: spectrwm.git/spectrwm.1
  WM_CLASS(STRING) = "Navigator", "Firefox"
  WM_NAME(STRING) = "spectrwm - ConformalOpenSource"
  _NET_WM_NAME(UTF8_STRING) = "spectrwm - ConformalOpenSource"
-@@ -1004,6 +1025,7 @@
+@@ -1006,6 +1029,7 @@
  .Bd -literal -offset indent
  WM_CLASS(STRING) = "<instance>", "<class>"
  .Ed
@@ -531,7 +538,7 @@ Index: spectrwm.git/spectrwm.1
  In the example above the quirk entry would be:
  .Bd -literal -offset indent
  quirk[Firefox:Navigator] = FLOAT
-@@ -1084,8 +1106,8 @@
+@@ -1086,8 +1110,8 @@
  For example, the following toggles the floating state of
  a window using
  .Xr wmctrl 1

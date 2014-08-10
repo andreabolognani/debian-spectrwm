@@ -6,8 +6,8 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2014-04-27
 Index: spectrwm.git/spectrwm.conf
 ===================================================================
---- spectrwm.git.orig/spectrwm.conf	2014-04-27 19:34:56.320308735 +0200
-+++ spectrwm.git/spectrwm.conf	2014-04-27 20:04:55.132395793 +0200
+--- spectrwm.git.orig/spectrwm.conf	2014-08-08 21:17:17.812036164 +0200
++++ spectrwm.git/spectrwm.conf	2014-08-10 16:37:53.124282080 +0200
 @@ -57,7 +57,7 @@
  # region		= screen[1]:1280x1024+1280+0
  
@@ -28,9 +28,9 @@ Index: spectrwm.git/spectrwm.conf
  # To disable validation of the above, free the respective binding(s):
 Index: spectrwm.git/spectrwm.c
 ===================================================================
---- spectrwm.git.orig/spectrwm.c	2014-04-27 19:34:56.320308735 +0200
-+++ spectrwm.git/spectrwm.c	2014-04-27 20:04:55.140395792 +0200
-@@ -7010,8 +7010,8 @@
+--- spectrwm.git.orig/spectrwm.c	2014-08-10 16:12:56.172209631 +0200
++++ spectrwm.git/spectrwm.c	2014-08-10 16:37:53.132282080 +0200
+@@ -7032,8 +7032,8 @@
  {
  	setconfspawn("lock",		"xlock",		0);
  
