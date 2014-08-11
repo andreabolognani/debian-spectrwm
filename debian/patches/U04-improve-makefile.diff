@@ -1,11 +1,20 @@
 Description: Improve GNU/Linux Makefile
- Make sure to use all the build flags that can be expected in the
- environment, overriding the maintainer build flags if necessary;
- split the build flags among the variables in the standard way;
- correctly declare all dependencies between source files; install
- localized man pages in the expected locations; get rid of the
- symlink hackery.
-Forwarded: Marco Peereboom <marco@peereboom.us>
+ The following changes have been implemented:
+ .
+   * make sure all standard (eg. $CFLAGS) variables are taken into
+     account when compiling;
+   * define default compilation flags in separate $MAINT_* variables
+     so that user-defined variables can override them;
+   * split default flags the expected way, eg. $CPPFLAGS instead of
+     $CFLAGS for C preprocessor flags;
+   * declare all dependencies, including the ones on header files;
+   * install localized man pages in the corresponding locale-qualified
+     directories, so that man(1) can pick them up automatically;
+   * install .desktop file;
+   * support $DESTDIR for downstream maintainers' convenience;
+   * provide uninstall target;
+   * get rid of symlink hackery.
+Bug: https://github.com/conformal/spectrwm/pull/61
 Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2014-08-11
 Index: spectrwm.git/linux/Makefile

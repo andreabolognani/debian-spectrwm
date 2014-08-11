@@ -1,6 +1,6 @@
 Description: Improve manual page
  Fixes and improvements to the English manual page.
-Forwarded: https://github.com/conformal/spectrwm/pull/59
+Bug: https://github.com/conformal/spectrwm/pull/59
 Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2014-08-10
 Index: spectrwm.git/spectrwm.1
