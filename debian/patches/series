@@ -1,7 +1,7 @@
 # To rebuild this file, use `debian/rules rebuild-patches-series'
-U02-improve-man-page.diff
-U03-update-italian-man-page.diff
-U04-improve-makefile.diff
+U01-improve-makefile.diff
+U02-try-versioned-dlopen.diff
+U03-improve-english-man-page.diff
+U04-update-italian-man-page.diff
 D01-use-x-terminal-emulator-instead-of-xterm.diff
-D03-try-versioned-dlopen.diff
-D04-skip-compatibility-symlinks.diff
+D02-skip-compatibility-symlinks.diff
