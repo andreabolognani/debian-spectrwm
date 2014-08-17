@@ -5,6 +5,7 @@ Description: Try versioned dlopen()
  If dlopen() fails, try with libX11.so.6 and libXt.so.6. If even that fails,
  print an explanatory error message and abort the process.
 Bug-Debian: http://bugs.debian.org/551732
+Bug: https://github.com/conformal/spectrwm/pull/63
 Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2014-08-15
 Index: spectrwm.git/lib/swm_hack.c
