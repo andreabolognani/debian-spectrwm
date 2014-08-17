@@ -4,10 +4,23 @@ Description: use x-terminal-emulator instead of xterm
 Forwarded: not-needed
 Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2014-08-17
+Index: spectrwm.git/spectrwm.1
+===================================================================
+--- spectrwm.git.orig/spectrwm.1	2014-08-17 21:47:21.000000000 +0200
++++ spectrwm.git/spectrwm.1	2014-08-17 21:49:15.328036666 +0200
+@@ -497,7 +497,7 @@
+ dmenu_run $dmenu_bottom \-fn $bar_font \-nb $bar_color \-nf $bar_font_color \-sb
+ $bar_border \-sf $bar_color
+ .It Cm term
+-xterm
++x-terminal-emulator
+ .It Cm initscr
+ initscreen.sh        # optional
+ .It Cm screenshot_all
 Index: spectrwm.git/spectrwm.c
 ===================================================================
---- spectrwm.git.orig/spectrwm.c	2014-08-17 19:57:43.292538901 +0200
-+++ spectrwm.git/spectrwm.c	2014-08-17 19:59:13.224543253 +0200
+--- spectrwm.git.orig/spectrwm.c	2014-08-17 21:44:27.000000000 +0200
++++ spectrwm.git/spectrwm.c	2014-08-17 21:48:51.756035526 +0200
 @@ -7030,8 +7030,8 @@
  void
  setup_spawn(void)
@@ -19,36 +32,14 @@ Index: spectrwm.git/spectrwm.c
  
  	setconfspawn("menu",		"dmenu_run"
  					" $dmenu_bottom"
-Index: spectrwm.git/spectrwm.1
-===================================================================
---- spectrwm.git.orig/spectrwm.1	2014-08-17 19:57:43.292538901 +0200
-+++ spectrwm.git/spectrwm.1	2014-08-17 21:06:11.660013889 +0200
-@@ -497,7 +497,7 @@
- dmenu_run $dmenu_bottom \-fn $bar_font \-nb $bar_color \-nf $bar_font_color \-sb
- $bar_border \-sf $bar_color
- .It Cm term
--xterm
-+x-terminal-emulator
- .It Cm initscr
- initscreen.sh        # optional
- .It Cm screenshot_all
-@@ -514,7 +514,7 @@
- For example, to override
- .Ic term :
- .Bd -literal -offset indent
--program[term] = rxvt
-+program[term] = x-terminal-emulator
- .Ed
- .Pp
- To unbind
 Index: spectrwm.git/spectrwm.conf
 ===================================================================
---- spectrwm.git.orig/spectrwm.conf	2014-08-17 19:54:34.000000000 +0200
-+++ spectrwm.git/spectrwm.conf	2014-08-17 21:07:36.436017992 +0200
-@@ -83,7 +83,7 @@
+--- spectrwm.git.orig/spectrwm.conf	2014-08-17 21:47:06.000000000 +0200
++++ spectrwm.git/spectrwm.conf	2014-08-17 21:49:33.516037548 +0200
+@@ -82,7 +82,7 @@
+ # PROGRAMS
  
  # Validated default programs:
- # program[lock]		= xlock
 -# program[term]		= xterm
 +# program[term]		= x-terminal-emulator
  # program[menu]		= dmenu_run $dmenu_bottom -fn $bar_font -nb $bar_color -nf $bar_font_color -sb $bar_border -sf $bar_color

@@ -1,7 +1,7 @@
 Index: spectrwm.git/spectrwm.c
 ===================================================================
---- spectrwm.git.orig/spectrwm.c	2014-08-17 21:12:20.176031724 +0200
-+++ spectrwm.git/spectrwm.c	2014-08-17 21:12:29.048032155 +0200
+--- spectrwm.git.orig/spectrwm.c	2014-08-17 21:38:48.700006339 +0200
++++ spectrwm.git/spectrwm.c	2014-08-17 21:44:27.952022758 +0200
 @@ -7030,8 +7030,6 @@
  void
  setup_spawn(void)
@@ -21,8 +21,8 @@ Index: spectrwm.git/spectrwm.c
  	setconfspawn("initscr",		"initscreen.sh",	SWM_SPAWN_OPTIONAL);
 Index: spectrwm.git/spectrwm.1
 ===================================================================
---- spectrwm.git.orig/spectrwm.1	2014-08-17 21:12:24.488031933 +0200
-+++ spectrwm.git/spectrwm.1	2014-08-17 21:12:29.052032155 +0200
+--- spectrwm.git.orig/spectrwm.1	2014-08-17 21:44:26.392022681 +0200
++++ spectrwm.git/spectrwm.1	2014-08-17 21:47:21.576031161 +0200
 @@ -512,16 +512,16 @@
  by freeing the respective key binding.
  .Pp
@@ -40,7 +40,33 @@ Index: spectrwm.git/spectrwm.1
  and prevent it from being validated:
  .Bd -literal -offset indent
 -bind[] = MOD+Shift+Delete
-+bind[] = MOD+Shift+Return
++bind[] = MOD+Shift+Enter
  .Ed
  .Sh BINDINGS
  .Nm
+Index: spectrwm.git/spectrwm.conf
+===================================================================
+--- spectrwm.git.orig/spectrwm.conf	2014-08-17 21:38:48.584006334 +0200
++++ spectrwm.git/spectrwm.conf	2014-08-17 21:47:06.064030410 +0200
+@@ -82,19 +82,18 @@
+ # PROGRAMS
+ 
+ # Validated default programs:
+-# program[lock]		= xlock
+ # program[term]		= xterm
+ # program[menu]		= dmenu_run $dmenu_bottom -fn $bar_font -nb $bar_color -nf $bar_font_color -sb $bar_border -sf $bar_color
+ 
+ # To disable validation of the above, free the respective binding(s):
+-# bind[]		= MOD+Shift+Delete	# disable lock
+ # bind[]		= MOD+Shift+Enter	# disable term
+ # bind[]		= MOD+p			# disable menu
+ 
+ # Optional default programs that will only be validated if you override:
++# program[lock]			= xlock			# optional
+ # program[screenshot_all]	= screenshot.sh full	# optional
+ # program[screenshot_wind]	= screenshot.sh window	# optional
+-# program[initscr]	= initscreen.sh			# optional
++# program[initscr]		= initscreen.sh		# optional
+ 
+ # EXAMPLE: Define 'firefox' action and bind to key.
+ # program[firefox]	= firefox http://spectrwm.org/
