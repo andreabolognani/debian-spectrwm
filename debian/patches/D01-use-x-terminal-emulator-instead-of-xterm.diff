@@ -3,20 +3,48 @@ Description: use x-terminal-emulator instead of xterm
  use it instead of xterm in the default configuration.
 Forwarded: not-needed
 Author: Andrea Bolognani <eof@kiyuko.org>
-Last-Update: 2014-04-27
+Last-Update: 2014-08-17
+Index: spectrwm.git/spectrwm.c
+===================================================================
+--- spectrwm.git.orig/spectrwm.c	2014-08-17 19:57:43.292538901 +0200
++++ spectrwm.git/spectrwm.c	2014-08-17 19:59:13.224543253 +0200
+@@ -7030,8 +7030,8 @@
+ void
+ setup_spawn(void)
+ {
+-	setconfspawn("term",		"xterm",		0);
+-	setconfspawn("spawn_term",	"xterm",		0);
++	setconfspawn("term",		"x-terminal-emulator",	0);
++	setconfspawn("spawn_term",	"x-terminal-emulator",	0);
+ 
+ 	setconfspawn("menu",		"dmenu_run"
+ 					" $dmenu_bottom"
+Index: spectrwm.git/spectrwm.1
+===================================================================
+--- spectrwm.git.orig/spectrwm.1	2014-08-17 19:57:43.292538901 +0200
++++ spectrwm.git/spectrwm.1	2014-08-17 21:06:11.660013889 +0200
+@@ -497,7 +497,7 @@
+ dmenu_run $dmenu_bottom \-fn $bar_font \-nb $bar_color \-nf $bar_font_color \-sb
+ $bar_border \-sf $bar_color
+ .It Cm term
+-xterm
++x-terminal-emulator
+ .It Cm initscr
+ initscreen.sh        # optional
+ .It Cm screenshot_all
+@@ -514,7 +514,7 @@
+ For example, to override
+ .Ic term :
+ .Bd -literal -offset indent
+-program[term] = rxvt
++program[term] = x-terminal-emulator
+ .Ed
+ .Pp
+ To unbind
 Index: spectrwm.git/spectrwm.conf
 ===================================================================
---- spectrwm.git.orig/spectrwm.conf	2014-08-08 21:17:17.812036164 +0200
-+++ spectrwm.git/spectrwm.conf	2014-08-10 16:37:53.124282080 +0200
-@@ -57,7 +57,7 @@
- # region		= screen[1]:1280x1024+1280+0
- 
- # Launch applications in a workspace of choice
--# autorun		= ws[1]:xterm
-+# autorun		= ws[1]:x-terminal-emulator
- # autorun		= ws[2]:xombrero http://www.openbsd.org
- 
- # Customize workspace layout at start
+--- spectrwm.git.orig/spectrwm.conf	2014-08-17 19:54:34.000000000 +0200
++++ spectrwm.git/spectrwm.conf	2014-08-17 21:07:36.436017992 +0200
 @@ -83,7 +83,7 @@
  
  # Validated default programs:
@@ -26,18 +54,3 @@ Index: spectrwm.git/spectrwm.conf
  # program[menu]		= dmenu_run $dmenu_bottom -fn $bar_font -nb $bar_color -nf $bar_font_color -sb $bar_border -sf $bar_color
  
  # To disable validation of the above, free the respective binding(s):
-Index: spectrwm.git/spectrwm.c
-===================================================================
---- spectrwm.git.orig/spectrwm.c	2014-08-10 16:12:56.172209631 +0200
-+++ spectrwm.git/spectrwm.c	2014-08-10 16:37:53.132282080 +0200
-@@ -7032,8 +7032,8 @@
- {
- 	setconfspawn("lock",		"xlock",		0);
- 
--	setconfspawn("term",		"xterm",		0);
--	setconfspawn("spawn_term",	"xterm",		0);
-+	setconfspawn("term",		"x-terminal-emulator",	0);
-+	setconfspawn("spawn_term",	"x-terminal-emulator",	0);
- 
- 	setconfspawn("menu",		"dmenu_run"
- 					" $dmenu_bottom"

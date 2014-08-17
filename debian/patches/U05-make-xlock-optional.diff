@@ -1,0 +1,46 @@
+Index: spectrwm.git/spectrwm.c
+===================================================================
+--- spectrwm.git.orig/spectrwm.c	2014-08-17 21:12:20.176031724 +0200
++++ spectrwm.git/spectrwm.c	2014-08-17 21:12:29.048032155 +0200
+@@ -7030,8 +7030,6 @@
+ void
+ setup_spawn(void)
+ {
+-	setconfspawn("lock",		"xlock",		0);
+-
+ 	setconfspawn("term",		"xterm",		0);
+ 	setconfspawn("spawn_term",	"xterm",		0);
+ 
+@@ -7062,6 +7060,7 @@
+ 					" -sf $bar_color",	0);
+ 
+ 	 /* These are not verified for existence, even with a binding set. */
++	setconfspawn("lock",		"xlock",		SWM_SPAWN_OPTIONAL);
+ 	setconfspawn("screenshot_all",	"screenshot.sh full",	SWM_SPAWN_OPTIONAL);
+ 	setconfspawn("screenshot_wind",	"screenshot.sh window",	SWM_SPAWN_OPTIONAL);
+ 	setconfspawn("initscr",		"initscreen.sh",	SWM_SPAWN_OPTIONAL);
+Index: spectrwm.git/spectrwm.1
+===================================================================
+--- spectrwm.git.orig/spectrwm.1	2014-08-17 21:12:24.488031933 +0200
++++ spectrwm.git/spectrwm.1	2014-08-17 21:12:29.052032155 +0200
+@@ -512,16 +512,16 @@
+ by freeing the respective key binding.
+ .Pp
+ For example, to override
+-.Ic lock :
++.Ic term :
+ .Bd -literal -offset indent
+-program[lock] = xscreensaver\-command \-\-lock
++program[term] = rxvt
+ .Ed
+ .Pp
+ To unbind
+-.Ic lock
++.Ic term
+ and prevent it from being validated:
+ .Bd -literal -offset indent
+-bind[] = MOD+Shift+Delete
++bind[] = MOD+Shift+Return
+ .Ed
+ .Sh BINDINGS
+ .Nm
