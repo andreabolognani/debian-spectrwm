@@ -25,8 +25,6 @@ Vcs-Browser: http://anonscm.debian.org/gitweb/?p=collab-maint/spectrwm.git;a=sum
 Package: spectrwm
 Architecture: any
 Provides: x-window-manager
-Replaces: scrotwm (<< 1.0.0-1~)
-Breaks: scrotwm (<< 1.0.0-1~)
 Depends: suckless-tools,
          ${shlibs:Depends},
          ${misc:Depends}
@@ -41,20 +39,3 @@ Description: dynamic tiling window manager
  .
  It was written by hackers for hackers and it strives to be small,
  compact and fast.
-
-Package: scrotwm
-Architecture: all
-Section: oldlibs
-Priority: extra
-Pre-Depends: dpkg (>= 1.15.7.2~)
-Depends: spectrwm,
-         ${misc:Depends}
-Description: dynamic tiling window manager (transitional package)
- spectrwm is a minimalistic window manager that tries to stay out of the
- way so that valuable screen real estate can be used for much more
- important stuff.
- .
- scrotwm is the old name for spectrwm. This transitional package is
- provided to ease upgrades; it also contains compatibility symlinks to
- ensure upgrading doesn't break a working setup. It can be safely
- deleted if backward compatibility with scrotwm is not needed.

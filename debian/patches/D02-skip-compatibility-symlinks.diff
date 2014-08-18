@@ -1,8 +1,10 @@
 Description: Don't install compatibility symlinks
- These links are shipped inside the scrotwm package on Debian.
+ The project has been renamed upstream more than two years ago,
+ and the transitional binary package that used to provide
+ compatibility with the old name is no longer being built.
 Forwarded: not-needed
 Author: Andrea Bolognani <eof@kiyuko.org>
-Last-Update: 2013-02-09
+Last-Update: 2014-08-18
 Index: spectrwm.git/linux/Makefile
 ===================================================================
 --- spectrwm.git.orig/linux/Makefile	2014-04-21 20:42:45.380047485 +0200

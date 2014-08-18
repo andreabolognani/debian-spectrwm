@@ -1,9 +1,0 @@
-spectrwm (1.0.0-1) unstable; urgency=low
-
-  scrotwm has been renamed to spectrwm.
-
-  The scrotwm package now contains only compatibility symlinks and can
-  be safely removed once all local configuration, including custom scripts
-  that rely on the old locations, has been migrated.
-
- -- Andrea Bolognani <eof@kiyuko.org>  Wed, 07 Mar 2012 23:10:57 +0100
