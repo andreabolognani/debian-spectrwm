@@ -1,7 +1,14 @@
+Description: Make xlock optional
+ The user might prefer a different screen locking application, such
+ as xscreensaver or gnome-screensaver.
+ .
+ Moreover, xlock is not available in Debian.
+Author: Andrea Bolognani <eof@kiyuko.org>
+Last-Update: 2014-08-19
 Index: spectrwm.git/spectrwm.c
 ===================================================================
---- spectrwm.git.orig/spectrwm.c	2014-08-17 21:38:48.700006339 +0200
-+++ spectrwm.git/spectrwm.c	2014-08-17 21:44:27.952022758 +0200
+--- spectrwm.git.orig/spectrwm.c	2014-08-19 20:38:00.700038567 +0200
++++ spectrwm.git/spectrwm.c	2014-08-19 20:41:58.044050053 +0200
 @@ -7030,8 +7030,6 @@
  void
  setup_spawn(void)
@@ -21,8 +28,8 @@ Index: spectrwm.git/spectrwm.c
  	setconfspawn("initscr",		"initscreen.sh",	SWM_SPAWN_OPTIONAL);
 Index: spectrwm.git/spectrwm.1
 ===================================================================
---- spectrwm.git.orig/spectrwm.1	2014-08-17 21:44:26.392022681 +0200
-+++ spectrwm.git/spectrwm.1	2014-08-17 21:47:21.576031161 +0200
+--- spectrwm.git.orig/spectrwm.1	2014-08-19 20:41:37.660049068 +0200
++++ spectrwm.git/spectrwm.1	2014-08-19 20:41:58.044050053 +0200
 @@ -512,16 +512,16 @@
  by freeing the respective key binding.
  .Pp
@@ -46,8 +53,8 @@ Index: spectrwm.git/spectrwm.1
  .Nm
 Index: spectrwm.git/spectrwm.conf
 ===================================================================
---- spectrwm.git.orig/spectrwm.conf	2014-08-17 21:38:48.584006334 +0200
-+++ spectrwm.git/spectrwm.conf	2014-08-17 21:47:06.064030410 +0200
+--- spectrwm.git.orig/spectrwm.conf	2014-08-19 20:38:00.700038567 +0200
++++ spectrwm.git/spectrwm.conf	2014-08-19 20:42:26.576051436 +0200
 @@ -82,19 +82,18 @@
  # PROGRAMS
  
@@ -58,7 +65,8 @@ Index: spectrwm.git/spectrwm.conf
  
  # To disable validation of the above, free the respective binding(s):
 -# bind[]		= MOD+Shift+Delete	# disable lock
- # bind[]		= MOD+Shift+Enter	# disable term
+-# bind[]		= MOD+Shift+Enter	# disable term
++# bind[]		= MOD+Shift+Return	# disable term
  # bind[]		= MOD+p			# disable menu
  
  # Optional default programs that will only be validated if you override:
