@@ -8,9 +8,9 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2014-08-19
 Index: spectrwm.git/spectrwm.c
 ===================================================================
---- spectrwm.git.orig/spectrwm.c	2014-08-19 20:38:00.700038567 +0200
-+++ spectrwm.git/spectrwm.c	2014-08-19 20:41:58.044050053 +0200
-@@ -7030,8 +7030,6 @@
+--- spectrwm.git.orig/spectrwm.c	2014-08-25 22:51:01.776135632 +0200
++++ spectrwm.git/spectrwm.c	2014-08-25 22:56:53.852152672 +0200
+@@ -7063,8 +7063,6 @@
  void
  setup_spawn(void)
  {
@@ -19,7 +19,7 @@ Index: spectrwm.git/spectrwm.c
  	setconfspawn("term",		"xterm",		0);
  	setconfspawn("spawn_term",	"xterm",		0);
  
-@@ -7062,6 +7060,7 @@
+@@ -7095,6 +7093,7 @@
  					" -sf $bar_color",	0);
  
  	 /* These are not verified for existence, even with a binding set. */
@@ -29,9 +29,9 @@ Index: spectrwm.git/spectrwm.c
  	setconfspawn("initscr",		"initscreen.sh",	SWM_SPAWN_OPTIONAL);
 Index: spectrwm.git/spectrwm.1
 ===================================================================
---- spectrwm.git.orig/spectrwm.1	2014-08-19 20:41:37.660049068 +0200
-+++ spectrwm.git/spectrwm.1	2014-08-19 20:41:58.044050053 +0200
-@@ -512,16 +512,16 @@
+--- spectrwm.git.orig/spectrwm.1	2014-08-25 22:51:01.772135632 +0200
++++ spectrwm.git/spectrwm.1	2014-08-25 22:56:53.852152672 +0200
+@@ -518,16 +518,16 @@
  by freeing the respective key binding.
  .Pp
  For example, to override
@@ -54,9 +54,9 @@ Index: spectrwm.git/spectrwm.1
  .Nm
 Index: spectrwm.git/spectrwm.conf
 ===================================================================
---- spectrwm.git.orig/spectrwm.conf	2014-08-19 20:38:00.700038567 +0200
-+++ spectrwm.git/spectrwm.conf	2014-08-19 20:42:26.576051436 +0200
-@@ -82,19 +82,18 @@
+--- spectrwm.git.orig/spectrwm.conf	2014-08-25 22:51:01.776135632 +0200
++++ spectrwm.git/spectrwm.conf	2014-08-25 22:56:53.852152672 +0200
+@@ -83,19 +83,18 @@
  # PROGRAMS
  
  # Validated default programs:

@@ -6,9 +6,9 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2014-08-17
 Index: spectrwm.git/spectrwm.1
 ===================================================================
---- spectrwm.git.orig/spectrwm.1	2014-08-17 21:47:21.000000000 +0200
-+++ spectrwm.git/spectrwm.1	2014-08-17 21:49:15.328036666 +0200
-@@ -497,7 +497,7 @@
+--- spectrwm.git.orig/spectrwm.1	2014-08-25 22:56:53.852152672 +0200
++++ spectrwm.git/spectrwm.1	2014-08-25 22:56:59.768152960 +0200
+@@ -503,7 +503,7 @@
  dmenu_run $dmenu_bottom \-fn $bar_font \-nb $bar_color \-nf $bar_font_color \-sb
  $bar_border \-sf $bar_color
  .It Cm term
@@ -19,9 +19,9 @@ Index: spectrwm.git/spectrwm.1
  .It Cm screenshot_all
 Index: spectrwm.git/spectrwm.c
 ===================================================================
---- spectrwm.git.orig/spectrwm.c	2014-08-17 21:44:27.000000000 +0200
-+++ spectrwm.git/spectrwm.c	2014-08-17 21:48:51.756035526 +0200
-@@ -7030,8 +7030,8 @@
+--- spectrwm.git.orig/spectrwm.c	2014-08-25 22:56:53.852152672 +0200
++++ spectrwm.git/spectrwm.c	2014-08-25 22:56:59.780152958 +0200
+@@ -7063,8 +7063,8 @@
  void
  setup_spawn(void)
  {
@@ -34,9 +34,9 @@ Index: spectrwm.git/spectrwm.c
  					" $dmenu_bottom"
 Index: spectrwm.git/spectrwm.conf
 ===================================================================
---- spectrwm.git.orig/spectrwm.conf	2014-08-17 21:47:06.000000000 +0200
-+++ spectrwm.git/spectrwm.conf	2014-08-17 21:49:33.516037548 +0200
-@@ -82,7 +82,7 @@
+--- spectrwm.git.orig/spectrwm.conf	2014-08-25 22:56:53.852152672 +0200
++++ spectrwm.git/spectrwm.conf	2014-08-25 22:56:59.784152958 +0200
+@@ -83,7 +83,7 @@
  # PROGRAMS
  
  # Validated default programs:
