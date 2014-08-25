@@ -1,7 +1,5 @@
 # To rebuild this file, use `debian/rules rebuild-patches-series'
-U01-improve-makefile.diff
 U02-try-versioned-dlopen.diff
-U03-improve-english-man-page.diff
 U04-update-italian-man-page.diff
 U05-make-xlock-optional.diff
 D01-use-x-terminal-emulator-instead-of-xterm.diff
