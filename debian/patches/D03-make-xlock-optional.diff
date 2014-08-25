@@ -1,8 +1,9 @@
 Description: Make xlock optional
  The user might prefer a different screen locking application, such
- as xscreensaver or gnome-screensaver.
+ as xscreensaver or gnome-screensaver. Moreover, xlock is not available
+ in Debian.
  .
- Moreover, xlock is not available in Debian.
+ Upstream has reviewed this patch and is not interested in merging it.
 Bug: https://github.com/conformal/spectrwm/pull/64
 Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2014-08-19

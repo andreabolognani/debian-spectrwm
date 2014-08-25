@@ -1,6 +1,6 @@
 # To rebuild this file, use `debian/rules rebuild-patches-series'
 U02-try-versioned-dlopen.diff
 U04-update-italian-man-page.diff
-U05-make-xlock-optional.diff
 D01-use-x-terminal-emulator-instead-of-xterm.diff
 D02-skip-compatibility-symlinks.diff
+D03-make-xlock-optional.diff
