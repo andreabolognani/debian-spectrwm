@@ -3,8 +3,9 @@ spectrwm (2.5.1-1) unstable; urgency=low
   * New upstream release.
     - Closes: #689226 (please package the latest version)
   * Stop building scrotwm transitional package.
+  * Update Standards-Version to 3.9.5 (no changes needed).
 
- -- Andrea Bolognani <eof@kiyuko.org>  Mon, 18 Aug 2014 18:43:27 +0200
+ -- Andrea Bolognani <eof@kiyuko.org>  Mon, 25 Aug 2014 22:49:08 +0200
 
 spectrwm (1.0.0-1) unstable; urgency=low
 
