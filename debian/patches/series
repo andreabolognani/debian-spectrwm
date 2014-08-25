@@ -2,5 +2,5 @@
 U01-try-versioned-dlopen.diff
 U02-update-italian-man-page.diff
 D01-skip-compatibility-symlinks.diff
-D02-make-xlock-optional.diff
-D03-use-x-terminal-emulator.diff
+D02-change-default-programs.diff
+D03-make-default-programs-optional.diff

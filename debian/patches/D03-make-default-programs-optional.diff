@@ -1,0 +1,87 @@
+Description: Make default programs optional
+ Non-optional default programs are validated on startup.
+ .
+ To avoid adding more dependencies, mark all default programs
+ except dmenu as optional.
+Forwarded: not-needed
+Author: Andrea Bolognani <eof@kiyuko.org>
+Last-Update: 2014-08-26
+Index: spectrwm.git/spectrwm.c
+===================================================================
+--- spectrwm.git.orig/spectrwm.c	2014-08-26 00:25:10.788409028 +0200
++++ spectrwm.git/spectrwm.c	2014-08-26 00:25:25.852409757 +0200
+@@ -7063,12 +7063,6 @@
+ void
+ setup_spawn(void)
+ {
+-	setconfspawn("lock",		"xscreensaver-command"
+-					" -lock",		0);
+-
+-	setconfspawn("term",		"x-terminal-emulator",	0);
+-	setconfspawn("spawn_term",	"x-terminal-emulator",	0);
+-
+ 	setconfspawn("menu",		"dmenu_run"
+ 					" $dmenu_bottom"
+ 					" -fn $bar_font"
+@@ -7096,6 +7090,10 @@
+ 					" -sf $bar_color",	0);
+ 
+ 	 /* These are not verified for existence, even with a binding set. */
++	setconfspawn("term",		"x-terminal-emulator",	SWM_SPAWN_OPTIONAL);
++	setconfspawn("spawn_term",	"x-terminal-emulator",	SWM_SPAWN_OPTIONAL);
++	setconfspawn("lock",		"xscreensaver-command"
++					" -lock",		SWM_SPAWN_OPTIONAL);
+ 	setconfspawn("screenshot_all",	"screenshot.sh full",	SWM_SPAWN_OPTIONAL);
+ 	setconfspawn("screenshot_wind",	"screenshot.sh window",	SWM_SPAWN_OPTIONAL);
+ 	setconfspawn("initscr",		"initscreen.sh",	SWM_SPAWN_OPTIONAL);
+Index: spectrwm.git/spectrwm.1
+===================================================================
+--- spectrwm.git.orig/spectrwm.1	2014-08-26 00:25:10.792409029 +0200
++++ spectrwm.git/spectrwm.1	2014-08-26 00:25:10.820409030 +0200
+@@ -497,19 +497,19 @@
+ .Pp
+ Default programs:
+ .Bl -tag -width "screenshot_wind" -offset indent -compact
+-.It Cm lock
+-xscreensaver\-command \-lock
+ .It Cm menu
+ dmenu_run $dmenu_bottom \-fn $bar_font \-nb $bar_color \-nf $bar_font_color \-sb
+ $bar_border \-sf $bar_color
+ .It Cm term
+-x-terminal-emulator
++x-terminal-emulator        # optional
++.It Cm lock
++xscreensaver\-command \-lock # optional
+ .It Cm initscr
+-initscreen.sh        # optional
++initscreen.sh              # optional
+ .It Cm screenshot_all
+-screenshot.sh full   # optional
++screenshot.sh full         # optional
+ .It Cm screenshot_wind
+-screenshot.sh window # optional
++screenshot.sh window       # optional
+ .El
+ .Pp
+ Note that optional default programs will not be validated unless overridden.
+@@ -518,16 +518,16 @@
+ by freeing the respective key binding.
+ .Pp
+ For example, to override
+-.Ic lock :
++.Ic menu :
+ .Bd -literal -offset indent
+-program[lock] = xscreensaver\-command \-\-lock
++program[menu] = launchy
+ .Ed
+ .Pp
+ To unbind
+-.Ic lock
++.Ic menu
+ and prevent it from being validated:
+ .Bd -literal -offset indent
+-bind[] = MOD+Shift+Delete
++bind[] = MOD+p
+ .Ed
+ .Sh BINDINGS
+ .Nm

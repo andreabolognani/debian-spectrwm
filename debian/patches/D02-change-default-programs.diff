@@ -1,0 +1,44 @@
+Description: Change default programs
+ x-terminal-emulator is the best default for a terminal emulator on
+ Debian, and xlock is not available at all.
+Forwarded: not-needed
+Author: Andrea Bolognani <eof@kiyuko.org>
+Last-Update: 2014-08-26
+Index: spectrwm.git/spectrwm.c
+===================================================================
+--- spectrwm.git.orig/spectrwm.c	2014-08-25 23:39:28.420276306 +0200
++++ spectrwm.git/spectrwm.c	2014-08-26 00:02:52.896344278 +0200
+@@ -7063,10 +7063,11 @@
+ void
+ setup_spawn(void)
+ {
+-	setconfspawn("lock",		"xlock",		0);
++	setconfspawn("lock",		"xscreensaver-command"
++					" -lock",		0);
+ 
+-	setconfspawn("term",		"xterm",		0);
+-	setconfspawn("spawn_term",	"xterm",		0);
++	setconfspawn("term",		"x-terminal-emulator",	0);
++	setconfspawn("spawn_term",	"x-terminal-emulator",	0);
+ 
+ 	setconfspawn("menu",		"dmenu_run"
+ 					" $dmenu_bottom"
+Index: spectrwm.git/spectrwm.1
+===================================================================
+--- spectrwm.git.orig/spectrwm.1	2014-08-25 23:39:28.420276306 +0200
++++ spectrwm.git/spectrwm.1	2014-08-26 00:06:08.412353741 +0200
+@@ -498,12 +498,12 @@
+ Default programs:
+ .Bl -tag -width "screenshot_wind" -offset indent -compact
+ .It Cm lock
+-xlock
++xscreensaver\-command \-lock
+ .It Cm menu
+ dmenu_run $dmenu_bottom \-fn $bar_font \-nb $bar_color \-nf $bar_font_color \-sb
+ $bar_border \-sf $bar_color
+ .It Cm term
+-xterm
++x-terminal-emulator
+ .It Cm initscr
+ initscreen.sh        # optional
+ .It Cm screenshot_all
