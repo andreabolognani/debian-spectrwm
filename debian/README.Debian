@@ -1,19 +1,19 @@
 spectrwm for Debian
-------------------
+-------------------
 
-This file explains what are the differences between spectrwm as released
-by the author and the Debian version. I try hard to keep the Debian version
-as close as possible to the upstream version, however a certain number of
-changes couldn't be avoided.
+This file explains the differences between spectrwm as released by the
+author and the Debian version. While the maintainer's goal is to keep
+these differences to a minimum, some changes couldn't be avoided.
 
-	* x-terminal-emulator is used instead of xterm as the default
-	  terminal emulator, making spectrwm play nice with Debian's
-	  alternatives system. Choosing another terminal emulator via
-	  spectrwm.conf is still possible;
+    * x-terminal-emulator is used instead of xterm as the default
+      terminal emulator, making spectrwm play nice with Debian's
+      alternatives system. Choosing another terminal emulator via
+      spectrwm.conf is still possible;
 
-	* the baraction.sh example script has been patched to weed out all
-	  non Policy compliant shell constructs; apm usage has been removed
-	  in favour of acpi as well. If you want to make use of this script,
-	  you need to install the sysstat, procps and acpi packages.
+    * default programs are not validated on startup: this means that
+      the "term" and "lock" actions will not work out of the box if
+      you don't have a terminal emulator (see above) and xscreensaver
+      installed. This change was implemented to avoid adding hard
+      dependencies on those packages.
 
- -- Andrea Bolognani <eof@kiyuko.org>  Tue, 09 Feb 2010 14:56:26 +0100
+ -- Andrea Bolognani <eof@kiyuko.org>  Tue, 26 Aug 2014 22:34:15 +0200
