@@ -1,9 +1,4 @@
 initscreen.sh
 baraction.sh
 screenshot.sh
-spectrwm_cz.conf
-spectrwm_es.conf
-spectrwm_fr.conf
-spectrwm_fr_ch.conf
-spectrwm_se.conf
-spectrwm_us.conf
+spectrwm_*.conf
