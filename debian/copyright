@@ -1,7 +1,7 @@
 Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: spectrwm
 Upstream-Contact: Marco Peereboom <marco@peereboom.us>
-Source: http://opensource.conformal.com/wiki/spectrwm
+Source: http://spectrwm.org/
 
 Files: spectrwm.c
 Copyright: 2009-2012, Marco Peereboom <marco@peereboom.us>
