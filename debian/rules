@@ -64,4 +64,4 @@ rebuild-patches-series:
 		} >"$${SERIES}"; \
 	)
 
-.PHONY: build clean binary binary-indep binary-arch rebuild-series
+.PHONY: build clean binary binary-indep binary-arch rebuild-patches-series
