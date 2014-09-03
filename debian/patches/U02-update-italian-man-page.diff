@@ -4,8 +4,8 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2014-09-03
 Index: spectrwm.git/spectrwm_it.1
 ===================================================================
---- spectrwm.git.orig/spectrwm_it.1	2014-09-03 00:03:14.728649976 +0200
-+++ spectrwm.git/spectrwm_it.1	2014-09-03 00:04:33.244653777 +0200
+--- spectrwm.git.orig/spectrwm_it.1	2014-09-03 00:05:07.844655450 +0200
++++ spectrwm.git/spectrwm_it.1	2014-09-03 23:58:32.812782977 +0200
 @@ -1,5 +1,9 @@
 -.\" Copyright (c) 2009 Marco Peereboom <marco@peereboom.us>
 +.\" Copyright (c) 2009-2012 Marco Peereboom <marco@peereboom.us>
@@ -479,7 +479,7 @@ Index: spectrwm.git/spectrwm_it.1
 +Questo permette di caricare scorciatoie specifiche del proprio layout
 +di tastiera.
 +Vedere la sezione
-+.Sx KEYBOARD MAPPING FILES
++.Sx MAPPE DI TASTIERA
 +pi\[`u] sotto per un elenco dei file che vengono forniti.
 +.It Ic layout
 +Imposta il layout da utilizzare all'avvio.
@@ -487,8 +487,8 @@ Index: spectrwm.git/spectrwm_it.1
 +.Li ws Ns Bo Ar idx Bc : Ns Ar master_grow : Ns Ar master_add : Ns Ar stack_inc : Ns Ar always_raise : Ns Ar stack_mode ,
 +eg. ws[2]:-4:0:1:0:horizontal configura l'area di lavoro 2 per utilizzare
 +un algoritmo di stacking orizzontale, riduce l'area principale di 4
-+unit\[`a] e aggiunge una finestra allo stack, mantenendo il comportamento
-+predefinito per le finestre floating.
++unit\[`a] e aggiunge una finestra all'area di stacking, mantenendo il
++comportamento predefinito per le finestre floating.
 +I valori possibili per
 +.Ar stack_mode
 +sono
@@ -621,8 +621,8 @@ Index: spectrwm.git/spectrwm_it.1
 +xterm.bellIsUrgent: true
 +.Ed
 +.It Ic verbose_layout
-+Abilita o disabilita la visualizzazione del numero di finestre master e del
-+numero di colonne (o righe) di stacking.
++Abilita o disabilita la visualizzazione del numero di finestre nell'area
++principale e del numero di righe (o colonne) nell'area di stacking.
 +Questa opzione pu\[`o] essere disabilitata usando il valore 1.
 +Vedre
 +.Ar master_add ,
@@ -686,9 +686,10 @@ Index: spectrwm.git/spectrwm_it.1
  Vedere la sezione
  .Sx SCORCIATOIE
 -pi? sotto.
--.Pp
--I programmi di default sono descritte qui sotto:
 +pi\[`u] sotto.
+ .Pp
+-I programmi di default sono descritte qui sotto:
++I programmi vengono definiti come segue:
  .Pp
 -.Bl -tag -width "screenshot_wind" -offset indent -compact
 -.It Cm term
@@ -704,8 +705,7 @@ Index: spectrwm.git/spectrwm_it.1
 -.It Cm menu
 -dmenu_run \-fn $bar_font \-nb $bar_color \-nf $bar_font_color \-sb $bar_border \-sf $bar_color
 -.El
-+I programmi vengono definiti come segue:
- .Pp
+-.Pp
 -I programmi personalizzati vengono specificati con la seguente sintassi:
 +.Dl program Ns Bo Ar action Bc = Ar progpath Op Ar arg Op Ar arg ...
  .Pp
@@ -740,7 +740,7 @@ Index: spectrwm.git/spectrwm_it.1
  .Pp
  .Bl -tag -width "$bar_font_color" -offset indent -compact
  .It Cm $bar_border
-@@ -296,41 +531,83 @@
+@@ -296,41 +531,82 @@
  .It Cm $bar_font_color
  .It Cm $color_focus
  .It Cm $color_unfocus
@@ -757,13 +757,18 @@ Index: spectrwm.git/spectrwm_it.1
  program[ff] = /usr/local/bin/firefox http://spectrwm.org/
 -bind[ff] = Mod+f # adesso Mod+F lancia firefox
 +bind[ff] = MOD+Shift+b # Ora M-S-b esegue Firefox
-+.Ed
-+.Pp
+ .Ed
+ .Pp
+-Per eliminare la combinazione precedente:
 +Per eliminare la scorciatoia appena definita:
-+.Bd -literal -offset indent
+ .Bd -literal -offset indent
+-bind[] = Mod+f
+-program[ff] =
 +bind[] = MOD+Shift+b
  .Ed
+ .Pp
 +Programmi predefiniti:
++.Pp
 +.Bl -tag -width "screenshot_wind" -offset indent -compact
 +.It Cm lock
 +xlock
@@ -779,8 +784,7 @@ Index: spectrwm.git/spectrwm_it.1
 +.It Cm screenshot_wind
 +screenshot.sh window # opzionale
 +.El
- .Pp
--Per eliminare la combinazione precedente:
++.Pp
 +I programmi opzionali non verranno verificati a meno di non essere
 +ridefiniti dall'utente.
 +Se uno dei programmi predefiniti fallisce la verifica, \[`e] possibile
@@ -789,55 +793,50 @@ Index: spectrwm.git/spectrwm_it.1
 +.Pp
 +Ad esempio, per ridefinire
 +.Ic lock :
- .Bd -literal -offset indent
--bind[] = Mod+f
--program[ff] =
-+program[lock] = xscreensaver\-command \-\-lock
- .Ed
- .Pp
++.Bd -literal -offset indent
++program[lock] = xscreensaver\-command \-lock
++.Ed
++.Pp
 +Per disabilitare la scorciatoia assegnata a
 +.Ic lock
-+e impedirne la verifica:
++ed impedirne la verifica:
 +.Bd -literal -offset indent
 +bind[] = MOD+Shift+Delete
 +.Ed
-+
-+
-+
-+
  .Sh SCORCIATOIE
  .Nm
 -fornisce molte funzioni (o azioni) accessibili tramite combinazioni di
 -tasti sul mouse o sulla tastiera.
-+provides many functions (or actions) accessed via key or mouse bindings.
++fornisce numerose azioni che possono essere attivate usando combinazioni
++di tasti sulla tastiera o sul mouse.
  .Pp
 -Le scorciatoie assegnate al mouse sono:
-+The current mouse bindings are described below:
++Le combinazioni di tasti che coinvolgono il mouse sono le seguenti:
  .Pp
  .Bl -tag -width "M-j, M-<TAB>XXX" -offset indent -compact
  .It Cm M1
 -D? focus alla finestra
-+Focus window
++Assegna il focus ad una finestra
  .It Cm M-M1
 -Muove la finestra
-+Move window
++Sposta una finestra
  .It Cm M-M3
 -Ridimensiona la finestra
-+Resize window
++Ridimensiona una finestra
  .It Cm M-S-M3
 -Ridimensiona la finestra mantenendola centrata
-+Resize window while maintaining it centered
++Ridimensiona una finestra, mantenendola centrata
  .El
  .Pp
 -Le scorciatoie da tastiera di default sono:
-+The default key bindings are described below:
++Le scorciatoie da tastiera predefinite sono le seguenti:
  .Pp
 -.Bl -tag -width "M-j, M-<TAB>XXX" -offset indent -compact
 +.Bl -tag -width "M-j, M-<TAB>XXXXXX" -offset indent -compact
  .It Cm M-S- Ns Aq Cm Return
  term
  .It Cm M-p
-@@ -341,8 +618,10 @@
+@@ -341,8 +617,10 @@
  restart
  .It Cm M- Ns Aq Cm Space
  cycle_layout
@@ -849,7 +848,7 @@ Index: spectrwm.git/spectrwm_it.1
  .It Cm M-h
  master_shrink
  .It Cm M-l
-@@ -354,7 +633,7 @@
+@@ -354,7 +632,7 @@
  .It Cm M-S-,
  stack_inc
  .It Cm M-S-.
@@ -858,7 +857,7 @@ Index: spectrwm.git/spectrwm_it.1
  .It Cm M- Ns Aq Cm Return
  swap_main
  .It Xo
-@@ -369,30 +648,46 @@
+@@ -369,30 +647,46 @@
  focus_prev
  .It Cm M-m
  focus_main
@@ -911,7 +910,7 @@ Index: spectrwm.git/spectrwm_it.1
  .It Cm M-s
  screenshot_all
  .It Cm M-S-s
-@@ -401,7 +696,7 @@
+@@ -401,7 +695,7 @@
  version
  .It Cm M-t
  float_toggle
@@ -920,7 +919,7 @@ Index: spectrwm.git/spectrwm_it.1
  lock
  .It Cm M-S-i
  initscr
-@@ -409,146 +704,273 @@
+@@ -409,25 +703,47 @@
  iconify
  .It Cm M-S-w
  uniconify
@@ -955,239 +954,231 @@ Index: spectrwm.git/spectrwm_it.1
  .El
  .Pp
 -I nomi delle azioni e le relative descrizioni sono le seguenti:
-+The action names and descriptions are listed below:
++Le azioni predefinite disponibili sono le seguenti:
  .Pp
 -.Bl -tag -width "M-j, M-<TAB>XXX" -offset indent -compact
 +.Bl -tag -width "M-j, M-<TAB>XXXX" -offset indent -compact
  .It Cm term
 -Lancia un nuovo terminale
 -(vedi
-+Spawn a new terminal
-+(see
++Esegue un terminale (vedere la sezione
  .Sx PROGRAMMI
 -pi? in alto).
-+above).
++pi\[`u] in alto).
  .It Cm menu
- Menu
+-Menu
 -(vedi
-+(see
++Mostra il menu (vedere la sezione
  .Sx PROGRAMMI
 -pi? in alto).
-+above).
++pi\[`u] in alto).
  .It Cm quit
--Chiude
-+Quit
+ Chiude
  .Nm .
- .It Cm restart
--Riavvia
-+Restart
+@@ -435,35 +751,44 @@
+ Riavvia
  .Nm .
  .It Cm cycle_layout
 -Cambia layout.
 -.It Cm reset_layout
 -Re-inizializza il layout.
-+Cycle layout.
++Passa al layout successivo.
 +.It Cm flip_layout
-+Swap the master and stacking areas.
++Inverte l'area principale e quella di stacking.
 +.It Cm stack_reset
-+Reset layout.
++Riporta il layout al suo stato iniziale.
  .It Cm master_shrink
 -Restringe l'area principale.
-+Shrink master area.
++Riduce la dimensione dell'area principale.
  .It Cm master_grow
 -Allarga l'area principale.
-+Grow master area.
++Aumenta la dimensione dell'area principale.
  .It Cm master_add
 -Aggiunge finestre all'area principale.
-+Add windows to master area.
++Aggiunge una finestra all'area principale.
  .It Cm master_del
 -Rimuove finestre dall'area principale.
-+Remove windows from master area.
++Rimuove una finestra dall'area principale.
  .It Cm stack_inc
 -Aggiunge righe/colonne all'area di stacking.
 -.It Cm stack_del
 -Rimuove righe/colonne dall'area di stacking.
-+Add columns/rows to stacking area.
++Aggiunge una riga (o colonna) all'area di stacking.
 +.It Cm stack_dec
-+Remove columns/rows from stacking area.
++Rimuove una riga (o colonna) dall'area di stacking.
  .It Cm swap_main
 -Muove la finestra corrente nell'area principale.
-+Move current window to master area.
++Sposta la finestra corrente nell'area principale.
  .It Cm focus_next
 -D? il focus alla finestra successiva.
-+Focus next window in workspace.
++Assegna il focus alla finestra successiva.
  .It Cm focus_prev
 -D? il focus alla finestra precedente.
-+Focus previous window in workspace.
++Assegna il focus alla finestra precedente.
  .It Cm focus_main
 -D? il focus alla finestra principale.
-+Focus on main window in workspace.
++Assegna il focus alla finestra principale dell'area di lavoro.
 +.It Cm focus_urgent
-+Focus on next window with the urgency hint flag set.  The workspace is switched if needed.
++Assegna il focus alla finestra urgente successiva.
++Verr\[`a] effettuato, se necessario, il passaggio ad un'altra area di
++lavoro.
  .It Cm swap_next
 -Scambia con la finestra successiva dell'area di lavoro.
-+Swap with next window in workspace.
++Inverte la finestra corrente con quella successiva.
  .It Cm swap_prev
 -Scambia con la finestra precedente dell'area di lavoro.
-+Swap with previous window in workspace.
++Inverte la finestra corrente con quella precedente.
  .It Cm bar_toggle
 -Mostra/nascondi la barra di stato da tutte le aree di lavoro.
-+Toggle overall visibility of status bars.
++Modifica la visibilit\[`a] della barra di stato a livello globale.
 +.It Cm bar_toggle_ws
-+Toggle status bar on current workspace.
++Modifica la visibilit\[`a] della barra di stato nell'area di lavoro
++corrente.
  .It Cm wind_del
--Chiude la finestra corrente.
-+Delete current window in workspace.
+ Chiude la finestra corrente.
  .It Cm wind_kill
--Distrugge la finestra corrente.
-+Destroy current window in workspace.
- .It Cm ws_ Ns Ar n
--Passa all'area di lavoro
-+Switch to workspace
+@@ -473,82 +798,186 @@
  .Ar n ,
--dove
-+where
+ dove
  .Ar n
 -? compreso tra 1 e 10.
-+is 1 through
++\[`e] un valore compreso tra 1 e
 +.Ic workspace_limit .
  .It Cm mvws_ Ns Ar n
--Sposta la finestra corrente nell'area di lavoro
-+Move current window to workspace
-+.Ar n ,
-+where
-+.Ar n
-+is 1 through
-+.Ic workspace_limit .
-+.It Cm rg_ Ns Ar n
-+Focus on region
-+.Ar n ,
-+where
-+.Ar n
-+is 1 through 9.
-+.It Cm mvrg_ Ns Ar n
-+Move current window to region
+ Sposta la finestra corrente nell'area di lavoro
  .Ar n ,
--dove
-+where
+ dove
  .Ar n
 -? compreso tra 1 e 10.
-+is 1 through 9.
++\[`e] un numero compreso tra 1 e
++.Ic workspace_limit .
++.It Cm rg_ Ns Ar n
++Assegna il focus alla regione
++.Ar n ,
++dove
++.Ar n
++\[`e] un numero compreso tra 1 e 9.
++.It Cm mvrg_ Ns Ar n
++Sposta la finestra corrente nella regione
++.Ar n ,
++dove
++.Ar n
++\[`e] un numero compreso tra 1 e 9.
  .It Cm ws_next
--Passa all'area di lavoro non vuota successiva.
-+Switch to next workspace with a window in it.
+ Passa all'area di lavoro non vuota successiva.
  .It Cm ws_prev
--Passa all'area di lavoro non vuota precedente.
-+Switch to previous workspace with a window in it.
+ Passa all'area di lavoro non vuota precedente.
 +.It Cm ws_next_all
-+Switch to next workspace.
++Passa all'area di lavoro successiva.
 +.It Cm ws_prev_all
-+Switch to previous workspace.
++Passa all'area di lavoro precedente.
 +.It Cm ws_next_move
-+Switch to next workspace with the current window.
++Passa all'area di lavoro successiva, spostando allo stesso tempo la
++finestra corrente.
 +.It Cm ws_prev_move
-+Switch to previous workspace with the current window.
++Passa all'area di lavoro precedente, spostando allo stesso tempo la
++finestra corrente.
  .It Cm ws_prior
--Passa all'ultima area di lavoro visitata.
+ Passa all'ultima area di lavoro visitata.
 -.It Cm screen_next
 -Sposta il puntatore nella regione successiva.
 -.It Cm screen_prev
 -Sposta il puntatore nella regione precedente.
-+Switch to last visited workspace.
 +.It Cm rg_next
-+Switch to next region.
++Passa alla regione successiva.
 +.It Cm rg_prev
-+Switch to previous region.
++Passa alla regione precedente.
  .It Cm screenshot_all
 -Cattura uno screenshot dell'intero schermo, se abilitato (vedere la sezione
-+Take screenshot of entire screen (if enabled)
-+(see
++Cattura l'intera schermata chiamando l'apposito script (vedere la sezione
  .Sx PROGRAMMI
 -pi? in alto).
-+above).
++pi\[`u] in alto).
  .It Cm screenshot_wind
 -Cattura uno screenshot di una singola finestra, se abilitato (vedere la
 -sezione
-+Take screenshot of selected window (if enabled)
-+(see
++Cattura una singola finestra chiamando l'apposito script (vedere la sezione
  .Sx PROGRAMMI
 -pi? in alto).
-+above).
++pi\[`u] in alto).
  .It Cm version
 -Abilita/disabilita il numero di versione nella barra di stato.
-+Toggle version in status bar.
++Modifica la visibilit\[`a] del numero di versione all'interno della barra
++di stato.
  .It Cm float_toggle
 -Passa la finestra che ha il focus da floating a tiled.
-+Toggle focused window between tiled and floating.
++Modifica la finestra che detiene il focus, portandola da floating a tiled
++e viceversa.
  .It Cm lock
--Blocca lo schermo (vedere la sezione
-+Lock screen
-+(see
+ Blocca lo schermo (vedere la sezione
  .Sx PROGRAMMI
 -pi? in alto).
-+above).
++pi\[`u] in alto).
  .It Cm initscr
 -Re-inizializza gli schermi fisici (vedere la sezione
-+Reinitialize physical screens
-+(see
++Inizializza nuovamente tutti gli schermi (vedere la sezione
  .Sx PROGRAMMI
 -pi? in alto).
-+above).
++pi\[`u] in alto).
  .It Cm iconify
 -Minimizza (unmap) la finesta che ha il focus.
-+Minimize (unmap) currently focused window.
++Minimizza la finestra che detiene il focus.
  .It Cm uniconify
 -Massimizza (map) la finestra selezionata tramite dmenu.
-+Restore (map) window returned by
-+.Xr dmenu 1
-+selection.
++Ripristina la finestra selezionata tramite
++.Xr dmenu 1 .
 +.It Cm maximize_toggle
-+Toggle maximization of focused window.
++Modifica lo stato di massimizzazione della finestra che detiene il focus.
  .It Cm always_raise
 -Quando ? abilitato, le finestre floating possono essere oscurate da
 -finestre tiled.
-+When set tiled windows are allowed to obscure floating windows.
++Se impostato, le finestre tiled possono oscurare le finestre floating.
  .It Cm button2
--Simula la pressione del tasto centrale del mouse.
-+Fake a middle mouse button click (mouse button 2).
+ Simula la pressione del tasto centrale del mouse.
 +.It Cm width_shrink
-+Shrink the width of a floating window.
++Riduce la larghezza di una finestra floating.
 +.It Cm width_grow
-+Grow the width of a floating window.
++Aumenta la larghezza di una finestra floating.
 +.It Cm height_shrink
-+Shrink the height of a floating window.
++Riduce l'altezza di una finestra floating.
 +.It Cm height_grow
-+Grow the height of a floating window.
++Aumenta l'altezza di una finestra floating.
 +.It Cm move_left
-+Move a floating window a step to the left.
++Sposta una finestra floating verso sinistra di un'unit\[`a].
 +.It Cm move_right
-+Move a floating window a step to the right.
++Sposta una finestra floating verso destra di un'unit\[`a].
 +.It Cm move_up
-+Move a floating window a step upwards.
++Sposta una finestra floating verso l'alto di un'unit\[`a].
 +.It Cm move_down
-+Move a floating window a step downwards.
++Sposta una finestra floating verso il basso di un'unit\[`a].
 +.It Cm name_workspace
-+Name the current workspace.
++Assegna un nome all'area di lavoro corrente.
 +.It Cm search_workspace
-+Search for a workspace.
++Cerca un'area di lavoro.
 +.It Cm search_win
-+Search the windows in the current workspace.
++Cerca una finestra all'interno dell'area di lavoro corrente.
  .El
  .Pp
 -Le scorciatoie personalizzate sono specificate nel file di configurazione
 -come segue:
-+Custom bindings in the configuration file are specified as follows:
++Le scorciatoie da tastiera personalizzate vengono definite come segue:
 +.Pp
 +.Dl bind Ns Bo Ar action Bc = Ar keys
++.Pp
++.Ar action
++\[`e] una delle azioni predefinite descritte sopra, oppure la stringa vuota
++(per disabilitare la scorciatoia).
++.Ar keys
++\[`e] composta da uno o pi\[`u] tasti modificatore (eg. MOD, Mod1, Shift,
++etc.) e uno o pi\[`u] tasti normali (eg. b, Space, etc.) separati da
++.Ql + .
  .Pp
 -.Dl bind[<azione>] = <tasti>
-+.Ar action
-+is one of the actions listed above (or empty to unbind) and
-+.Ar keys
-+is in the form of zero or more modifier keys
-+(MOD, Mod1, Shift, etc.) and one or more normal keys
-+(b, Space, etc.), separated by
-+.Ql + .
++Esempio:
++.Bd -literal -offset indent
++bind[reset] = Mod4+q # Assegna l'azione reset alla scorciatoia Win+q
++bind[] = Mod1+q # disabilita la scorciatoia predefinita Alt+q
++.Ed
  .Pp
 -.Aq azione
 -? una delle azioni elencate sopra (oppure nulla) e
@@ -1195,73 +1186,76 @@ Index: spectrwm.git/spectrwm_it.1
 -? dato da zero o pi? modificatori (MOD, Mod1, Shift, ecc.) e uno o pi?
 -tasti normali (b, space, ecc.), separati da "+".
 -Per esempio:
-+Example:
++Per usare il valore dell'opzione
++.Ic modkey
++in una scorciatoia, specificare MOD come modificatore.
++.Pp
++Pi\[`u] scorciatoie possono essere assegnate alla stessa azione.
++.Pp
++Per usare dei caratteri non latini, come \[oa] o \[*p], all'interno di una
++scorciatoia, \[`e] necessario specificare il nome xkb del carattere
++anzich\['e] il carattere stesso.
++Eseguendo
++.Xr xev 1
++e premendo un tasto mentre la finestra del programma detiene il focus,
++\[`e] possibile leggere il nome xkb corrispondente al tasto premuto.
++Ad esempio, per \[oa]:
  .Bd -literal -offset indent
 -bind[reset] = Mod4+q # assegna reset ai tasti Windows + q
 -bind[] = Mod1+q # rimuovi l'assegnazione di Alt + q
-+bind[reset] = Mod4+q # bind Windows-key + q to reset
-+bind[] = Mod1+q # unbind Alt + q
- .Ed
- .Pp
--Pi? combinazioni di tasti possono essere assegnate alla stessa azione.
-+To use the currently defined
-+.Ic modkey ,
-+specify MOD as the modifier key.
-+.Pp
-+Multiple key combinations may be bound to the same action.
-+.Pp
-+To bind non-latin characters such as \[oa] or \[*p] you must enter the xkb
-+character name instead of the character itself. Run xev, focus the window
-+and press the specific key and in the terminal output read the symbol name.
-+In the following example for \[oa]:
-+.Bd -literal -offset indent
 +KeyPress event, serial 41, synthetic NO, window 0x2600001,
 +    root 0x15a, subw 0x0, time 106213808, (11,5), root:(359,823),
 +    state 0x0, keycode 24 (keysym 0xe5, aring), same_screen YES,
 +    XLookupString gives 2 bytes: (c3 a5) "\[oa]"
 +    XmbLookupString gives 2 bytes: (c3 a5) "\[oa]"
 +    XFilterEvent returns: False
-+.Ed
-+.Pp
-+The xkb name is aring. In other words, in
+ .Ed
+ .Pp
+-Pi? combinazioni di tasti possono essere assegnate alla stessa azione.
++Il nome xkb \[`e] aring.
++Quindi, all'interno di
 +.Pa spectrwm.conf
-+add:
++sar\[`a] possibile aggiungere la seguente riga:
 +.Bd -literal -offset indent
 +bind[program] = MOD+aring
 +.Ed
-+.Sh KEYBOARD MAPPING FILES
-+Keyboard mapping files for several keyboard layouts are listed
-+below.
-+These files can be used with the
-+.Ic keyboard_mapping
-+setting to load pre-defined key bindings for the specified
-+keyboard layout.
++.Sh MAPPE DI TASTIERA
++\[`E] possibile caricare le scorciatoie da un file di configurazione
++separato tramite l'opzione
++.Ic keyboard_mapping :
++questo consente di utilizzare scorciatoie specifiche del proprio layout di
++tastiera.
++.Pp
++Vengono forniti i seguenti file:
 +.Pp
 +.Bl -tag -width "spectrwm_XX.confXXX" -offset indent -compact
 +.It Cm spectrwm_cz.conf
-+Czech Republic keyboard layout
++Layout per tastiere ceche
 +.It Cm spectrwm_es.conf
-+Spanish keyboard layout
++Layout per tastiere spagnole
 +.It Cm spectrwm_fr.conf
-+French keyboard layout
++Layout per tastiere francesi
 +.It Cm spectrwm_fr_ch.conf
-+Swiss French keyboard layout
++Layout per tastiere francesi (Svizzera)
 +.It Cm spectrwm_se.conf
-+Swedish keyboard layout
++Layout per tastiere svedesi
 +.It Cm spectrwm_us.conf
-+United States keyboard layout
++Layout per tastiere americane
 +.El
  .Sh QUIRK
- .Nm
+-.Nm
 -fornisce la possibilit? di specificare dei "quirk" per la gestione di
 -finestre che devono subire un trattamento speciale da un gestore di finestre
 -tiling, come ad esempio alcune finestre di dialogo e applicazioni a
 -schermo intero.
-+provides "quirks" which handle windows that must be treated specially
-+in a tiling window manager, such as some dialogs and fullscreen apps.
++\[`E] possibile specificare "quirk" da applicare a quelle finestre (ad
++esempio applicazioni a schermo intero e finestre di dialogo) che richiedono
++un comportamento speciale da parte di un gestore di finestre tiling come
++.Nm .
  .Pp
 -I quirk abilitati di default sono elencati qui sotto:
-+The default quirks are described below:
++La configurazione predefinita, per quanto riguarda i quirk, \[`e] la
++seguente:
  .Pp
 -.Bl -tag -width "OpenOffice.org N.M:VCLSalFrame<TAB>XXX" -offset indent -compact
 +.Bl -tag -width "OpenOffice.org N.M:VCLSalFrame<TAB>XXX" -offset indent \
@@ -1269,71 +1263,78 @@ Index: spectrwm.git/spectrwm_it.1
  .It Firefox\-bin:firefox\-bin
  TRANSSZ
  .It Firefox:Dialog
-@@ -577,66 +999,119 @@
+@@ -577,66 +1006,125 @@
  XTERM_FONTADJ
  .El
  .Pp
 -I quirk sono descritti qui sotto:
-+The quirks themselves are described below:
++I quirk disponibili sono i seguenti:
  .Pp
  .Bl -tag -width "XTERM_FONTADJ<TAB>XXX" -offset indent -compact
  .It FLOAT
 -Questa finestra deve essere lasciata libera di muoversi (float).
-+This window should not be tiled, but allowed to float freely.
++Le finestre saranno sempre floating.
  .It TRANSSZ
 -Aggiusta la dimensione delle finestre troppo piccole usando dialog_ratio
 -(vedere
-+Adjusts size on transient windows that are too small using
+-.Sx FILE DI CONFIGURAZIONE ) .
++Modifica la dimensione delle finestre di dialogo in base al valore di
 +.Ic dialog_ratio
-+(see
- .Sx FILE DI CONFIGURAZIONE ) .
++(vedere la sezione
++.Sx FILE DI CONFIGURAZIONE
++pi\[`u] in alto).
  .It ANYWHERE
 -Consente alla finestra di decidere da sola dove posizionarsi.
-+Allow window to position itself, uncentered.
++Consenti alle finestre di decidere la propria posizione.
  .It XTERM_FONTADJ
 -Ridimensiona il font di xterm quando viene ridimensionata la finestra.
-+Adjust xterm fonts when resizing.
++Regola la dimensione dei font di
++.Xr xterm 1
++quando la dimensione delle finestre viene modificata.
  .It FULLSCREEN
 -Rimuove i bordi, consentendo alla finestra di usare l'intera dimensione
 -dello schermo.
-+Remove border to allow window to use full region size.
++Non mostrare il bordo.
  .It FOCUSPREV
 -Quando la finestra viene chiusa, d? il focus alla finestra che aveva il
 -focus precedente anzich? all'applicazione precedente nello stack.
-+On exit force focus on previously focused application not previous
-+application in the stack.
++Alla chiusura di una finestra, il focus verr\[`a] assegnato alla finestra
++che lo deteneva in precedenza e non alla finestra precedente nello stack.
 +.It NOFOCUSONMAP
-+Don't change focus to the window when it first appears on the screen.
-+Has no effect when
++Non assegnare il focus alle finestre quando vengono create.
++Questo quirk viene ignorato se il valore di
 +.Ic focus_mode
-+is set to
++\[`e]
 +.Ar follow .
 +.It FOCUSONMAP_SINGLE
-+When the window first appears on the screen, change focus to the window
-+if there are no other windows on the workspace with the same WM_CLASS
-+class/instance value.  Has no effect when
++Assegna il focus alle finestre quando vengono create solo se non sono
++gi\[`a] presenti delle finestre con la stessa classe e istanza nell'area
++di lavoro.
++Questo quirk viene ignorato se il valore di
 +.Ic focus_mode
-+is set to
++\[`e]
 +.Ar follow .
 +.It OBEYAPPFOCUSREQ
-+When an application requests focus on the window via a _NET_ACTIVE_WINDOW
-+client message (source indication of 1), comply with the request.
-+Note that a source indication of 0 (unspecified) or 2 (pager) are always
-+obeyed.
++Assegna il focus alle finestre quando viene richiesto tramite un messaggio
++di tipo _NET_ACTIVE_WINDOW con sorgente 1.
++Se la sorgente \[`e] 0 (non specificato) o 2 (pager), la richiesta viene
++sempre accolta.
 +.It IGNOREPID
-+Ignore the PID when determining the initial workspace for a new window.
-+Especially useful for terminal windows that share a process.
++Ignora il PID nella scelta dell'area di lavoro iniziale per le nuove
++finestre.
++Molto utile per le applicazioni (eg. terminali) che creano pi\[`u] finestre
++all'interno dello stesso processo.
 +.It IGNORESPAWNWS
-+Ignore the spawn workspace when determining the initial workspace for a
-+new window.
++Ignora l'area di lavoro in cui \[`e] stata eseguita la scorciatoia da
++tastiera nella scelta dell'area di lavoro iniziale per le nuove finestre.
 +.It WS Ns Bq Ar n
-+Force a new window to appear on workspace
++Obbliga le nuove finestre ad essere assegnate all'area di lavoro
 +.Ar n .
  .El
  .Pp
 -I quirk personalizzati vanno specificati nel file di configurazione come
 -segue:
-+Custom quirks in the configuration file are specified as follows:
++I quirk personalizzati vengono definiti come segue:
  .Pp
 -.Dl quirk[<classe>:<nome>] = <quirk> [ + <quirk> ... ]
 +.Dl quirk Ns Bo Ar class Ns Bo : Ns Ar instance Ns Bo : Ns Ar name Bc Bc Bc = Ar quirk Op + Ar quirk ...
@@ -1347,12 +1348,12 @@ Index: spectrwm.git/spectrwm_it.1
 -Ad esempio:
 +.Ar class ,
 +.Ar instance
-+(optional) and
++(opzionale) e
 +.Ar name
-+(optional) are patterns used to determine which window(s) the quirk(s) apply
-+to and
++(opzionale) sono dei pattern che vengono usati per determinare a quali
++finestre i quirk debbano essere applicati e
 +.Ar quirk
-+is one of the quirks from the list above.
++\[`e] uno dei quirk presente nella lista precedente.
 +.Pp
 +Note that patterns are interpreted as POSIX Extended Regular Expressions.
 +Any ':', '[' or ']' must be escaped with '\\'.
@@ -1399,18 +1400,18 @@ Index: spectrwm.git/spectrwm_it.1
  WM_CLASS(STRING) = "Navigator", "Firefox"
 +WM_NAME(STRING) = "spectrwm - ConformalOpenSource"
 +_NET_WM_NAME(UTF8_STRING) = "spectrwm - ConformalOpenSource"
- .Ed
- .Pp
--Bisogna tenere conto del fatto che usare grep per trovare WM_CLASS inverte
--la classe e il nome. Nell'esempio precedente, la dichiarazione del quirk
--sarebbe
++.Ed
++.Pp
 +Note that
 +.Xr xprop 1
 +displays WM_CLASS as:
 +.Bd -literal -offset indent
 +WM_CLASS(STRING) = "<instance>", "<class>"
-+.Ed
-+.Pp
+ .Ed
+ .Pp
+-Bisogna tenere conto del fatto che usare grep per trovare WM_CLASS inverte
+-la classe e il nome. Nell'esempio precedente, la dichiarazione del quirk
+-sarebbe
 +In the example above the quirk entry would be:
  .Bd -literal -offset indent
  quirk[Firefox:Navigator] = FLOAT
@@ -1424,7 +1425,7 @@ Index: spectrwm.git/spectrwm_it.1
  .Pp
  .Bl -tag -width "_NET_WM_WINDOW_TYPE_TOOLBAR<TAB>XXX" -offset indent -compact
  .It _NET_WM_WINDOW_TYPE_DOCK
-@@ -651,102 +1126,121 @@
+@@ -651,102 +1139,121 @@
  FLOAT
  .El
  .Pp
