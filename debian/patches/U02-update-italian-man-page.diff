@@ -1,5 +1,6 @@
 Description: Update Italian man page
  Bring Italian man page up-to-date.
+Bug: https://github.com/conformal/spectrwm/pull/67
 Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2014-09-04
 Index: spectrwm.git/spectrwm_it.1
