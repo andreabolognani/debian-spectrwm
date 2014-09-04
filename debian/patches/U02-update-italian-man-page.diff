@@ -4,8 +4,8 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2014-09-04
 Index: spectrwm.git/spectrwm_it.1
 ===================================================================
---- spectrwm.git.orig/spectrwm_it.1	2014-09-03 23:58:39.892783318 +0200
-+++ spectrwm.git/spectrwm_it.1	2014-09-04 23:17:35.612601753 +0200
+--- spectrwm.git.orig/spectrwm_it.1	2014-09-04 23:35:09.144652741 +0200
++++ spectrwm.git/spectrwm_it.1	2014-09-05 00:06:58.024745126 +0200
 @@ -1,5 +1,9 @@
 -.\" Copyright (c) 2009 Marco Peereboom <marco@peereboom.us>
 +.\" Copyright (c) 2009-2012 Marco Peereboom <marco@peereboom.us>
@@ -686,10 +686,9 @@ Index: spectrwm.git/spectrwm_it.1
  Vedere la sezione
  .Sx SCORCIATOIE
 -pi? sotto.
-+pi\[`u] sotto.
- .Pp
+-.Pp
 -I programmi di default sono descritte qui sotto:
-+I programmi vengono definiti come segue:
++pi\[`u] sotto.
  .Pp
 -.Bl -tag -width "screenshot_wind" -offset indent -compact
 -.It Cm term
@@ -705,9 +704,12 @@ Index: spectrwm.git/spectrwm_it.1
 -.It Cm menu
 -dmenu_run \-fn $bar_font \-nb $bar_color \-nf $bar_font_color \-sb $bar_border \-sf $bar_color
 -.El
-+.Dl program Ns Bo Ar action Bc = Ar progpath Op Ar arg Op Ar arg ...
++I programmi vengono definiti come segue:
  .Pp
 -I programmi personalizzati vengono specificati con la seguente sintassi:
++.Dl program Ns Bo Ar action Bc = Ar progpath Op Ar arg Op Ar arg ...
+ .Pp
+-.Dl program[<nome>] = <percorso> [<arg> [... <arg>]]
 +.Ar action
 +\[`e] qualsiasi identificatore che non vada in conflitto con una delle
 +azioni predefinite,
@@ -716,10 +718,6 @@ Index: spectrwm.git/spectrwm_it.1
 +.Ar arg
 +sono gli argomenti (uno o pi\[`u]) da passare al programma.
  .Pp
--.Dl program[<nome>] = <percorso> [<arg> [... <arg>]]
-+Se il percorso o gli argomenti comprendono il carattere #, questo dovr\[`a]
-+essere preceduto da un carattere di escape, diventando \e#.
- .Pp
 -.Aq nome
 -? un qualsiasi identificatore che non va in conflitto con un'azione
 -predefinita o una chiave,
@@ -727,7 +725,9 @@ Index: spectrwm.git/spectrwm_it.1
 -? il programma desiderato, e
 -.Aq arg
 -sono zero o pi? argomenti da passare al programma.
--.Pp
++Se il percorso o gli argomenti comprendono il carattere #, questo dovr\[`a]
++essere preceduto da un carattere di escape, diventando \e#.
+ .Pp
 -Le seguenti variabili rappresentano valori impostabili in
 -.Nm
 -(vedere la sezione
@@ -757,16 +757,14 @@ Index: spectrwm.git/spectrwm_it.1
  program[ff] = /usr/local/bin/firefox http://spectrwm.org/
 -bind[ff] = Mod+f # adesso Mod+F lancia firefox
 +bind[ff] = MOD+Shift+b # Ora M-S-b esegue Firefox
- .Ed
- .Pp
--Per eliminare la combinazione precedente:
++.Ed
++.Pp
 +Per eliminare la scorciatoia appena definita:
- .Bd -literal -offset indent
--bind[] = Mod+f
--program[ff] =
++.Bd -literal -offset indent
 +bind[] = MOD+Shift+b
  .Ed
  .Pp
+-Per eliminare la combinazione precedente:
 +Programmi predefiniti:
 +.Pp
 +.Bl -tag -width "screenshot_wind" -offset indent -compact
@@ -793,10 +791,12 @@ Index: spectrwm.git/spectrwm_it.1
 +.Pp
 +Ad esempio, per ridefinire
 +.Ic lock :
-+.Bd -literal -offset indent
+ .Bd -literal -offset indent
+-bind[] = Mod+f
+-program[ff] =
 +program[lock] = xscreensaver\-command \-lock
-+.Ed
-+.Pp
+ .Ed
+ .Pp
 +Per disabilitare la scorciatoia assegnata a
 +.Ic lock
 +ed impedirne la verifica:
@@ -1164,7 +1164,8 @@ Index: spectrwm.git/spectrwm_it.1
 +Le scorciatoie da tastiera personalizzate vengono definite come segue:
 +.Pp
 +.Dl bind Ns Bo Ar action Bc = Ar keys
-+.Pp
+ .Pp
+-.Dl bind[<azione>] = <tasti>
 +.Ar action
 +\[`e] una delle azioni predefinite descritte sopra, oppure la stringa vuota
 +(per disabilitare la scorciatoia).
@@ -1172,8 +1173,7 @@ Index: spectrwm.git/spectrwm_it.1
 +\[`e] composta da uno o pi\[`u] tasti modificatore (eg. MOD, Mod1, Shift,
 +etc.) e uno o pi\[`u] tasti normali (eg. b, Space, etc.) separati da
 +.Ql + .
- .Pp
--.Dl bind[<azione>] = <tasti>
++.Pp
 +Esempio:
 +.Bd -literal -offset indent
 +bind[reset] = Mod4+q # Assegna l'azione reset alla scorciatoia Win+q
@@ -1400,18 +1400,18 @@ Index: spectrwm.git/spectrwm_it.1
  WM_CLASS(STRING) = "Navigator", "Firefox"
 +WM_NAME(STRING) = "spectrwm - ConformalOpenSource"
 +_NET_WM_NAME(UTF8_STRING) = "spectrwm - ConformalOpenSource"
- .Ed
- .Pp
--Bisogna tenere conto del fatto che usare grep per trovare WM_CLASS inverte
--la classe e il nome. Nell'esempio precedente, la dichiarazione del quirk
--sarebbe
++.Ed
++.Pp
 +Il comando
 +.Xr xprop 1
 +visualizza WM_CLASS nel seguente formato:
 +.Bd -literal -offset indent
 +WM_CLASS(STRING) = "<instance>", "<class>"
-+.Ed
-+.Pp
+ .Ed
+ .Pp
+-Bisogna tenere conto del fatto che usare grep per trovare WM_CLASS inverte
+-la classe e il nome. Nell'esempio precedente, la dichiarazione del quirk
+-sarebbe
 +In questo caso, bisognerebbe aggiungere al file di configurazione la
 +seguente riga:
  .Bd -literal -offset indent
@@ -1426,7 +1426,7 @@ Index: spectrwm.git/spectrwm_it.1
  .Pp
  .Bl -tag -width "_NET_WM_WINDOW_TYPE_TOOLBAR<TAB>XXX" -offset indent -compact
  .It _NET_WM_WINDOW_TYPE_DOCK
-@@ -651,102 +1142,93 @@
+@@ -651,102 +1142,99 @@
  FLOAT
  .El
  .Pp
@@ -1505,24 +1505,29 @@ Index: spectrwm.git/spectrwm_it.1
 +Per fare ci\[`o], \[`e] necessario inviare un messaggio di tipo
 +_NET_WM_STATE, ad esempio:
  .Bd -literal -offset indent
--$ wmctrl \-i \-r 0x4a0000b \-b toggle,_NET_WM_STATE_ABOVE
-+$ wmctrl \-i \-r 0x4a0000b \-b toggle,_NET_WM_STATE_HIDDEN
+ $ wmctrl \-i \-r 0x4a0000b \-b toggle,_NET_WM_STATE_ABOVE
  .Ed
  .Pp
 -Le finestre floating possono essere ridimensionate o spostate inviando il
 -messaggio _NET_MOVERESIZE_WINDOW alla root window. Ad esempio, usando
 -.Xr wmctrl 1
 -(supponendo che 0x4a0000b sia l'id della finestra da spostare):
++Le finestre possono essere minimizzate e ripristinate sostituendo
++_NET_WM_STATE_HIDDEN a _NET_WM_STATE_ABOVE nell'esempio precedente:
+ .Bd -literal -offset indent
+-$ wmctrl \-i \-r 0x4a0000b \-e 0,100,50,640,480
++$ wmctrl \-i \-r 0x4a0000b \-b toggle,_NET_WM_STATE_HIDDEN
+ .Ed
+ .Pp
+-Questo comando sposta la finestra in (100,50) e la ridimensiona a 640x480.
 +Le finestre floating possono essere ridimensionate e spostate tramite
 +l'invio di un messaggio di tipo _NET_MOVERESIZE_WINDOW, ad esempio:
- .Bd -literal -offset indent
- $ wmctrl \-i \-r 0x4a0000b \-e 0,100,50,640,480
- .Ed
++.Bd -literal -offset indent
++$ wmctrl \-i \-r 0x4a0000b \-e 0,100,50,640,480
++.Ed
 +In questo caso, la con id 0x4a0000b finestra viene spostata in (100,50)
 +e la sua dimensione diventa 640x480.
  .Pp
--Questo comando sposta la finestra in (100,50) e la ridimensiona a 640x480.
--.Pp
 -I messaggi _NET_MOVERESIZE_WINDOW vengono ignorati per le finestre stacked.
 +I messaggi di tipo _NET_MOVERESIZE_WINDOW che fanno riferimento a finestre
 +tiled verranno ignorati.
