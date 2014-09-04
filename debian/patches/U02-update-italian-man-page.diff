@@ -1,11 +1,11 @@
-Description: Update Italian manual page
- Bring Italian manual page up-to-date.
+Description: Update Italian man page
+ Bring Italian man page up-to-date.
 Author: Andrea Bolognani <eof@kiyuko.org>
-Last-Update: 2014-09-03
+Last-Update: 2014-09-04
 Index: spectrwm.git/spectrwm_it.1
 ===================================================================
---- spectrwm.git.orig/spectrwm_it.1	2014-09-03 00:05:07.844655450 +0200
-+++ spectrwm.git/spectrwm_it.1	2014-09-03 23:58:32.812782977 +0200
+--- spectrwm.git.orig/spectrwm_it.1	2014-09-03 23:58:39.892783318 +0200
++++ spectrwm.git/spectrwm_it.1	2014-09-04 23:17:35.612601753 +0200
 @@ -1,5 +1,9 @@
 -.\" Copyright (c) 2009 Marco Peereboom <marco@peereboom.us>
 +.\" Copyright (c) 2009-2012 Marco Peereboom <marco@peereboom.us>
@@ -162,9 +162,7 @@ Index: spectrwm.git/spectrwm_it.1
 +Il bordo pu\[`o] essere disabilitato usando il valore 0.
 +.It Ic bar_color Ns Bq Ar x
 +Colore di sfondo della barra di stato nello schermo
- .Ar x .
--.It Cm bar_font_color Ns Bq Ar x
--Colore del testo della barra di stato nello schermo
++.Ar x .
 +.It Ic bar_enabled
 +Imposta il valore predefinito di
 +.Ic bar_toggle ;
@@ -216,6 +214,58 @@ Index: spectrwm.git/spectrwm_it.1
 +.It Ic bar_font_color Ns Bq Ar x
 +Colore del testo nella barra di stato nello schermo
  .Ar x .
+-.It Cm bar_font_color Ns Bq Ar x
+-Colore del testo della barra di stato nello schermo
++.It Ic bar_format
++Imposta il formato da utilizzare per la barra di stato,
++sovrascrivendo
++.Ic clock_format
++e tutte le opzioni che terminano con
++.Ic enabled .
++Il formato viene passato a
++.Xr strftime 3
++prima di essere usato, e pu\[`o] contenere le seguenti sequenze
++di caratteri:
++.Bl -column "Sequenza di caratteri" "Sostituita con" -offset indent
++.It Sy "Sequenza di caratteri" Ta Sy "Sostituita con"
++.It Li "+<" Ta "Lascia uno spazio"
++.It Li "+A" Ta "Output dello script esterno"
++.It Li "+C" Ta "Classe della finestra corrente (da WM_CLASS)"
++.It Li "+D" Ta "Nome dell'area di lavoro corrente"
++.It Li "+F" Ta "Indicatore di float"
++.It Li "+I" Ta "Indice dell'area di lavoro corrente"
++.It Li "+M" Ta "Numero di finestre minimizzate nell'area di lavoro corrente"
++.It Li "+N" Ta "Numero dello schermo corrente"
++.It Li "+P" Ta "Classe e istanza della finestra corrente, separate da due punti"
++.It Li "+S" Ta "Algoritmo di gestione delle finestre in uso"
++.It Li "+T" Ta "Istanza della finestra corrente (da WM_CLASS)"
++.It Li "+U" Ta "Indicatore di urgenza"
++.It Li "+V" Ta "Versione del programma"
++.It Li "+W" Ta "Nome della finestra corrente (da _NET_WM_NAME/WM_NAME)"
++.It Li "++" Ta "Il carattere" Ql +
++.El
++.Pp
++Tutte le sequenze di caratteri possono limitare il numero di caratteri
++massimo utilizzato, eg. +64A. Il testo che non contribuisce a formare
++una di queste sequenze di caratteri viene copiato senza subire modifiche.
++.It Ic bar_justify
++Allinea il test all'interno della barra di stato. I valori possibili sono
++.Ar left
++(sinistra),
++.Ar center
++(centro) e
++.Ar right
++(destra).
++.Pp
++Se il valore scelto non \[`e]
++.Ar left ,
++il testo potrebbe non risultare allineato correttamente.
++Vedere
++.Ic bar_format
++per maggiori informazioni.
++.It Ic bind Ns Bq Ar x
++Associa una combinazione di tasti all'azione
+ .Ar x .
 -.It Cm bar_font
 -Font della barra di stato.
 -.It Cm bar_action
@@ -246,37 +296,67 @@ Index: spectrwm.git/spectrwm_it.1
 -I valori possibili per stack_mode sono
 -.Pa vertical ,
 -.Pa horizontal
--e
++Vedere la sezione
++.Sx SCORCIATOIE
++pi\[`u] sotto.
++.It Ic border_width
++Imposta lo spessore del bordo delle finestre, in pixel.
++Il bordo pu\[`o] essere disabilitato usando il valore 0.
++.It Ic boundary_width
++Imposta la larghezza dell'area di contenimento delle regioni, in pixel.
++Questo valore permette di controllare di quanto una finestra debba essere
++trascinata o ridimensionata oltre il limite di una regione prima che
++venga considerata al di fuori di essa.
++Questa impostazione non viene presa in considerazione quando le finestre
++vengono manipolate utilizzando la tastiera.
++L'area di contenimento pu\[`o] essere disabilitata usando il valore 0.
++.It Ic clock_enabled
++Abilita o disabilita l'orologio nella barra di stato.
++Se viene usato il valore 0, \[`e] possibile inserire un orologio
++personalizzato nello script esterno definito in
++.Ic bar action .
++.It Ic iconic_enabled
++Visualizza nella barra di stato il numero di finestre minimizzate.
++Questo indicatore pu\[`o] essere abilitato usando il valore 1.
++.It Ic color_focus
++Colore del bordo della finestra che detiene il focus.
++Il colore predefinito \[`e] il rosso.
++.It Ic color_focus_maximized
++Colore del bordo della finestra che detiene il focus, se massimizzata.
++Il colore predefinito \[`e] quello usato per
++.Ic color_focus .
++.It Ic color_unfocus
++Colore del bordo delle finestre che non detengono il focus.
++Il colore predefinito \[`e] rgb:88/88/88.
++.It Ic color_unfocus_maximized
++Colore del bordo delle finestre che non detengono il focus, se massimizzate.
++Il colore predefinito \[`e] quello usato per
++.Ic color_unfocus .
++.It Ic dialog_ratio
++Alcune applicazioni creano finestre di dialogo troppo piccole per essere
++utilizzate.
++Questa opzione indica la percentuale dello schermo da utilizzare per le
++finestre di dialogo: ad esempio, il valore 0.6 indica che dovr\[`a] essere
++usato il 60% dello spazio disponibile.
++.It Ic disable_border
++Non mostrare i bordi quando la barra di stato \[`e] nascosta e c'\[`e] una
++sola finestra nella regione.
++.It Ic focus_close
++Imposta quale finestra ricever\[`a] il focus in seguito alla chiusura della
++finestra che lo detiene al momento.
++I valori possibili sono
++.Ar first
++(prima),
++.Ar next
++(successiva),
++.Ar previous
++(precedente, impostazione predefinita) e
++.Ar last
++(ultima).
++.Ar next
+ e
 -.Pa fullscreen .
-+.It Ic bar_format
-+Imposta il formato da utilizzare per la barra di stato,
-+sovrascrivendo
-+.Ic clock_format
-+e tutte le opzioni che terminano con
-+.Ic enabled .
-+Il formato viene passato a
-+.Xr strftime 3
-+prima di essere usato, e pu\[`o] contenere le seguenti sequenze
-+di caratteri:
-+.Bl -column "Sequenza di caratteri" "Sostituita con" -offset indent
-+.It Sy "Sequenza di caratteri" Ta Sy "Sostituita con"
-+.It Li "+<" Ta "Lascia uno spazio"
-+.It Li "+A" Ta "Output dello script esterno"
-+.It Li "+C" Ta "Classe della finestra corrente (da WM_CLASS)"
-+.It Li "+D" Ta "Nome dell'area di lavoro corrente"
-+.It Li "+F" Ta "Indicatore di float"
-+.It Li "+I" Ta "Indice dell'area di lavoro corrente"
-+.It Li "+M" Ta "Numero di finestre minimizzate nell'area di lavoro corrente"
-+.It Li "+N" Ta "Numero dello schermo corrente"
-+.It Li "+P" Ta "Classe e istanza della finestra corrente, separate da due punti"
-+.It Li "+S" Ta "Algoritmo di gestione delle finestre in uso"
-+.It Li "+T" Ta "Istanza della finestra corrente (da WM_CLASS)"
-+.It Li "+U" Ta "Indicatore di urgenza"
-+.It Li "+V" Ta "Versione del programma"
-+.It Li "+W" Ta "Nome della finestra corrente (da _NET_WM_NAME/WM_NAME)"
-+.It Li "++" Ta "Il carattere" Ql +
-+.El
- .Pp
+-.Pp
 -Fare riferimento a
 -.Pa master_grow ,
 -.Pa master_shrink ,
@@ -284,7 +364,71 @@ Index: spectrwm.git/spectrwm_it.1
 -.Pa master_del ,
 -.Pa stack_inc ,
 -.Pa stack_del
--e
++.Ar previous
++sono intese relativamente alla finestra che \[`e] stata chiusa.
++.It Ic focus_close_wrap
++Se abilitata, l'ultima finestra ricever\[`a] il focus quando l'ultima
++viene chiusa, e viceversa.
++Questa opzione pu\[`o] essere disabilitata usando il valore 0.
++.It Ic focus_default
++Finestra che deve ricevere il focus quando nessun'altra finestra lo
++detiene.
++I valori possibili sono
++.Ar first
++(prima) e
++.Ar last
++(ultima, impostazione predefinita).
++.It Ic focus_mode
++Comportamento del focus in relazione al cursore del mouse.
++I valori possibili sono:
++.Pp
++.Bl -tag -width "default" -offset indent -compact
++.It Ar default
++Modifica il focus quando viene attraversato un bordo in seguito ad un
++movimento del cursore o all'interazione con una finestra.
++.It Ar follow
++Modifica il focus ogni volta che il cursore attraversa un bordo, anche se
++questo avviene in seguito al passaggio ad un'area di lavoro diversa o ad
++un cambio di layout.
++.It Ar manual
++Modifica il focus solo quando si interagisce con una finestra.
++.El
++.It Ic java_workaround
++Evita alcuni problemi di rendering nelle GUI Java impersonando il window
++manager LG3D, scritto da Sun. Il valore predefinito \[`e] 1.
++.It Ic keyboard_mapping
++Rimuove tutte le scorciatoie da tastiera esistenti e carica le nuove
++scorciatoie dal file specificato.
++Questo permette di caricare scorciatoie specifiche del proprio layout
++di tastiera.
++Vedere la sezione
++.Sx MAPPE DI TASTIERA
++pi\[`u] sotto per un elenco dei file che vengono forniti.
++.It Ic layout
++Imposta il layout da utilizzare all'avvio.
++Definito nel formato
++.Li ws Ns Bo Ar idx Bc : Ns Ar master_grow : Ns Ar master_add : Ns Ar stack_inc : Ns Ar always_raise : Ns Ar stack_mode ,
++eg. ws[2]:-4:0:1:0:horizontal configura l'area di lavoro 2 per utilizzare
++un algoritmo di stacking orizzontale, riduce l'area principale di 4
++unit\[`a] e aggiunge una finestra all'area di stacking, mantenendo il
++comportamento predefinito per le finestre floating.
++I valori possibili per
++.Ar stack_mode
++sono
++.Ar vertical ,
++.Ar vertical_flip ,
++.Ar horizontal ,
++.Ar horizontal_flip
++and
++.Ar fullscreen .
++Vedere
++.Ic master_grow ,
++.Ic master_shrink ,
++.Ic master_add ,
++.Ic master_del ,
++.Ic stack_inc ,
++.Ic stack_dec ,
+ e
 -.Pa always_raise
 -per ulteriori informazioni.
 -Queste impostazioni sono complesse e hanno effetti secondari; ? opportuno
@@ -354,158 +498,6 @@ Index: spectrwm.git/spectrwm_it.1
 -.It Cm program Ns Bq Ar p
 -Definisce una nuova azione per lanciare il programma
 -.Ar p .
--Vedere la sezione
--.Sx PROGRAMMI
--pi? sotto.
--.It Cm bind Ns Bq Ar x
--Assegna una combinazione di tasti all'azione
-+Tutte le sequenze di caratteri possono limitare il numero di caratteri
-+massimo utilizzato, eg. +64A. Il testo che non contribuisce a formare
-+una di queste sequenze di caratteri viene copiato senza subire modifiche.
-+.It Ic bar_justify
-+Allinea il test all'interno della barra di stato. I valori possibili sono
-+.Ar left
-+(sinistra),
-+.Ar center
-+(centro) e
-+.Ar right
-+(destra).
-+.Pp
-+Se il valore scelto non \[`e]
-+.Ar left ,
-+il testo potrebbe non risultare allineato correttamente.
-+Vedere
-+.Ic bar_format
-+per maggiori informazioni.
-+.It Ic bind Ns Bq Ar x
-+Associa una combinazione di tasti all'azione
- .Ar x .
- Vedere la sezione
- .Sx SCORCIATOIE
--pi? sotto.
--.It Cm quirk Ns Bq Ar c:n
-+pi\[`u] sotto.
-+.It Ic border_width
-+Imposta lo spessore del bordo delle finestre, in pixel.
-+Il bordo pu\[`o] essere disabilitato usando il valore 0.
-+.It Ic boundary_width
-+Imposta la larghezza dell'area di contenimento delle regioni, in pixel.
-+Questo valore permette di controllare di quanto una finestra debba essere
-+trascinata / ridimensionata oltre il limite di una regione prima che
-+venga considerata al di fuori di essa.
-+Questa impostazione non viene presa in considerazione quando le finestre
-+vengono manipolate utilizzando la tastiera.
-+L'area di contenimento pu\[`o] essere disabilitata usando il valore 0.
-+.It Ic clock_enabled
-+Abilita o disabilita l'orologio nella barra di stato.
-+Se viene usato il valore 0, \[`e] possibile inserire un orologio
-+personalizzato nello script esterno definito in
-+.Ic bar action .
-+.It Ic iconic_enabled
-+Visualizza nella barra di stato il numero di finestre minimizzate.
-+Questo indicatore pu\[`o] essere abilitato usando il valore 1.
-+.It Ic color_focus
-+Colore del bordo della finestra che detiene il focus.
-+Il colore predefinito \[`e] il rosso.
-+.It Ic color_focus_maximized
-+Colore del bordo della finestra che detiene il focus, se massimizzata.
-+Il colore predefinito \[`e] quello usato per
-+.Ic color_focus .
-+.It Ic color_unfocus
-+Colore del bordo delle finestre che non detengono il focus.
-+Il colore predefinito \[`e] rgb:88/88/88.
-+.It Ic color_unfocus_maximized
-+Colore del bordo delle finestre che non detengono il focus, se massimizzate.
-+Il colore predefinito \[`e] quello usato per
-+.Ic color_unfocus .
-+.It Ic dialog_ratio
-+Alcune applicazioni creano finestre di dialogo troppo piccole per essere
-+utilizzate.
-+Questa opzione indica la percentuale dello schermo da utilizzare per le
-+finestre di dialogo: ad esempio, il valore 0.6 indica che dovr\[`a] essere
-+usato il 60% dello spazio disponibile.
-+.It Ic disable_border
-+Non mostrare i bordi quando la barra di stato \[`e] nascosta e c'\[`e] una
-+sola finestra nella regione.
-+.It Ic focus_close
-+Imposta quale finestra ricever\[`a] il focus in seguito alla chiusura della
-+finestra che lo detiene al momento.
-+I valori possibili sono
-+.Ar first
-+(prima),
-+.Ar next
-+(successiva),
-+.Ar previous
-+(precedente, impostazione predefinita) e
-+.Ar last
-+(ultima).
-+.Ar next
-+e
-+.Ar previous
-+sono intese relativamente alla finestra che \[`e] stata chiusa.
-+.It Ic focus_close_wrap
-+Se abilitata, l'ultima finestra ricever\[`a] il focus quando l'ultima
-+viene chiusa, e viceversa.
-+Questa opzione pu\[`o] essere disabilitata usando il valore 0.
-+.It Ic focus_default
-+Finestra che deve ricevere il focus quando nessun'altra finestra lo
-+detiene.
-+I valori possibili sono
-+.Ar first
-+(prima) e
-+.Ar last
-+(ultima, impostazione predefinita).
-+.It Ic focus_mode
-+Comportamento del focus in relazione al cursore del mouse.
-+I valori possibili sono:
-+.Pp
-+.Bl -tag -width "default" -offset indent -compact
-+.It Ar default
-+Modifica il focus quando viene attraversato un bordo in seguito ad un
-+movimento del cursore o all'interazione con una finestra.
-+.It Ar follow
-+Modifica il focus ogni volta che il cursore attraversa un bordo, anche se
-+questo avviene in seguito al passaggio ad un'area di lavoro diversa o ad
-+un cambio di layout.
-+.It Ar manual
-+Modifica il focus solo quando si interagisce con una finestra.
-+.El
-+.It Ic java_workaround
-+Evita alcuni problemi di rendering nelle GUI Java impersonando il window
-+manager LG3D, scritto da Sun. Il valore predefinito \[`e] 1.
-+.It Ic keyboard_mapping
-+Rimuove tutte le scorciatoie da tastiera esistenti e carica le nuove
-+scorciatoie dal file specificato.
-+Questo permette di caricare scorciatoie specifiche del proprio layout
-+di tastiera.
-+Vedere la sezione
-+.Sx MAPPE DI TASTIERA
-+pi\[`u] sotto per un elenco dei file che vengono forniti.
-+.It Ic layout
-+Imposta il layout da utilizzare all'avvio.
-+Definito nel formato
-+.Li ws Ns Bo Ar idx Bc : Ns Ar master_grow : Ns Ar master_add : Ns Ar stack_inc : Ns Ar always_raise : Ns Ar stack_mode ,
-+eg. ws[2]:-4:0:1:0:horizontal configura l'area di lavoro 2 per utilizzare
-+un algoritmo di stacking orizzontale, riduce l'area principale di 4
-+unit\[`a] e aggiunge una finestra all'area di stacking, mantenendo il
-+comportamento predefinito per le finestre floating.
-+I valori possibili per
-+.Ar stack_mode
-+sono
-+.Ar vertical ,
-+.Ar vertical_flip ,
-+.Ar horizontal ,
-+.Ar horizontal_flip
-+and
-+.Ar fullscreen .
-+Vedere
-+.Ic master_grow ,
-+.Ic master_shrink ,
-+.Ic master_add ,
-+.Ic master_del ,
-+.Ic stack_inc ,
-+.Ic stack_dec ,
-+e
 +.Ic always_raise
 +per maggiori informazioni.
 +Le opzioni che controllano gli algoritmi di gestione delle finestre sono
@@ -528,8 +520,16 @@ Index: spectrwm.git/spectrwm_it.1
 +Definisce la nuova azione
 +.Ar p ,
 +corrispondente all'esecuzione di un programma.
-+Vedere la sezione
-+.Sx PROGRAMMI
+ Vedere la sezione
+ .Sx PROGRAMMI
+-pi? sotto.
+-.It Cm bind Ns Bq Ar x
+-Assegna una combinazione di tasti all'azione
+-.Ar x .
+-Vedere la sezione
+-.Sx SCORCIATOIE
+-pi? sotto.
+-.It Cm quirk Ns Bq Ar c:n
 +pi\[`u] sotto.
 +.It Ic quirk Ns Bq Ar c Ns Li : Ns Ar i Ns Li : Ns Ar n
  Aggiunge un "quirk" per le finestre di classe
@@ -705,11 +705,9 @@ Index: spectrwm.git/spectrwm_it.1
 -.It Cm menu
 -dmenu_run \-fn $bar_font \-nb $bar_color \-nf $bar_font_color \-sb $bar_border \-sf $bar_color
 -.El
--.Pp
--I programmi personalizzati vengono specificati con la seguente sintassi:
 +.Dl program Ns Bo Ar action Bc = Ar progpath Op Ar arg Op Ar arg ...
  .Pp
--.Dl program[<nome>] = <percorso> [<arg> [... <arg>]]
+-I programmi personalizzati vengono specificati con la seguente sintassi:
 +.Ar action
 +\[`e] qualsiasi identificatore che non vada in conflitto con una delle
 +azioni predefinite,
@@ -718,6 +716,10 @@ Index: spectrwm.git/spectrwm_it.1
 +.Ar arg
 +sono gli argomenti (uno o pi\[`u]) da passare al programma.
  .Pp
+-.Dl program[<nome>] = <percorso> [<arg> [... <arg>]]
++Se il percorso o gli argomenti comprendono il carattere #, questo dovr\[`a]
++essere preceduto da un carattere di escape, diventando \e#.
+ .Pp
 -.Aq nome
 -? un qualsiasi identificatore che non va in conflitto con un'azione
 -predefinita o una chiave,
@@ -725,9 +727,7 @@ Index: spectrwm.git/spectrwm_it.1
 -? il programma desiderato, e
 -.Aq arg
 -sono zero o pi? argomenti da passare al programma.
-+Se il percorso o gli argomenti comprendono il carattere #, questo dovr\[`a]
-+essere preceduto da un carattere di escape, diventando \e#.
- .Pp
+-.Pp
 -Le seguenti variabili rappresentano valori impostabili in
 -.Nm
 -(vedere la sezione
@@ -1263,7 +1263,7 @@ Index: spectrwm.git/spectrwm_it.1
  .It Firefox\-bin:firefox\-bin
  TRANSSZ
  .It Firefox:Dialog
-@@ -577,66 +1006,125 @@
+@@ -577,66 +1006,128 @@
  XTERM_FONTADJ
  .El
  .Pp
@@ -1338,14 +1338,7 @@ Index: spectrwm.git/spectrwm_it.1
  .Pp
 -.Dl quirk[<classe>:<nome>] = <quirk> [ + <quirk> ... ]
 +.Dl quirk Ns Bo Ar class Ns Bo : Ns Ar instance Ns Bo : Ns Ar name Bc Bc Bc = Ar quirk Op + Ar quirk ...
- .Pp
--.Aq classe
--e
--.Aq nome
--specificano a quali finestre i quirk vanno applicati, e
--.Aq quirk
--? uno dei quirk presente nella lista sopra.
--Ad esempio:
++.Pp
 +.Ar class ,
 +.Ar instance
 +(opzionale) e
@@ -1353,66 +1346,74 @@ Index: spectrwm.git/spectrwm_it.1
 +(opzionale) sono dei pattern che vengono usati per determinare a quali
 +finestre i quirk debbano essere applicati e
 +.Ar quirk
-+\[`e] uno dei quirk presente nella lista precedente.
++\[`e] uno dei quirk descritti in precedenza.
 +.Pp
-+Note that patterns are interpreted as POSIX Extended Regular Expressions.
-+Any ':', '[' or ']' must be escaped with '\\'.
-+See
++I pattern vengono interpretati come espressioni regolari estese POSIX.
++I simboli ':', '[' e ']' devono essere preceduti da '\\' per essere
++considerati letteralmente.
++Vedere
 +.Xr regex 7
-+for more information on POSIX Extended Regular Expressions.
-+.Pp
-+For example:
- .Bd -literal -offset indent
--quirk[MPlayer:xv] = FLOAT + FULLSCREEN + FOCUSPREV
--quirk[pcb:pcb] = NONE  # rimuovi un quirk precedentemente specificato
-+quirk[MPlayer] = FLOAT + FULLSCREEN + FOCUSPREV # Float all windows having a \
-+class of 'MPlayer'
-+quirk[.*] = FLOAT # Float all windows by default.
-+quirk[.*:.*:.*] = FLOAT # Same as above.
-+quirk[Firefox:Navigator] = FLOAT # Float all Firefox browser windows.
-+quirk[::Console] = FLOAT # Float windows with WM_CLASS not set and a \
-+window name of 'Console'.
-+quirk[\\[0-9\\].*:.*:\\[\\[\\:alnum\\:\\]\\]*] = FLOAT # Float windows with WM_CLASS \
-+class beginning with a number, any WM_CLASS instance and a \
-+_NET_WM_NAME/WM_NAME either blank or containing alphanumeric characters without spaces.
-+quirk[pcb:pcb] = NONE # remove existing quirk
- .Ed
++per ulteriori informazioni sulle espressioni regolari estese POSIX.
  .Pp
--? possibile ottenere
 -.Aq classe
 -e
 -.Aq nome
--usando xprop(1) e facendo click sulla finestra desiderata.
--Nel seguente esempio ? stato fatto click sulla finestra principale di
--Firefox:
-+You can obtain
+-specificano a quali finestre i quirk vanno applicati, e
+-.Aq quirk
+-? uno dei quirk presente nella lista sopra.
+ Ad esempio:
+ .Bd -literal -offset indent
+-quirk[MPlayer:xv] = FLOAT + FULLSCREEN + FOCUSPREV
+-quirk[pcb:pcb] = NONE  # rimuovi un quirk precedentemente specificato
++quirk[MPlayer] = FLOAT + FULLSCREEN + FOCUSPREV # Le finestre con \
++classe 'MPlayer' sono floating
++quirk[.*] = FLOAT # Le finestre sono floating
++quirk[.*:.*:.*] = FLOAT # Come sopra
++quirk[Firefox:Navigator] = FLOAT # Le finestre di navigazione di \
++Firefox sono floating
++quirk[::Console] = FLOAT # Le finestre la cui classe non \[`e] impostata \
++e il cui nome \[`e] 'Console' sono floating
++quirk[\\[0-9\\].*:.*:\\[\\[\\:alnum\\:\\]\\]*] = FLOAT # Le finestre la \
++cui classe inizia con un numero e il cui nome \[`e] non definito o \
++contiene solo caratteri alfanumerici, senza spazi, sono floating
++quirk[pcb:pcb] = NONE # Rimuove i quirk predefiniti
+ .Ed
+-.Pp
+-? possibile ottenere
+-.Aq classe
++\[`E] possibile ottenere
 +.Ar class ,
 +.Ar instance
-+and
+ e
+-.Aq nome
+-usando xprop(1) e facendo click sulla finestra desiderata.
+-Nel seguente esempio ? stato fatto click sulla finestra principale di
 +.Ar name
-+by running
++eseguendo
 +.Xr xprop 1
-+and then clicking on the desired window.
-+In the following example the main window of Firefox was clicked:
++e selezionando la finestra desiderata.
++In questo esempio, \[`e] stata selezionata la finestra principale di
+ Firefox:
  .Bd -literal -offset indent
 -$ xprop | grep WM_CLASS
 +$ xprop | grep \-E "^(WM_CLASS|_NET_WM_NAME|WM_NAME)"
  WM_CLASS(STRING) = "Navigator", "Firefox"
 +WM_NAME(STRING) = "spectrwm - ConformalOpenSource"
 +_NET_WM_NAME(UTF8_STRING) = "spectrwm - ConformalOpenSource"
-+.Ed
-+.Pp
-+Note that
-+.Xr xprop 1
-+displays WM_CLASS as:
-+.Bd -literal -offset indent
-+WM_CLASS(STRING) = "<instance>", "<class>"
  .Ed
  .Pp
 -Bisogna tenere conto del fatto che usare grep per trovare WM_CLASS inverte
 -la classe e il nome. Nell'esempio precedente, la dichiarazione del quirk
 -sarebbe
-+In the example above the quirk entry would be:
++Il comando
++.Xr xprop 1
++visualizza WM_CLASS nel seguente formato:
++.Bd -literal -offset indent
++WM_CLASS(STRING) = "<instance>", "<class>"
++.Ed
++.Pp
++In questo caso, bisognerebbe aggiungere al file di configurazione la
++seguente riga:
  .Bd -literal -offset indent
  quirk[Firefox:Navigator] = FLOAT
  .Ed
@@ -1420,56 +1421,52 @@ Index: spectrwm.git/spectrwm_it.1
  .Nm
 -assegna automaticamente i quirk alle finestre in base al valore della
 -propriet? _NET_WM_WINDOW_TYPE in base al seguente schema:
-+also automatically assigns quirks to windows based on the value
-+of the window's _NET_WM_WINDOW_TYPE property as follows:
++assegna alcuni quirk in automatico, basandosi sul valore della
++propriet\[`a] _NET_WM_WINDOW_TYPE, nel seguente modo:
  .Pp
  .Bl -tag -width "_NET_WM_WINDOW_TYPE_TOOLBAR<TAB>XXX" -offset indent -compact
  .It _NET_WM_WINDOW_TYPE_DOCK
-@@ -651,102 +1139,121 @@
+@@ -651,102 +1142,93 @@
  FLOAT
  .El
  .Pp
 -In tutti gli altri casi, nessun quirk ? automaticamente assegnato alla
 -finestra. I quirk specificati nel file di configurazione hanno la precedenza
 -sui quirk assegnati in automatico.
-+In all other cases, no automatic quirks are assigned to the window.
-+Quirks specified in the configuration file override the automatic quirks.
++In tutti gli altri casi gli unici quirk assegnati alle finestre saranno
++quelli predefiniti o, con precedenza maggiore, quelli specificati nel
++file di configurazione.
  .Sh EWMH
  .Nm
 -implementa in maniera parziale la specifica Extended Window Manager Hints
 -(EWMH). Ci? permette di controllare sia le finestre che
-+partially implements the Extended Window Manager Hints (EWMH) specification.
-+This enables controlling windows as well as
++implementa in maniera parziale la specifica EWMH, Extended Window Manager
++Hints: questo consente di controllare le finestre, oltre che
  .Nm
 -stesso tramite script e programmi esterni. Per renderlo possibile,
-+itself from external scripts and programs.
-+This is achieved by
++stesso, da script e programmi esterni.
++Per sfruttare questo supporto,
  .Nm
 -risponde ad alcuni eventi di tipo ClientMessage; questo tipo di messaggio
 -pu? essere inviato da un terminale usando programmi come
-+responding to certain ClientMessage events.
-+From the terminal these events
-+can be conveniently sent using tools such as
++dovr\[`a] ricevere degli eventi di tipo ClientMessage; questo tipo di
++messaggio pu\[`o] essere inviato dalla riga di comando usando tool come
  .Xr wmctrl 1
--e
-+and
+ e
  .Xr xdotool 1 .
 -Per il formato esatto di questi messaggi, si veda la specifica EWMH.
-+For the
-+actual format of these ClientMessage events, see the EWMH specification.
++Il formato dei messaggi \[`e] definito nella specifica EWMH.
  .Pp
 -L'id della finestra che ha il focus ? memorizzato nella propriet?
 -_NET_ACTIVE_WINDOW della root window. ? quindi possibile ottenere il titolo
 -della finestra attiva usando
-+The id of the currently focused window is stored in the _NET_ACTIVE_WINDOW
-+property of the root window.
-+This can be used for example to retrieve the
-+title of the currently active window with
- .Xr xprop 1
+-.Xr xprop 1
 -e
 -.Xr grep 1
-+and
-+.Xr grep 1 :
++L'identificativo della finestra che detiene il focus pu\[`o] essere
++ottenuto leggendo il valore della propriet\[`a] _NET_ACTIVE_WINDOWS
++della root window.
++Ad esempio, per visualizzare il titolo della finestra:
  .Bd -literal -offset indent
  $ WINDOWID=`xprop \-root _NET_ACTIVE_WINDOW | grep \-o "0x.*"`
 -$ xprop \-id $WINDOWID WM_NAME | grep \-o "\\".*\\""
@@ -1478,13 +1475,10 @@ Index: spectrwm.git/spectrwm_it.1
  .Pp
 -Per dare il focus ad una finestra, ? sufficiente inviare il messaggio
 -_NET_ACTIVE_WINDOW alla root window. Ad esempio, usando
-+A window can be focused by sending a _NET_ACTIVE_WINDOW client message
-+to the root window.
-+For example, using
- .Xr wmctrl 1
+-.Xr wmctrl 1
 -(supponendo che 0x4a0000b sia l'id della finestra a cui dare il focus):
-+to send the message
-+(assuming 0x4a0000b is the id of the window to be focused):
++Il focus pu\[`o] essere assegnato ad una finestra inviando un messaggio
++di tipo _NET_ACTIVE_WINDOW alla root window, ad esempio:
  .Bd -literal -offset indent
 -$ wmctrl \-i \-c 0x4a0000b
 +$ wmctrl \-i \-a 0x4a0000b
@@ -1492,13 +1486,10 @@ Index: spectrwm.git/spectrwm_it.1
  .Pp
 -Per chiudere una finestra si pu? inviare il messaggio _NET_CLOSE_WINDOW
 -alla root window. Ad esempio, usando
-+Windows can be closed by sending a _NET_CLOSE_WINDOW client message
-+to the root window.
-+For example, using
- .Xr wmctrl 1
+-.Xr wmctrl 1
 -(supponendo che 0x4a0000b sia l'id della finestra da chiudere):
-+to send the message
-+(assuming 0x4a0000b is the id of the window to be closed):
++Le finestre possono essere chiuse inviando un messaggio di tipo
++_NET_CLOSE_WINDOW, ad esempio:
  .Bd -literal -offset indent
  $ wmctrl \-i \-c 0x4a0000b
  .Ed
@@ -1506,78 +1497,64 @@ Index: spectrwm.git/spectrwm_it.1
 -Per passare una finestra da floating a tiled si pu? aggiungere o rimuovere
 -l'atomo _NET_WM_STATE_ABOVE alla propriet? _NET_WM_STATE della finestra,
 -inviando il messaggio _NET_WM_STATE alla root window. Ad esempio, usando
-+Windows can be floated and un-floated by adding or removing the
-+_NET_WM_STATE_ABOVE atom from the _NET_WM_STATE property of the window.
-+This can be achieved by sending a _NET_WM_STATE client message to the
-+root window.
-+For example, the following toggles the floating state of
-+a window using
- .Xr wmctrl 1
+-.Xr wmctrl 1
 -(supponendo che 0x4a0000b sia l'id della finestra):
-+to send the message (assuming 0x4a0000b is the id of the window to be
-+floated or un-floated):
++Le finestre possono essere portate da floating a tiled, e viceversa,
++aggiungendo o rimuovendo l'atomo _NET_WM_STATE_ABOVE dalla propriet\[`a]
++_NET_WM_STATE della finestra.
++Per fare ci\[`o], \[`e] necessario inviare un messaggio di tipo
++_NET_WM_STATE, ad esempio:
  .Bd -literal -offset indent
- $ wmctrl \-i \-r 0x4a0000b \-b toggle,_NET_WM_STATE_ABOVE
+-$ wmctrl \-i \-r 0x4a0000b \-b toggle,_NET_WM_STATE_ABOVE
++$ wmctrl \-i \-r 0x4a0000b \-b toggle,_NET_WM_STATE_HIDDEN
  .Ed
  .Pp
 -Le finestre floating possono essere ridimensionate o spostate inviando il
 -messaggio _NET_MOVERESIZE_WINDOW alla root window. Ad esempio, usando
-+Windows can also be iconified and un-iconified by substituting
-+_NET_WM_STATE_HIDDEN for _NET_WM_STATE_ABOVE in the previous example:
-+.Bd -literal -offset indent
-+$ wmctrl \-i \-r 0x4a0000b \-b toggle,_NET_WM_STATE_HIDDEN
-+.Ed
-+.Pp
-+Floating windows can also be resized and moved by sending a
-+_NET_MOVERESIZE_WINDOW client message to the root window.
-+For example,
-+using
- .Xr wmctrl 1
+-.Xr wmctrl 1
 -(supponendo che 0x4a0000b sia l'id della finestra da spostare):
-+to send the message (assuming 0x4a0000b is the id of
-+the window to be resize/moved):
++Le finestre floating possono essere ridimensionate e spostate tramite
++l'invio di un messaggio di tipo _NET_MOVERESIZE_WINDOW, ad esempio:
  .Bd -literal -offset indent
  $ wmctrl \-i \-r 0x4a0000b \-e 0,100,50,640,480
  .Ed
++In questo caso, la con id 0x4a0000b finestra viene spostata in (100,50)
++e la sua dimensione diventa 640x480.
  .Pp
 -Questo comando sposta la finestra in (100,50) e la ridimensiona a 640x480.
-+This moves the window to (100,50) and resizes it to 640x480.
- .Pp
+-.Pp
 -I messaggi _NET_MOVERESIZE_WINDOW vengono ignorati per le finestre stacked.
--.Sh SEGNALI
++I messaggi di tipo _NET_MOVERESIZE_WINDOW che fanno riferimento a finestre
++tiled verranno ignorati.
+ .Sh SEGNALI
 -? possibile riavviare
-+Any _NET_MOVERESIZE_WINDOW events received for stacked windows are ignored.
-+.Sh SIGNALS
-+Sending
- .Nm
+-.Nm
 -inviandogli il segnale HUP.
--.Sh FILE
-+a HUP signal will restart it.
-+.Sh FILES
++Il segnale HUP fa riavviare
++.Nm .
+ .Sh FILE
  .Bl -tag -width "/etc/spectrwm.confXXX" -compact
  .It Pa ~/.spectrwm.conf
 -impostazioni di
- .Nm
+-.Nm
 -dell'utente.
-+user specific settings.
- .It Pa /etc/spectrwm.conf
+-.It Pa /etc/spectrwm.conf
 -impostazioni globali di
--.Nm .
-+.Nm
-+global settings.
++File di configurazione specifico dell'utente.
+ .Nm .
++.It Pa /etc/spectrwm.conf
++File di configurazione globale.
  .El
--.Sh ORIGINE
-+.Sh HISTORY
+ .Sh ORIGINE
  .Nm
 -prende ispirazione da xmonad & dwm.
--.Sh AUTORI
-+was inspired by xmonad & dwm.
-+.Sh AUTHORS
++\[`e] ispirato a xmonad & dwm.
+ .Sh AUTORI
  .An -nosplit
 -.Pp
  .Nm
 -? stato scritto da:
-+was written by:
++\[`e] stato scritto da:
  .Pp
 -.Bl -tag -width "Ryan Thomas McBride Aq mcbride@countersiege.com " -offset indent -compact
 +.Bl -tag -width "Ryan Thomas McBride Aq mcbride@countersiege.com " -offset \
