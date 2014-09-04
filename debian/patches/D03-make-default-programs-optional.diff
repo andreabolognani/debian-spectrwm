@@ -5,11 +5,11 @@ Description: Make default programs optional
  except dmenu as optional.
 Forwarded: not-needed
 Author: Andrea Bolognani <eof@kiyuko.org>
-Last-Update: 2014-08-26
+Last-Update: 2014-09-04
 Index: spectrwm.git/spectrwm.c
 ===================================================================
---- spectrwm.git.orig/spectrwm.c	2014-08-26 00:25:10.788409028 +0200
-+++ spectrwm.git/spectrwm.c	2014-08-26 00:25:25.852409757 +0200
+--- spectrwm.git.orig/spectrwm.c	2014-09-04 23:33:09.580646956 +0200
++++ spectrwm.git/spectrwm.c	2014-09-04 23:33:09.612646956 +0200
 @@ -7063,12 +7063,6 @@
  void
  setup_spawn(void)
@@ -36,8 +36,8 @@ Index: spectrwm.git/spectrwm.c
  	setconfspawn("initscr",		"initscreen.sh",	SWM_SPAWN_OPTIONAL);
 Index: spectrwm.git/spectrwm.1
 ===================================================================
---- spectrwm.git.orig/spectrwm.1	2014-08-26 00:25:10.792409029 +0200
-+++ spectrwm.git/spectrwm.1	2014-08-26 00:25:10.820409030 +0200
+--- spectrwm.git.orig/spectrwm.1	2014-09-04 23:33:09.580646956 +0200
++++ spectrwm.git/spectrwm.1	2014-09-04 23:33:09.616646956 +0200
 @@ -497,19 +497,19 @@
  .Pp
  Default programs:
@@ -48,19 +48,18 @@ Index: spectrwm.git/spectrwm.1
  dmenu_run $dmenu_bottom \-fn $bar_font \-nb $bar_color \-nf $bar_font_color \-sb
  $bar_border \-sf $bar_color
  .It Cm term
--x-terminal-emulator
-+x-terminal-emulator        # optional
+ x\-terminal\-emulator
 +.It Cm lock
-+xscreensaver\-command \-lock # optional
++xscreensaver\-command \-lock	# optional
  .It Cm initscr
 -initscreen.sh        # optional
-+initscreen.sh              # optional
++initscreen.sh			# optional
  .It Cm screenshot_all
 -screenshot.sh full   # optional
-+screenshot.sh full         # optional
++screenshot.sh full		# optional
  .It Cm screenshot_wind
 -screenshot.sh window # optional
-+screenshot.sh window       # optional
++screenshot.sh window		# optional
  .El
  .Pp
  Note that optional default programs will not be validated unless overridden.
@@ -71,7 +70,7 @@ Index: spectrwm.git/spectrwm.1
 -.Ic lock :
 +.Ic menu :
  .Bd -literal -offset indent
--program[lock] = xscreensaver\-command \-\-lock
+-program[lock] = xscreensaver\-command \-lock
 +program[menu] = launchy
  .Ed
  .Pp
@@ -84,4 +83,54 @@ Index: spectrwm.git/spectrwm.1
 +bind[] = MOD+p
  .Ed
  .Sh BINDINGS
+ .Nm
+Index: spectrwm.git/spectrwm_it.1
+===================================================================
+--- spectrwm.git.orig/spectrwm_it.1	2014-09-04 23:33:09.584646956 +0200
++++ spectrwm.git/spectrwm_it.1	2014-09-04 23:34:14.076650077 +0200
+@@ -553,19 +553,19 @@
+ Programmi predefiniti:
+ .Pp
+ .Bl -tag -width "screenshot_wind" -offset indent -compact
+-.It Cm lock
+-xscreensaver\-command \-lock
+ .It Cm menu
+ dmenu_run $dmenu_bottom \-fn $bar_font \-nb $bar_color \-nf $bar_font_color \-sb
+ $bar_border \-sf $bar_color
+ .It Cm term
+ x\-terminal\-emulator
++.It Cm lock
++xscreensaver\-command \-lock	# opzionale
+ .It Cm initscr
+-initscreen.sh        # opzionale
++initscreen.sh			# opzionale
+ .It Cm screenshot_all
+-screenshot.sh full   # opzionale
++screenshot.sh full		# opzionale
+ .It Cm screenshot_wind
+-screenshot.sh window # opzionale
++screenshot.sh window		# opzionale
+ .El
+ .Pp
+ I programmi opzionali non verranno verificati a meno di non essere
+@@ -575,16 +575,16 @@
+ il percorso del programma o disabilitando la scorciatoia relativa.
+ .Pp
+ Ad esempio, per ridefinire
+-.Ic lock :
++.Ic menu :
+ .Bd -literal -offset indent
+-program[lock] = xscreensaver\-command \-lock
++program[menu] = launchy
+ .Ed
+ .Pp
+ Per disabilitare la scorciatoia assegnata a
+-.Ic lock
++.Ic menu
+ ed impedirne la verifica:
+ .Bd -literal -offset indent
+-bind[] = MOD+Shift+Delete
++bind[] = MOD+p
+ .Ed
+ .Sh SCORCIATOIE
  .Nm

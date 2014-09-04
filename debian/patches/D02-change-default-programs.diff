@@ -3,11 +3,11 @@ Description: Change default programs
  Debian, and xlock is not available at all.
 Forwarded: not-needed
 Author: Andrea Bolognani <eof@kiyuko.org>
-Last-Update: 2014-08-26
+Last-Update: 2014-09-04
 Index: spectrwm.git/spectrwm.c
 ===================================================================
---- spectrwm.git.orig/spectrwm.c	2014-08-25 23:39:28.420276306 +0200
-+++ spectrwm.git/spectrwm.c	2014-08-26 00:02:52.896344278 +0200
+--- spectrwm.git.orig/spectrwm.c	2014-09-04 23:31:31.732642219 +0200
++++ spectrwm.git/spectrwm.c	2014-09-04 23:31:43.420642785 +0200
 @@ -7063,10 +7063,11 @@
  void
  setup_spawn(void)
@@ -25,8 +25,8 @@ Index: spectrwm.git/spectrwm.c
  					" $dmenu_bottom"
 Index: spectrwm.git/spectrwm.1
 ===================================================================
---- spectrwm.git.orig/spectrwm.1	2014-08-25 23:39:28.420276306 +0200
-+++ spectrwm.git/spectrwm.1	2014-08-26 00:06:08.412353741 +0200
+--- spectrwm.git.orig/spectrwm.1	2014-09-04 23:31:31.732642219 +0200
++++ spectrwm.git/spectrwm.1	2014-09-04 23:31:58.340643507 +0200
 @@ -498,12 +498,12 @@
  Default programs:
  .Bl -tag -width "screenshot_wind" -offset indent -compact
@@ -38,7 +38,95 @@ Index: spectrwm.git/spectrwm.1
  $bar_border \-sf $bar_color
  .It Cm term
 -xterm
-+x-terminal-emulator
++x\-terminal\-emulator
  .It Cm initscr
  initscreen.sh        # optional
  .It Cm screenshot_all
+@@ -520,7 +520,7 @@
+ For example, to override
+ .Ic lock :
+ .Bd -literal -offset indent
+-program[lock] = xscreensaver\-command \-\-lock
++program[lock] = xscreensaver\-command \-lock
+ .Ed
+ .Pp
+ To unbind
+Index: spectrwm.git/spectrwm_it.1
+===================================================================
+--- spectrwm.git.orig/spectrwm_it.1	2014-09-04 23:31:40.992642667 +0200
++++ spectrwm.git/spectrwm_it.1	2014-09-04 23:32:48.160645918 +0200
+@@ -554,12 +554,12 @@
+ .Pp
+ .Bl -tag -width "screenshot_wind" -offset indent -compact
+ .It Cm lock
+-xlock
++xscreensaver\-command \-lock
+ .It Cm menu
+ dmenu_run $dmenu_bottom \-fn $bar_font \-nb $bar_color \-nf $bar_font_color \-sb
+ $bar_border \-sf $bar_color
+ .It Cm term
+-xterm
++x\-terminal\-emulator
+ .It Cm initscr
+ initscreen.sh        # opzionale
+ .It Cm screenshot_all
+Index: spectrwm.git/spectrwm_es.1
+===================================================================
+--- spectrwm.git.orig/spectrwm_es.1	2014-09-04 23:31:31.732642219 +0200
++++ spectrwm.git/spectrwm_es.1	2014-09-04 23:31:41.040642670 +0200
+@@ -243,13 +243,13 @@
+ .Pp
+ .Bl -tag -width "screenshot_wind" -offset indent -compact
+ .It Cm term
+-xterm
++x\-terminal\-emulator
+ .It Cm screenshot_all
+ screenshot.sh completo
+ .It Cm screenshot_wind
+ screenshot.sh por ventana
+ .It Cm lock
+-xlock
++xscreensaver\-command \-lock
+ .It Cm initscr
+ initscreen.sh
+ .It Cm menu
+Index: spectrwm.git/spectrwm_pt.1
+===================================================================
+--- spectrwm.git.orig/spectrwm_pt.1	2014-09-04 23:31:31.732642219 +0200
++++ spectrwm.git/spectrwm_pt.1	2014-09-04 23:31:41.044642670 +0200
+@@ -196,13 +196,13 @@
+ .Pp
+ .Bl -tag -width "screenshot_wind" -offset indent -compact
+ .It Cm term
+-xterm
++x\-terminal\-emulator
+ .It Cm screenshot_all
+ screenshot.sh full
+ .It Cm screenshot_wind
+ screenshot.sh window
+ .It Cm lock
+-xlock
++xscreensaver\-command \-lock
+ .It Cm initscr
+ initscreen.sh
+ .It Cm menu
+Index: spectrwm.git/spectrwm_ru.1
+===================================================================
+--- spectrwm.git.orig/spectrwm_ru.1	2014-09-04 23:31:31.732642219 +0200
++++ spectrwm.git/spectrwm_ru.1	2014-09-04 23:31:41.044642670 +0200
+@@ -177,13 +177,13 @@
+ .Pp
+ .Bl -tag -width "screenshot_wind" -offset indent -compact
+ .It Cm term
+-xterm
++x\-terminal\-emulator
+ .It Cm screenshot_all
+ screenshot.sh full
+ .It Cm screenshot_wind
+ screenshot.sh window
+ .It Cm lock
+-xlock
++xscreensaver\-command \-lock
+ .It Cm initscr
+ initscreen.sh
+ .It Cm menu
