@@ -2,11 +2,11 @@ Description: Update Italian man page
  Bring Italian man page up-to-date.
 Bug: https://github.com/conformal/spectrwm/pull/67
 Author: Andrea Bolognani <eof@kiyuko.org>
-Last-Update: 2014-09-04
+Last-Update: 2014-09-09
 Index: spectrwm.git/spectrwm_it.1
 ===================================================================
---- spectrwm.git.orig/spectrwm_it.1	2014-09-04 23:35:09.144652741 +0200
-+++ spectrwm.git/spectrwm_it.1	2014-09-05 00:06:58.024745126 +0200
+--- spectrwm.git.orig/spectrwm_it.1	2014-09-05 00:12:56.556762477 +0200
++++ spectrwm.git/spectrwm_it.1	2014-09-09 22:18:02.140287559 +0200
 @@ -1,5 +1,9 @@
 -.\" Copyright (c) 2009 Marco Peereboom <marco@peereboom.us>
 +.\" Copyright (c) 2009-2012 Marco Peereboom <marco@peereboom.us>
@@ -242,7 +242,7 @@ Index: spectrwm.git/spectrwm_it.1
 +.It Li "+T" Ta "Istanza della finestra corrente (da WM_CLASS)"
 +.It Li "+U" Ta "Indicatore di urgenza"
 +.It Li "+V" Ta "Versione del programma"
-+.It Li "+W" Ta "Nome della finestra corrente (da _NET_WM_NAME/WM_NAME)"
++.It Li "+W" Ta "Nome della finestra corrente (da _NET_WM_NAME o WM_NAME)"
 +.It Li "++" Ta "Il carattere" Ql +
 +.El
 +.Pp
@@ -642,7 +642,7 @@ Index: spectrwm.git/spectrwm_it.1
 +Questa opzione pu\[`o] essere abilitata usando il valore 1.
 +.It Ic window_name_enabled
 +Abilita o disabilita la visualizzazione del titolo della finestra (da
-+_NET_WM_NAME/WM_NAME) all'interno della barra di stato.
++_NET_WM_NAME o WM_NAME) all'interno della barra di stato.
 +Questa opzione pu\[`o] essere abilitata usando il valore 1.
 +.Pp
 +Per impedire che titoli di finestra troppo lunghi impediscano di
@@ -687,9 +687,10 @@ Index: spectrwm.git/spectrwm_it.1
  Vedere la sezione
  .Sx SCORCIATOIE
 -pi? sotto.
--.Pp
--I programmi di default sono descritte qui sotto:
 +pi\[`u] sotto.
+ .Pp
+-I programmi di default sono descritte qui sotto:
++I programmi vengono definiti come segue:
  .Pp
 -.Bl -tag -width "screenshot_wind" -offset indent -compact
 -.It Cm term
@@ -705,12 +706,9 @@ Index: spectrwm.git/spectrwm_it.1
 -.It Cm menu
 -dmenu_run \-fn $bar_font \-nb $bar_color \-nf $bar_font_color \-sb $bar_border \-sf $bar_color
 -.El
-+I programmi vengono definiti come segue:
- .Pp
--I programmi personalizzati vengono specificati con la seguente sintassi:
 +.Dl program Ns Bo Ar action Bc = Ar progpath Op Ar arg Op Ar arg ...
  .Pp
--.Dl program[<nome>] = <percorso> [<arg> [... <arg>]]
+-I programmi personalizzati vengono specificati con la seguente sintassi:
 +.Ar action
 +\[`e] qualsiasi identificatore che non vada in conflitto con una delle
 +azioni predefinite,
@@ -719,6 +717,10 @@ Index: spectrwm.git/spectrwm_it.1
 +.Ar arg
 +sono gli argomenti (uno o pi\[`u]) da passare al programma.
  .Pp
+-.Dl program[<nome>] = <percorso> [<arg> [... <arg>]]
++Se il percorso o gli argomenti comprendono il carattere #, questo dovr\[`a]
++essere preceduto da un carattere di escape, diventando \e#.
+ .Pp
 -.Aq nome
 -? un qualsiasi identificatore che non va in conflitto con un'azione
 -predefinita o una chiave,
@@ -726,9 +728,7 @@ Index: spectrwm.git/spectrwm_it.1
 -? il programma desiderato, e
 -.Aq arg
 -sono zero o pi? argomenti da passare al programma.
-+Se il percorso o gli argomenti comprendono il carattere #, questo dovr\[`a]
-+essere preceduto da un carattere di escape, diventando \e#.
- .Pp
+-.Pp
 -Le seguenti variabili rappresentano valori impostabili in
 -.Nm
 -(vedere la sezione
@@ -1165,8 +1165,7 @@ Index: spectrwm.git/spectrwm_it.1
 +Le scorciatoie da tastiera personalizzate vengono definite come segue:
 +.Pp
 +.Dl bind Ns Bo Ar action Bc = Ar keys
- .Pp
--.Dl bind[<azione>] = <tasti>
++.Pp
 +.Ar action
 +\[`e] una delle azioni predefinite descritte sopra, oppure la stringa vuota
 +(per disabilitare la scorciatoia).
@@ -1174,7 +1173,8 @@ Index: spectrwm.git/spectrwm_it.1
 +\[`e] composta da uno o pi\[`u] tasti modificatore (eg. MOD, Mod1, Shift,
 +etc.) e uno o pi\[`u] tasti normali (eg. b, Space, etc.) separati da
 +.Ql + .
-+.Pp
+ .Pp
+-.Dl bind[<azione>] = <tasti>
 +Esempio:
 +.Bd -literal -offset indent
 +bind[reset] = Mod4+q # Assegna l'azione reset alla scorciatoia Win+q
@@ -1264,7 +1264,7 @@ Index: spectrwm.git/spectrwm_it.1
  .It Firefox\-bin:firefox\-bin
  TRANSSZ
  .It Firefox:Dialog
-@@ -577,66 +1006,128 @@
+@@ -577,66 +1006,129 @@
  XTERM_FONTADJ
  .El
  .Pp
@@ -1379,7 +1379,7 @@ Index: spectrwm.git/spectrwm_it.1
 +contiene solo caratteri alfanumerici, senza spazi, sono floating
 +quirk[pcb:pcb] = NONE # Rimuove i quirk predefiniti
  .Ed
--.Pp
+ .Pp
 -? possibile ottenere
 -.Aq classe
 +\[`E] possibile ottenere
@@ -1427,7 +1427,7 @@ Index: spectrwm.git/spectrwm_it.1
  .Pp
  .Bl -tag -width "_NET_WM_WINDOW_TYPE_TOOLBAR<TAB>XXX" -offset indent -compact
  .It _NET_WM_WINDOW_TYPE_DOCK
-@@ -651,102 +1142,99 @@
+@@ -651,102 +1143,100 @@
  FLOAT
  .El
  .Pp
@@ -1515,17 +1515,17 @@ Index: spectrwm.git/spectrwm_it.1
 -(supponendo che 0x4a0000b sia l'id della finestra da spostare):
 +Le finestre possono essere minimizzate e ripristinate sostituendo
 +_NET_WM_STATE_HIDDEN a _NET_WM_STATE_ABOVE nell'esempio precedente:
- .Bd -literal -offset indent
--$ wmctrl \-i \-r 0x4a0000b \-e 0,100,50,640,480
++.Bd -literal -offset indent
 +$ wmctrl \-i \-r 0x4a0000b \-b toggle,_NET_WM_STATE_HIDDEN
++.Ed
++.Pp
++Le finestre floating possono essere ridimensionate e spostate tramite
++l'invio di un messaggio di tipo _NET_MOVERESIZE_WINDOW, ad esempio:
+ .Bd -literal -offset indent
+ $ wmctrl \-i \-r 0x4a0000b \-e 0,100,50,640,480
  .Ed
  .Pp
 -Questo comando sposta la finestra in (100,50) e la ridimensiona a 640x480.
-+Le finestre floating possono essere ridimensionate e spostate tramite
-+l'invio di un messaggio di tipo _NET_MOVERESIZE_WINDOW, ad esempio:
-+.Bd -literal -offset indent
-+$ wmctrl \-i \-r 0x4a0000b \-e 0,100,50,640,480
-+.Ed
 +In questo caso, la con id 0x4a0000b finestra viene spostata in (100,50)
 +e la sua dimensione diventa 640x480.
  .Pp
