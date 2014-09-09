@@ -3,6 +3,7 @@ spectrwm (2.6.0-1) unstable; urgency=low
   * New upstream release.
     - Closes: #689226 (please package the latest version)
   * Stop building scrotwm transitional package.
+  * Stop patching example files.
   * U01-improve-makefile.diff:
     - merged upstream; dropped.
   * U03-improve-english-man-page.diff:
@@ -10,7 +11,7 @@ spectrwm (2.6.0-1) unstable; urgency=low
   * Move to debhelper compatibility level 9.
   * Update Standards-Version to 3.9.5 (no changes needed).
 
- -- Andrea Bolognani <eof@kiyuko.org>  Fri, 05 Sep 2014 00:13:57 +0200
+ -- Andrea Bolognani <eof@kiyuko.org>  Tue, 09 Sep 2014 22:24:57 +0200
 
 spectrwm (1.0.0-1) unstable; urgency=low
 
