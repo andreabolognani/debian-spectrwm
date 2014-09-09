@@ -8,8 +8,8 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2014-09-04
 Index: spectrwm.git/spectrwm.c
 ===================================================================
---- spectrwm.git.orig/spectrwm.c	2014-09-04 23:33:09.580646956 +0200
-+++ spectrwm.git/spectrwm.c	2014-09-04 23:33:09.612646956 +0200
+--- spectrwm.git.orig/spectrwm.c	2014-09-09 22:51:54.516385920 +0200
++++ spectrwm.git/spectrwm.c	2014-09-09 22:51:59.744386173 +0200
 @@ -7063,12 +7063,6 @@
  void
  setup_spawn(void)
@@ -36,8 +36,8 @@ Index: spectrwm.git/spectrwm.c
  	setconfspawn("initscr",		"initscreen.sh",	SWM_SPAWN_OPTIONAL);
 Index: spectrwm.git/spectrwm.1
 ===================================================================
---- spectrwm.git.orig/spectrwm.1	2014-09-04 23:33:09.580646956 +0200
-+++ spectrwm.git/spectrwm.1	2014-09-04 23:33:09.616646956 +0200
+--- spectrwm.git.orig/spectrwm.1	2014-09-09 22:51:54.516385920 +0200
++++ spectrwm.git/spectrwm.1	2014-09-09 22:51:59.748386173 +0200
 @@ -497,19 +497,19 @@
  .Pp
  Default programs:
@@ -86,9 +86,9 @@ Index: spectrwm.git/spectrwm.1
  .Nm
 Index: spectrwm.git/spectrwm_it.1
 ===================================================================
---- spectrwm.git.orig/spectrwm_it.1	2014-09-04 23:33:09.584646956 +0200
-+++ spectrwm.git/spectrwm_it.1	2014-09-04 23:34:14.076650077 +0200
-@@ -553,19 +553,19 @@
+--- spectrwm.git.orig/spectrwm_it.1	2014-09-09 22:51:54.524385921 +0200
++++ spectrwm.git/spectrwm_it.1	2014-09-09 22:51:59.748386173 +0200
+@@ -562,19 +562,19 @@
  Programmi predefiniti:
  .Pp
  .Bl -tag -width "screenshot_wind" -offset indent -compact
@@ -113,7 +113,7 @@ Index: spectrwm.git/spectrwm_it.1
  .El
  .Pp
  I programmi opzionali non verranno verificati a meno di non essere
-@@ -575,16 +575,16 @@
+@@ -584,16 +584,16 @@
  il percorso del programma o disabilitando la scorciatoia relativa.
  .Pp
  Ad esempio, per ridefinire

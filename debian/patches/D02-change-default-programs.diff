@@ -6,8 +6,8 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2014-09-04
 Index: spectrwm.git/spectrwm.c
 ===================================================================
---- spectrwm.git.orig/spectrwm.c	2014-09-04 23:31:31.732642219 +0200
-+++ spectrwm.git/spectrwm.c	2014-09-04 23:31:43.420642785 +0200
+--- spectrwm.git.orig/spectrwm.c	2014-09-04 23:35:08.976652734 +0200
++++ spectrwm.git/spectrwm.c	2014-09-09 22:51:54.516385920 +0200
 @@ -7063,10 +7063,11 @@
  void
  setup_spawn(void)
@@ -25,8 +25,8 @@ Index: spectrwm.git/spectrwm.c
  					" $dmenu_bottom"
 Index: spectrwm.git/spectrwm.1
 ===================================================================
---- spectrwm.git.orig/spectrwm.1	2014-09-04 23:31:31.732642219 +0200
-+++ spectrwm.git/spectrwm.1	2014-09-04 23:31:58.340643507 +0200
+--- spectrwm.git.orig/spectrwm.1	2014-09-04 23:35:08.976652734 +0200
++++ spectrwm.git/spectrwm.1	2014-09-09 22:51:54.516385920 +0200
 @@ -498,12 +498,12 @@
  Default programs:
  .Bl -tag -width "screenshot_wind" -offset indent -compact
@@ -53,9 +53,9 @@ Index: spectrwm.git/spectrwm.1
  To unbind
 Index: spectrwm.git/spectrwm_it.1
 ===================================================================
---- spectrwm.git.orig/spectrwm_it.1	2014-09-04 23:31:40.992642667 +0200
-+++ spectrwm.git/spectrwm_it.1	2014-09-04 23:32:48.160645918 +0200
-@@ -554,12 +554,12 @@
+--- spectrwm.git.orig/spectrwm_it.1	2014-09-09 22:51:52.804385837 +0200
++++ spectrwm.git/spectrwm_it.1	2014-09-09 22:51:54.524385921 +0200
+@@ -563,12 +563,12 @@
  .Pp
  .Bl -tag -width "screenshot_wind" -offset indent -compact
  .It Cm lock
@@ -72,8 +72,8 @@ Index: spectrwm.git/spectrwm_it.1
  .It Cm screenshot_all
 Index: spectrwm.git/spectrwm_es.1
 ===================================================================
---- spectrwm.git.orig/spectrwm_es.1	2014-09-04 23:31:31.732642219 +0200
-+++ spectrwm.git/spectrwm_es.1	2014-09-04 23:31:41.040642670 +0200
+--- spectrwm.git.orig/spectrwm_es.1	2014-09-04 23:35:08.976652734 +0200
++++ spectrwm.git/spectrwm_es.1	2014-09-09 22:51:54.532385921 +0200
 @@ -243,13 +243,13 @@
  .Pp
  .Bl -tag -width "screenshot_wind" -offset indent -compact
@@ -92,8 +92,8 @@ Index: spectrwm.git/spectrwm_es.1
  .It Cm menu
 Index: spectrwm.git/spectrwm_pt.1
 ===================================================================
---- spectrwm.git.orig/spectrwm_pt.1	2014-09-04 23:31:31.732642219 +0200
-+++ spectrwm.git/spectrwm_pt.1	2014-09-04 23:31:41.044642670 +0200
+--- spectrwm.git.orig/spectrwm_pt.1	2014-09-04 23:35:08.976652734 +0200
++++ spectrwm.git/spectrwm_pt.1	2014-09-09 22:51:54.532385921 +0200
 @@ -196,13 +196,13 @@
  .Pp
  .Bl -tag -width "screenshot_wind" -offset indent -compact
@@ -112,8 +112,8 @@ Index: spectrwm.git/spectrwm_pt.1
  .It Cm menu
 Index: spectrwm.git/spectrwm_ru.1
 ===================================================================
---- spectrwm.git.orig/spectrwm_ru.1	2014-09-04 23:31:31.732642219 +0200
-+++ spectrwm.git/spectrwm_ru.1	2014-09-04 23:31:41.044642670 +0200
+--- spectrwm.git.orig/spectrwm_ru.1	2014-09-04 23:35:08.976652734 +0200
++++ spectrwm.git/spectrwm_ru.1	2014-09-09 22:51:54.532385921 +0200
 @@ -177,13 +177,13 @@
  .Pp
  .Bl -tag -width "screenshot_wind" -offset indent -compact

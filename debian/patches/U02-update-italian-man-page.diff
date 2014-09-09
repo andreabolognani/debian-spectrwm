@@ -5,8 +5,8 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2014-09-09
 Index: spectrwm.git/spectrwm_it.1
 ===================================================================
---- spectrwm.git.orig/spectrwm_it.1	2014-09-05 00:12:56.556762477 +0200
-+++ spectrwm.git/spectrwm_it.1	2014-09-09 22:18:02.140287559 +0200
+--- spectrwm.git.orig/spectrwm_it.1	2014-09-09 22:18:36.512289222 +0200
++++ spectrwm.git/spectrwm_it.1	2014-09-09 22:51:00.872383324 +0200
 @@ -1,5 +1,9 @@
 -.\" Copyright (c) 2009 Marco Peereboom <marco@peereboom.us>
 +.\" Copyright (c) 2009-2012 Marco Peereboom <marco@peereboom.us>
@@ -70,7 +70,7 @@ Index: spectrwm.git/spectrwm_it.1
  .It Cm M1
  Tasto 1 (sinistro) del mouse
  .It Cm M3
-@@ -53,241 +59,470 @@
+@@ -53,241 +59,479 @@
  .El
  .Pp
  .Nm
@@ -163,7 +163,9 @@ Index: spectrwm.git/spectrwm_it.1
 +Il bordo pu\[`o] essere disabilitato usando il valore 0.
 +.It Ic bar_color Ns Bq Ar x
 +Colore di sfondo della barra di stato nello schermo
-+.Ar x .
+ .Ar x .
+-.It Cm bar_font_color Ns Bq Ar x
+-Colore del testo della barra di stato nello schermo
 +.It Ic bar_enabled
 +Imposta il valore predefinito di
 +.Ic bar_toggle ;
@@ -175,13 +177,16 @@ Index: spectrwm.git/spectrwm_it.1
 +.Ar x ;
 +il valore predefinito per questa opzione \[`e] 1.
 +.It Ic bar_font
-+Font da usare per la barra di stato. Il font pu\[`o] essere specificato
-+usando Xft o X Logical Font Description (XLFD). \[`E] possibile specificare
-+dei font secondari separandoli tra loro con una virgola. Se tutte le
-+specifiche sono nel formato XLFD verranno usati i gruppi di font; se almeno
-+una delle specifiche \[`e] in formato Xft, verr\[`a] usato Xft. Quando Xft
-+\[`e] in uso, verr\[`a] usato solo il primo font caricato con successo
-+anche nel caso in cui non dovesse comprendere tutti i glifi necessari.
++Font da usare per la barra di stato.
++Il font pu\[`o] essere specificato usando Xft o X Logical Font
++Description (XLFD).
++\[`E] possibile specificare dei font secondari separandoli tra loro con
++una virgola.
++Se tutte le specifiche sono nel formato XLFD verranno usati i gruppi di font;
++se almeno una delle specifiche \[`e] in formato Xft, verr\[`a] usato Xft.
++Quando Xft \[`e] in uso, verr\[`a] usato solo il primo font caricato con
++successo anche nel caso in cui non dovesse comprendere tutti i glifi
++necessari.
 +L'impostazione predefinita prevede l'uso dei gruppi di font; \[`e] bene
 +tenere conto del fatto che
 +.Xr dmenu 1
@@ -215,58 +220,6 @@ Index: spectrwm.git/spectrwm_it.1
 +.It Ic bar_font_color Ns Bq Ar x
 +Colore del testo nella barra di stato nello schermo
  .Ar x .
--.It Cm bar_font_color Ns Bq Ar x
--Colore del testo della barra di stato nello schermo
-+.It Ic bar_format
-+Imposta il formato da utilizzare per la barra di stato,
-+sovrascrivendo
-+.Ic clock_format
-+e tutte le opzioni che terminano con
-+.Ic enabled .
-+Il formato viene passato a
-+.Xr strftime 3
-+prima di essere usato, e pu\[`o] contenere le seguenti sequenze
-+di caratteri:
-+.Bl -column "Sequenza di caratteri" "Sostituita con" -offset indent
-+.It Sy "Sequenza di caratteri" Ta Sy "Sostituita con"
-+.It Li "+<" Ta "Lascia uno spazio"
-+.It Li "+A" Ta "Output dello script esterno"
-+.It Li "+C" Ta "Classe della finestra corrente (da WM_CLASS)"
-+.It Li "+D" Ta "Nome dell'area di lavoro corrente"
-+.It Li "+F" Ta "Indicatore di float"
-+.It Li "+I" Ta "Indice dell'area di lavoro corrente"
-+.It Li "+M" Ta "Numero di finestre minimizzate nell'area di lavoro corrente"
-+.It Li "+N" Ta "Numero dello schermo corrente"
-+.It Li "+P" Ta "Classe e istanza della finestra corrente, separate da due punti"
-+.It Li "+S" Ta "Algoritmo di gestione delle finestre in uso"
-+.It Li "+T" Ta "Istanza della finestra corrente (da WM_CLASS)"
-+.It Li "+U" Ta "Indicatore di urgenza"
-+.It Li "+V" Ta "Versione del programma"
-+.It Li "+W" Ta "Nome della finestra corrente (da _NET_WM_NAME o WM_NAME)"
-+.It Li "++" Ta "Il carattere" Ql +
-+.El
-+.Pp
-+Tutte le sequenze di caratteri possono limitare il numero di caratteri
-+massimo utilizzato, eg. +64A. Il testo che non contribuisce a formare
-+una di queste sequenze di caratteri viene copiato senza subire modifiche.
-+.It Ic bar_justify
-+Allinea il test all'interno della barra di stato. I valori possibili sono
-+.Ar left
-+(sinistra),
-+.Ar center
-+(centro) e
-+.Ar right
-+(destra).
-+.Pp
-+Se il valore scelto non \[`e]
-+.Ar left ,
-+il testo potrebbe non risultare allineato correttamente.
-+Vedere
-+.Ic bar_format
-+per maggiori informazioni.
-+.It Ic bind Ns Bq Ar x
-+Associa una combinazione di tasti all'azione
- .Ar x .
 -.It Cm bar_font
 -Font della barra di stato.
 -.It Cm bar_action
@@ -297,67 +250,37 @@ Index: spectrwm.git/spectrwm_it.1
 -I valori possibili per stack_mode sono
 -.Pa vertical ,
 -.Pa horizontal
-+Vedere la sezione
-+.Sx SCORCIATOIE
-+pi\[`u] sotto.
-+.It Ic border_width
-+Imposta lo spessore del bordo delle finestre, in pixel.
-+Il bordo pu\[`o] essere disabilitato usando il valore 0.
-+.It Ic boundary_width
-+Imposta la larghezza dell'area di contenimento delle regioni, in pixel.
-+Questo valore permette di controllare di quanto una finestra debba essere
-+trascinata o ridimensionata oltre il limite di una regione prima che
-+venga considerata al di fuori di essa.
-+Questa impostazione non viene presa in considerazione quando le finestre
-+vengono manipolate utilizzando la tastiera.
-+L'area di contenimento pu\[`o] essere disabilitata usando il valore 0.
-+.It Ic clock_enabled
-+Abilita o disabilita l'orologio nella barra di stato.
-+Se viene usato il valore 0, \[`e] possibile inserire un orologio
-+personalizzato nello script esterno definito in
-+.Ic bar action .
-+.It Ic iconic_enabled
-+Visualizza nella barra di stato il numero di finestre minimizzate.
-+Questo indicatore pu\[`o] essere abilitato usando il valore 1.
-+.It Ic color_focus
-+Colore del bordo della finestra che detiene il focus.
-+Il colore predefinito \[`e] il rosso.
-+.It Ic color_focus_maximized
-+Colore del bordo della finestra che detiene il focus, se massimizzata.
-+Il colore predefinito \[`e] quello usato per
-+.Ic color_focus .
-+.It Ic color_unfocus
-+Colore del bordo delle finestre che non detengono il focus.
-+Il colore predefinito \[`e] rgb:88/88/88.
-+.It Ic color_unfocus_maximized
-+Colore del bordo delle finestre che non detengono il focus, se massimizzate.
-+Il colore predefinito \[`e] quello usato per
-+.Ic color_unfocus .
-+.It Ic dialog_ratio
-+Alcune applicazioni creano finestre di dialogo troppo piccole per essere
-+utilizzate.
-+Questa opzione indica la percentuale dello schermo da utilizzare per le
-+finestre di dialogo: ad esempio, il valore 0.6 indica che dovr\[`a] essere
-+usato il 60% dello spazio disponibile.
-+.It Ic disable_border
-+Non mostrare i bordi quando la barra di stato \[`e] nascosta e c'\[`e] una
-+sola finestra nella regione.
-+.It Ic focus_close
-+Imposta quale finestra ricever\[`a] il focus in seguito alla chiusura della
-+finestra che lo detiene al momento.
-+I valori possibili sono
-+.Ar first
-+(prima),
-+.Ar next
-+(successiva),
-+.Ar previous
-+(precedente, impostazione predefinita) e
-+.Ar last
-+(ultima).
-+.Ar next
- e
+-e
 -.Pa fullscreen .
--.Pp
++.It Ic bar_format
++Imposta il formato da utilizzare per la barra di stato,
++sovrascrivendo
++.Ic clock_format
++e tutte le opzioni che terminano con
++.Ic enabled .
++Il formato viene passato a
++.Xr strftime 3
++prima di essere usato, e pu\[`o] contenere le seguenti sequenze
++di caratteri:
++.Bl -column "Sequenza di caratteri" "Sostituita con" -offset indent
++.It Sy "Sequenza di caratteri" Ta Sy "Sostituita con"
++.It Li "+<" Ta "Lascia uno spazio"
++.It Li "+A" Ta "Output dello script esterno"
++.It Li "+C" Ta "Classe della finestra corrente (da WM_CLASS)"
++.It Li "+D" Ta "Nome dell'area di lavoro corrente"
++.It Li "+F" Ta "Indicatore di float"
++.It Li "+I" Ta "Indice dell'area di lavoro corrente"
++.It Li "+M" Ta "Numero di finestre minimizzate nell'area di lavoro corrente"
++.It Li "+N" Ta "Numero dello schermo corrente"
++.It Li "+P" Ta "Classe e istanza della finestra corrente, separate da due punti"
++.It Li "+S" Ta "Algoritmo di gestione delle finestre in uso"
++.It Li "+T" Ta "Istanza della finestra corrente (da WM_CLASS)"
++.It Li "+U" Ta "Indicatore di urgenza"
++.It Li "+V" Ta "Versione del programma"
++.It Li "+W" Ta "Nome della finestra corrente (da _NET_WM_NAME o WM_NAME)"
++.It Li "++" Ta "Il carattere" Ql +
++.El
+ .Pp
 -Fare riferimento a
 -.Pa master_grow ,
 -.Pa master_shrink ,
@@ -365,71 +288,7 @@ Index: spectrwm.git/spectrwm_it.1
 -.Pa master_del ,
 -.Pa stack_inc ,
 -.Pa stack_del
-+.Ar previous
-+sono intese relativamente alla finestra che \[`e] stata chiusa.
-+.It Ic focus_close_wrap
-+Se abilitata, l'ultima finestra ricever\[`a] il focus quando l'ultima
-+viene chiusa, e viceversa.
-+Questa opzione pu\[`o] essere disabilitata usando il valore 0.
-+.It Ic focus_default
-+Finestra che deve ricevere il focus quando nessun'altra finestra lo
-+detiene.
-+I valori possibili sono
-+.Ar first
-+(prima) e
-+.Ar last
-+(ultima, impostazione predefinita).
-+.It Ic focus_mode
-+Comportamento del focus in relazione al cursore del mouse.
-+I valori possibili sono:
-+.Pp
-+.Bl -tag -width "default" -offset indent -compact
-+.It Ar default
-+Modifica il focus quando viene attraversato un bordo in seguito ad un
-+movimento del cursore o all'interazione con una finestra.
-+.It Ar follow
-+Modifica il focus ogni volta che il cursore attraversa un bordo, anche se
-+questo avviene in seguito al passaggio ad un'area di lavoro diversa o ad
-+un cambio di layout.
-+.It Ar manual
-+Modifica il focus solo quando si interagisce con una finestra.
-+.El
-+.It Ic java_workaround
-+Evita alcuni problemi di rendering nelle GUI Java impersonando il window
-+manager LG3D, scritto da Sun. Il valore predefinito \[`e] 1.
-+.It Ic keyboard_mapping
-+Rimuove tutte le scorciatoie da tastiera esistenti e carica le nuove
-+scorciatoie dal file specificato.
-+Questo permette di caricare scorciatoie specifiche del proprio layout
-+di tastiera.
-+Vedere la sezione
-+.Sx MAPPE DI TASTIERA
-+pi\[`u] sotto per un elenco dei file che vengono forniti.
-+.It Ic layout
-+Imposta il layout da utilizzare all'avvio.
-+Definito nel formato
-+.Li ws Ns Bo Ar idx Bc : Ns Ar master_grow : Ns Ar master_add : Ns Ar stack_inc : Ns Ar always_raise : Ns Ar stack_mode ,
-+eg. ws[2]:-4:0:1:0:horizontal configura l'area di lavoro 2 per utilizzare
-+un algoritmo di stacking orizzontale, riduce l'area principale di 4
-+unit\[`a] e aggiunge una finestra all'area di stacking, mantenendo il
-+comportamento predefinito per le finestre floating.
-+I valori possibili per
-+.Ar stack_mode
-+sono
-+.Ar vertical ,
-+.Ar vertical_flip ,
-+.Ar horizontal ,
-+.Ar horizontal_flip
-+and
-+.Ar fullscreen .
-+Vedere
-+.Ic master_grow ,
-+.Ic master_shrink ,
-+.Ic master_add ,
-+.Ic master_del ,
-+.Ic stack_inc ,
-+.Ic stack_dec ,
- e
+-e
 -.Pa always_raise
 -per ulteriori informazioni.
 -Queste impostazioni sono complesse e hanno effetti secondari; ? opportuno
@@ -499,6 +358,161 @@ Index: spectrwm.git/spectrwm_it.1
 -.It Cm program Ns Bq Ar p
 -Definisce una nuova azione per lanciare il programma
 -.Ar p .
+-Vedere la sezione
+-.Sx PROGRAMMI
+-pi? sotto.
+-.It Cm bind Ns Bq Ar x
+-Assegna una combinazione di tasti all'azione
++Tutte le sequenze di caratteri possono limitare il numero di caratteri
++massimo utilizzato, eg. +64A.
++Il testo che non contribuisce a formare una di queste sequenze di caratteri
++viene copiato senza subire modifiche.
++.It Ic bar_justify
++Allinea il test all'interno della barra di stato.
++I valori possibili sono
++.Ar left
++(sinistra),
++.Ar center
++(centro) e
++.Ar right
++(destra).
++.Pp
++Se il valore scelto non \[`e]
++.Ar left ,
++il testo potrebbe non risultare allineato correttamente.
++Vedere
++.Ic bar_format
++per maggiori informazioni.
++.It Ic bind Ns Bq Ar x
++Associa una combinazione di tasti all'azione
+ .Ar x .
+ Vedere la sezione
+ .Sx SCORCIATOIE
+-pi? sotto.
+-.It Cm quirk Ns Bq Ar c:n
++pi\[`u] sotto.
++.It Ic border_width
++Imposta lo spessore del bordo delle finestre, in pixel.
++Il bordo pu\[`o] essere disabilitato usando il valore 0.
++.It Ic boundary_width
++Imposta la larghezza dell'area di contenimento delle regioni, in pixel.
++Questo valore permette di controllare di quanto una finestra debba essere
++trascinata o ridimensionata oltre il limite di una regione prima che
++venga considerata al di fuori di essa.
++Questa impostazione non viene presa in considerazione quando le finestre
++vengono manipolate utilizzando la tastiera.
++L'area di contenimento pu\[`o] essere disabilitata usando il valore 0.
++.It Ic clock_enabled
++Abilita o disabilita l'orologio nella barra di stato.
++Se viene usato il valore 0, \[`e] possibile inserire un orologio
++personalizzato nello script esterno definito in
++.Ic bar action .
++.It Ic iconic_enabled
++Visualizza nella barra di stato il numero di finestre minimizzate.
++Questo indicatore pu\[`o] essere abilitato usando il valore 1.
++.It Ic color_focus
++Colore del bordo della finestra che detiene il focus.
++Il colore predefinito \[`e] il rosso.
++.It Ic color_focus_maximized
++Colore del bordo della finestra che detiene il focus, se massimizzata.
++Il colore predefinito \[`e] quello usato per
++.Ic color_focus .
++.It Ic color_unfocus
++Colore del bordo delle finestre che non detengono il focus.
++Il colore predefinito \[`e] rgb:88/88/88.
++.It Ic color_unfocus_maximized
++Colore del bordo delle finestre che non detengono il focus, se massimizzate.
++Il colore predefinito \[`e] quello usato per
++.Ic color_unfocus .
++.It Ic dialog_ratio
++Alcune applicazioni creano finestre di dialogo troppo piccole per essere
++utilizzate.
++Questa opzione indica la percentuale dello schermo da utilizzare per le
++finestre di dialogo: ad esempio, il valore 0.6 indica che dovr\[`a] essere
++usato il 60% dello spazio disponibile.
++.It Ic disable_border
++Non mostrare i bordi quando la barra di stato \[`e] nascosta e c'\[`e] una
++sola finestra nella regione.
++.It Ic focus_close
++Imposta quale finestra ricever\[`a] il focus in seguito alla chiusura della
++finestra che lo detiene al momento.
++I valori possibili sono
++.Ar first
++(prima),
++.Ar next
++(successiva),
++.Ar previous
++(precedente, impostazione predefinita) e
++.Ar last
++(ultima).
++.Ar next
++e
++.Ar previous
++sono intese relativamente alla finestra che \[`e] stata chiusa.
++.It Ic focus_close_wrap
++Se abilitata, l'ultima finestra ricever\[`a] il focus quando l'ultima
++viene chiusa, e viceversa.
++Questa opzione pu\[`o] essere disabilitata usando il valore 0.
++.It Ic focus_default
++Finestra che deve ricevere il focus quando nessun'altra finestra lo
++detiene.
++I valori possibili sono
++.Ar first
++(prima) e
++.Ar last
++(ultima, impostazione predefinita).
++.It Ic focus_mode
++Comportamento del focus in relazione al cursore del mouse.
++I valori possibili sono:
++.Pp
++.Bl -tag -width "default" -offset indent -compact
++.It Ar default
++Modifica il focus quando viene attraversato un bordo in seguito ad un
++movimento del cursore o all'interazione con una finestra.
++.It Ar follow
++Modifica il focus ogni volta che il cursore attraversa un bordo, anche se
++questo avviene in seguito al passaggio ad un'area di lavoro diversa o ad
++un cambio di layout.
++.It Ar manual
++Modifica il focus solo quando si interagisce con una finestra.
++.El
++.It Ic java_workaround
++Evita alcuni problemi di rendering nelle GUI Java impersonando il window
++manager LG3D, scritto da Sun.
++Il valore predefinito \[`e] 1.
++.It Ic keyboard_mapping
++Rimuove tutte le scorciatoie da tastiera esistenti e carica le nuove
++scorciatoie dal file specificato.
++Questo permette di caricare scorciatoie specifiche del proprio layout
++di tastiera.
++Vedere la sezione
++.Sx MAPPE DI TASTIERA
++pi\[`u] sotto per un elenco dei file che vengono forniti.
++.It Ic layout
++Imposta il layout da utilizzare all'avvio.
++Definito nel formato
++.Li ws Ns Bo Ar idx Bc : Ns Ar master_grow : Ns Ar master_add : Ns Ar stack_inc : Ns Ar always_raise : Ns Ar stack_mode ,
++eg. ws[2]:-4:0:1:0:horizontal configura l'area di lavoro 2 per utilizzare
++un algoritmo di stacking orizzontale, riduce l'area principale di 4
++unit\[`a] e aggiunge una finestra all'area di stacking, mantenendo il
++comportamento predefinito per le finestre floating.
++I valori possibili per
++.Ar stack_mode
++sono
++.Ar vertical ,
++.Ar vertical_flip ,
++.Ar horizontal ,
++.Ar horizontal_flip
++and
++.Ar fullscreen .
++Vedere
++.Ic master_grow ,
++.Ic master_shrink ,
++.Ic master_add ,
++.Ic master_del ,
++.Ic stack_inc ,
++.Ic stack_dec ,
++e
 +.Ic always_raise
 +per maggiori informazioni.
 +Le opzioni che controllano gli algoritmi di gestione delle finestre sono
@@ -521,16 +535,8 @@ Index: spectrwm.git/spectrwm_it.1
 +Definisce la nuova azione
 +.Ar p ,
 +corrispondente all'esecuzione di un programma.
- Vedere la sezione
- .Sx PROGRAMMI
--pi? sotto.
--.It Cm bind Ns Bq Ar x
--Assegna una combinazione di tasti all'azione
--.Ar x .
--Vedere la sezione
--.Sx SCORCIATOIE
--pi? sotto.
--.It Cm quirk Ns Bq Ar c:n
++Vedere la sezione
++.Sx PROGRAMMI
 +pi\[`u] sotto.
 +.It Ic quirk Ns Bq Ar c Ns Li : Ns Ar i Ns Li : Ns Ar n
  Aggiunge un "quirk" per le finestre di classe
@@ -613,7 +619,8 @@ Index: spectrwm.git/spectrwm_it.1
 +all'interno della barra di stato.
 +Molti emulatore di terminale devono essere configurati esplicitamente per
 +fare s\[`i] che il carattere "bell" causi la modifica dello stato di
-+urgenza della finestra. Ad esempio, in
++urgenza della finestra.
++Ad esempio, in
 +.Xr xterm 1 ,
 +\[`e] necessario aggiungere al file
 +.Pa .Xdefaults
@@ -687,11 +694,9 @@ Index: spectrwm.git/spectrwm_it.1
  Vedere la sezione
  .Sx SCORCIATOIE
 -pi? sotto.
-+pi\[`u] sotto.
- .Pp
+-.Pp
 -I programmi di default sono descritte qui sotto:
-+I programmi vengono definiti come segue:
- .Pp
+-.Pp
 -.Bl -tag -width "screenshot_wind" -offset indent -compact
 -.It Cm term
 -xterm
@@ -706,20 +711,13 @@ Index: spectrwm.git/spectrwm_it.1
 -.It Cm menu
 -dmenu_run \-fn $bar_font \-nb $bar_color \-nf $bar_font_color \-sb $bar_border \-sf $bar_color
 -.El
-+.Dl program Ns Bo Ar action Bc = Ar progpath Op Ar arg Op Ar arg ...
++pi\[`u] sotto.
  .Pp
 -I programmi personalizzati vengono specificati con la seguente sintassi:
-+.Ar action
-+\[`e] qualsiasi identificatore che non vada in conflitto con una delle
-+azioni predefinite,
-+.Ar progpath
-+\[`e] il percorso del programma da eseguire e
-+.Ar arg
-+sono gli argomenti (uno o pi\[`u]) da passare al programma.
++I programmi vengono definiti come segue:
  .Pp
 -.Dl program[<nome>] = <percorso> [<arg> [... <arg>]]
-+Se il percorso o gli argomenti comprendono il carattere #, questo dovr\[`a]
-+essere preceduto da un carattere di escape, diventando \e#.
++.Dl program Ns Bo Ar action Bc = Ar progpath Op Ar arg Op Ar arg ...
  .Pp
 -.Aq nome
 -? un qualsiasi identificatore che non va in conflitto con un'azione
@@ -728,7 +726,19 @@ Index: spectrwm.git/spectrwm_it.1
 -? il programma desiderato, e
 -.Aq arg
 -sono zero o pi? argomenti da passare al programma.
--.Pp
++.Ar action
++\[`e] qualsiasi identificatore che non vada in conflitto con una delle
++azioni predefinite,
++.Ar progpath
++\[`e] il percorso del programma da eseguire e
++.Ar arg
++sono gli argomenti (uno o pi\[`u]) da passare al programma.
++.Pp
++Se il percorso o gli argomenti comprendono il carattere
++.Ql # ,
++questo dovr\[`a] essere preceduto da un carattere di escape,
++diventando \e#.
+ .Pp
 -Le seguenti variabili rappresentano valori impostabili in
 -.Nm
 -(vedere la sezione
@@ -741,7 +751,7 @@ Index: spectrwm.git/spectrwm_it.1
  .Pp
  .Bl -tag -width "$bar_font_color" -offset indent -compact
  .It Cm $bar_border
-@@ -296,41 +531,82 @@
+@@ -296,41 +540,82 @@
  .It Cm $bar_font_color
  .It Cm $color_focus
  .It Cm $color_unfocus
@@ -758,14 +768,16 @@ Index: spectrwm.git/spectrwm_it.1
  program[ff] = /usr/local/bin/firefox http://spectrwm.org/
 -bind[ff] = Mod+f # adesso Mod+F lancia firefox
 +bind[ff] = MOD+Shift+b # Ora M-S-b esegue Firefox
-+.Ed
-+.Pp
-+Per eliminare la scorciatoia appena definita:
-+.Bd -literal -offset indent
-+bind[] = MOD+Shift+b
  .Ed
  .Pp
 -Per eliminare la combinazione precedente:
++Per eliminare la scorciatoia appena definita:
+ .Bd -literal -offset indent
+-bind[] = Mod+f
+-program[ff] =
++bind[] = MOD+Shift+b
+ .Ed
+ .Pp
 +Programmi predefiniti:
 +.Pp
 +.Bl -tag -width "screenshot_wind" -offset indent -compact
@@ -792,12 +804,10 @@ Index: spectrwm.git/spectrwm_it.1
 +.Pp
 +Ad esempio, per ridefinire
 +.Ic lock :
- .Bd -literal -offset indent
--bind[] = Mod+f
--program[ff] =
++.Bd -literal -offset indent
 +program[lock] = xscreensaver\-command \-lock
- .Ed
- .Pp
++.Ed
++.Pp
 +Per disabilitare la scorciatoia assegnata a
 +.Ic lock
 +ed impedirne la verifica:
@@ -837,7 +847,7 @@ Index: spectrwm.git/spectrwm_it.1
  .It Cm M-S- Ns Aq Cm Return
  term
  .It Cm M-p
-@@ -341,8 +617,10 @@
+@@ -341,8 +626,10 @@
  restart
  .It Cm M- Ns Aq Cm Space
  cycle_layout
@@ -849,7 +859,7 @@ Index: spectrwm.git/spectrwm_it.1
  .It Cm M-h
  master_shrink
  .It Cm M-l
-@@ -354,7 +632,7 @@
+@@ -354,7 +641,7 @@
  .It Cm M-S-,
  stack_inc
  .It Cm M-S-.
@@ -858,7 +868,7 @@ Index: spectrwm.git/spectrwm_it.1
  .It Cm M- Ns Aq Cm Return
  swap_main
  .It Xo
-@@ -369,30 +647,46 @@
+@@ -369,30 +656,46 @@
  focus_prev
  .It Cm M-m
  focus_main
@@ -911,7 +921,7 @@ Index: spectrwm.git/spectrwm_it.1
  .It Cm M-s
  screenshot_all
  .It Cm M-S-s
-@@ -401,7 +695,7 @@
+@@ -401,7 +704,7 @@
  version
  .It Cm M-t
  float_toggle
@@ -920,7 +930,7 @@ Index: spectrwm.git/spectrwm_it.1
  lock
  .It Cm M-S-i
  initscr
-@@ -409,25 +703,47 @@
+@@ -409,25 +712,47 @@
  iconify
  .It Cm M-S-w
  uniconify
@@ -976,7 +986,7 @@ Index: spectrwm.git/spectrwm_it.1
  .It Cm quit
  Chiude
  .Nm .
-@@ -435,35 +751,44 @@
+@@ -435,35 +760,44 @@
  Riavvia
  .Nm .
  .It Cm cycle_layout
@@ -1038,7 +1048,7 @@ Index: spectrwm.git/spectrwm_it.1
  .It Cm wind_del
  Chiude la finestra corrente.
  .It Cm wind_kill
-@@ -473,82 +798,186 @@
+@@ -473,82 +807,186 @@
  .Ar n ,
  dove
  .Ar n
@@ -1165,7 +1175,8 @@ Index: spectrwm.git/spectrwm_it.1
 +Le scorciatoie da tastiera personalizzate vengono definite come segue:
 +.Pp
 +.Dl bind Ns Bo Ar action Bc = Ar keys
-+.Pp
+ .Pp
+-.Dl bind[<azione>] = <tasti>
 +.Ar action
 +\[`e] una delle azioni predefinite descritte sopra, oppure la stringa vuota
 +(per disabilitare la scorciatoia).
@@ -1173,8 +1184,7 @@ Index: spectrwm.git/spectrwm_it.1
 +\[`e] composta da uno o pi\[`u] tasti modificatore (eg. MOD, Mod1, Shift,
 +etc.) e uno o pi\[`u] tasti normali (eg. b, Space, etc.) separati da
 +.Ql + .
- .Pp
--.Dl bind[<azione>] = <tasti>
++.Pp
 +Esempio:
 +.Bd -literal -offset indent
 +bind[reset] = Mod4+q # Assegna l'azione reset alla scorciatoia Win+q
@@ -1264,7 +1274,7 @@ Index: spectrwm.git/spectrwm_it.1
  .It Firefox\-bin:firefox\-bin
  TRANSSZ
  .It Firefox:Dialog
-@@ -577,66 +1006,129 @@
+@@ -577,66 +1015,128 @@
  XTERM_FONTADJ
  .El
  .Pp
@@ -1379,7 +1389,7 @@ Index: spectrwm.git/spectrwm_it.1
 +contiene solo caratteri alfanumerici, senza spazi, sono floating
 +quirk[pcb:pcb] = NONE # Rimuove i quirk predefiniti
  .Ed
- .Pp
+-.Pp
 -? possibile ottenere
 -.Aq classe
 +\[`E] possibile ottenere
@@ -1427,7 +1437,7 @@ Index: spectrwm.git/spectrwm_it.1
  .Pp
  .Bl -tag -width "_NET_WM_WINDOW_TYPE_TOOLBAR<TAB>XXX" -offset indent -compact
  .It _NET_WM_WINDOW_TYPE_DOCK
-@@ -651,102 +1143,100 @@
+@@ -651,102 +1151,99 @@
  FLOAT
  .El
  .Pp
@@ -1515,17 +1525,17 @@ Index: spectrwm.git/spectrwm_it.1
 -(supponendo che 0x4a0000b sia l'id della finestra da spostare):
 +Le finestre possono essere minimizzate e ripristinate sostituendo
 +_NET_WM_STATE_HIDDEN a _NET_WM_STATE_ABOVE nell'esempio precedente:
-+.Bd -literal -offset indent
-+$ wmctrl \-i \-r 0x4a0000b \-b toggle,_NET_WM_STATE_HIDDEN
-+.Ed
-+.Pp
-+Le finestre floating possono essere ridimensionate e spostate tramite
-+l'invio di un messaggio di tipo _NET_MOVERESIZE_WINDOW, ad esempio:
  .Bd -literal -offset indent
- $ wmctrl \-i \-r 0x4a0000b \-e 0,100,50,640,480
+-$ wmctrl \-i \-r 0x4a0000b \-e 0,100,50,640,480
++$ wmctrl \-i \-r 0x4a0000b \-b toggle,_NET_WM_STATE_HIDDEN
  .Ed
  .Pp
 -Questo comando sposta la finestra in (100,50) e la ridimensiona a 640x480.
++Le finestre floating possono essere ridimensionate e spostate tramite
++l'invio di un messaggio di tipo _NET_MOVERESIZE_WINDOW, ad esempio:
++.Bd -literal -offset indent
++$ wmctrl \-i \-r 0x4a0000b \-e 0,100,50,640,480
++.Ed
 +In questo caso, la con id 0x4a0000b finestra viene spostata in (100,50)
 +e la sua dimensione diventa 640x480.
  .Pp
