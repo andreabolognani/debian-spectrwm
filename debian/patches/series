@@ -1,6 +1,5 @@
 # To rebuild this file, use `debian/rules rebuild-patches-series'
 U01-improve-libswmhack.diff
-U02-update-italian-man-page.diff
 D01-skip-compatibility-symlinks.diff
 D02-change-default-programs.diff
 D03-make-default-programs-optional.diff
