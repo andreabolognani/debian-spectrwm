@@ -14,8 +14,8 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2014-08-27
 Index: spectrwm.git/lib/swm_hack.c
 ===================================================================
---- spectrwm.git.orig/lib/swm_hack.c	2014-08-27 22:05:59.496292521 +0200
-+++ spectrwm.git/lib/swm_hack.c	2014-08-27 22:18:26.888328699 +0200
+--- spectrwm.git.orig/lib/swm_hack.c	2016-04-09 20:20:32.775945626 +0200
++++ spectrwm.git/lib/swm_hack.c	2016-04-09 20:20:32.775945626 +0200
 @@ -1,6 +1,7 @@
  /*
   * Copyright (c) 2009 Marco Peereboom <marco@peereboom.us>
