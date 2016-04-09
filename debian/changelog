@@ -1,6 +1,7 @@
 spectrwm (2.6.1-1) unstable; urgency=low
 
   * New upstream release
+    - Closes: #772431 (fix FTBFS with ld --as-needed)
 
  -- Andrea Bolognani <eof@kiyuko.org>  Sat, 09 Apr 2016 20:06:26 +0200
 
