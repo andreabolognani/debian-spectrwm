@@ -41,6 +41,7 @@
  * Basic hack mechanism (dlopen etc.) taken from e_hack.c in e17.
  */
 #include <string.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <dlfcn.h>
@@ -54,10 +55,16 @@ static void		*lib_xlib = NULL;
 static void		*lib_xtlib = NULL;
 
 static Window		root = None;
-static int		xterm = 0;
+static bool		xterm = false;
 static Display		*display = NULL;
 
 void	set_property(Display *, Window, char *, char *);
+
+#ifdef _GNU_SOURCE
+#define DLOPEN(s)	RTLD_NEXT
+#else
+#define DLOPEN(s)	dlopen((s), RTLD_GLOBAL | RTLD_LAZY)
+#endif
 
 /* Find our root window */
 static              Window
@@ -71,7 +78,7 @@ MyRoot(Display * dpy)
 	root = DefaultRootWindow(dpy);
 
 	s = getenv("ENL_WM_ROOT");
-	if (!s)
+	if (s == NULL)
 		return root;
 
 	sscanf(s, "%lx", &root);
@@ -95,13 +102,18 @@ set_property(Display *dpy, Window id, char *name, char *val)
 	static XIA		*xia = NULL;
 	static XCP		*xcp = NULL;
 
-	/* find the real Xlib and the real X function */
-	if (!lib_xlib)
-		lib_xlib = dlopen("libX11.so", RTLD_GLOBAL | RTLD_LAZY);
-	if (!xia)
-		xia = (XIA *) dlsym(lib_xlib, "XInternAtom");
-	if (!xcp)
-		xcp = (XCP *) dlsym(lib_xlib, "XChangeProperty");
+	if (lib_xlib == NULL)
+		lib_xlib = DLOPEN("libX11.so");
+	if (lib_xlib) {
+		if (xia == NULL)
+			xia = (XIA *) dlsym(lib_xlib, "XInternAtom");
+		if (xcp == NULL)
+			xcp = (XCP *) dlsym(lib_xlib, "XChangeProperty");
+	}
+	if (xia == NULL || xcp == NULL) {
+		fprintf(stderr, "libswmhack.so: ERROR: %s\n", dlerror());
+		return;
+	}
 
 	/* Try to update the window's workspace property */
 	atom = (*xia)(dpy, name, False);
@@ -132,28 +144,31 @@ XCreateWindow(Display *dpy, Window parent, int x, int y,
 	char		*env;
 	Window		id;
 
-	/* find the real Xlib and the real X function */
-	if (!lib_xlib)
-		lib_xlib = dlopen("libX11.so", RTLD_GLOBAL | RTLD_LAZY);
-	if (!func) {
+	if (lib_xlib == NULL)
+		lib_xlib = DLOPEN("libX11.so");
+	if (lib_xlib && func == NULL) {
 		func = (CWF *) dlsym(lib_xlib, "XCreateWindow");
 		display = dpy;
+	}
+	if (func == NULL) {
+		fprintf(stderr, "libswmhack.so: ERROR: %s\n", dlerror());
+		return None;
 	}
 
 	if (parent == DefaultRootWindow(dpy))
 		parent = MyRoot(dpy);
-	
+
 	id = (*func) (dpy, parent, x, y, width, height, border_width,
 	    depth, clss, visual, valuemask, attributes);
 
 	if (id) {
-		if ((env = getenv("_SWM_WS")) != NULL) 
+		if ((env = getenv("_SWM_WS")) != NULL)
 			set_property(dpy, id, "_SWM_WS", env);
 		if ((env = getenv("_SWM_PID")) != NULL)
 			set_property(dpy, id, "_SWM_PID", env);
 		if ((env = getenv("_SWM_XTERM_FONTADJ")) != NULL) {
 			unsetenv("_SWM_XTERM_FONTADJ");
-			xterm = 1;
+			xterm = true;
 		}
 	}
 	return (id);
@@ -177,11 +192,14 @@ XCreateSimpleWindow(Display *dpy, Window parent, int x, int y,
 	char		*env;
 	Window		id;
 
-	/* find the real Xlib and the real X function */
-	if (!lib_xlib)
-		lib_xlib = dlopen("libX11.so", RTLD_GLOBAL | RTLD_LAZY);
-	if (!func)
+	if (lib_xlib == NULL)
+		lib_xlib = DLOPEN("libX11.so");
+	if (lib_xlib && func == NULL)
 		func = (CSWF *) dlsym(lib_xlib, "XCreateSimpleWindow");
+	if (func == NULL) {
+		fprintf(stderr, "libswmhack.so: ERROR: %s\n", dlerror());
+		return None;
+	}
 
 	if (parent == DefaultRootWindow(dpy))
 		parent = MyRoot(dpy);
@@ -190,13 +208,13 @@ XCreateSimpleWindow(Display *dpy, Window parent, int x, int y,
 	    border_width, border, background);
 
 	if (id) {
-		if ((env = getenv("_SWM_WS")) != NULL) 
+		if ((env = getenv("_SWM_WS")) != NULL)
 			set_property(dpy, id, "_SWM_WS", env);
 		if ((env = getenv("_SWM_PID")) != NULL)
 			set_property(dpy, id, "_SWM_PID", env);
 		if ((env = getenv("_SWM_XTERM_FONTADJ")) != NULL) {
 			unsetenv("_SWM_XTERM_FONTADJ");
-			xterm = 1;
+			xterm = true;
 		}
 	}
 	return (id);
@@ -211,11 +229,15 @@ XReparentWindow(Display *dpy, Window window, Window parent, int x, int y)
 {
 	static RWF         *func = NULL;
 
-	/* find the real Xlib and the real X function */
-	if (!lib_xlib)
-		lib_xlib = dlopen("libX11.so", RTLD_GLOBAL | RTLD_LAZY);
-	if (!func)
+	if (lib_xlib == NULL)
+		lib_xlib = DLOPEN("libX11.so");
+	if (lib_xlib && func == NULL)
 		func = (RWF *) dlsym(lib_xlib, "XReparentWindow");
+	if (func == NULL) {
+		fprintf(stderr, "libswmhack.so: ERROR: %s\n", dlerror());
+		/* Xlib function always returns 1, so return 0 here. */
+		return 0;
+	}
 
 	if (parent == DefaultRootWindow(dpy))
 		parent = MyRoot(dpy);
@@ -238,15 +260,18 @@ XtAppNextEvent(XtAppContext app_context, XEvent *event_return)
 	static ANEF	*func = NULL;
 	static KeyCode	kp_add = 0, kp_subtract = 0;
 
-	/* find the real Xlib and the real X function */
-	if (!lib_xtlib)
-		lib_xtlib = dlopen("libXt.so", RTLD_GLOBAL | RTLD_LAZY);
-	if (!func) {
+	if (lib_xtlib == NULL)
+		lib_xtlib = DLOPEN("libXt.so");
+	if (lib_xtlib && func == NULL) {
 		func = (ANEF *) dlsym(lib_xtlib, "XtAppNextEvent");
-		if (display != NULL) {
+		if (display) {
 			kp_add = XKeysymToKeycode(display, XK_KP_Add);
 			kp_subtract = XKeysymToKeycode(display, XK_KP_Subtract);
 		}
+	}
+	if (func == NULL) {
+		fprintf(stderr, "libswmhack.so: ERROR: %s\n", dlerror());
+		return;
 	}
 
 	(*func) (app_context, event_return);
@@ -254,9 +279,9 @@ XtAppNextEvent(XtAppContext app_context, XEvent *event_return)
 	/* Return here if it's not an Xterm. */
 	if (!xterm)
 		return;
-	
+
 	/* Allow spoofing of font change keystrokes. */
-	if ((event_return->type == KeyPress ||  
+	if ((event_return->type == KeyPress ||
 	   event_return->type == KeyRelease) &&
 	   event_return->xkey.state == ShiftMask &&
 	   (event_return->xkey.keycode == kp_add ||
