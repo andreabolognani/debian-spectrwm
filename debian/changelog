@@ -1,11 +1,11 @@
-spectrwm (2.6.1-1) unstable; urgency=low
+spectrwm (2.6.2-1) unstable; urgency=low
 
   * New upstream release
     - Closes: #772431 (fix FTBFS with ld --as-needed)
   * U02-update-italian-man-page.diff:
     - merged upstream; dropped
 
- -- Andrea Bolognani <eof@kiyuko.org>  Sat, 09 Apr 2016 20:06:26 +0200
+ -- Andrea Bolognani <eof@kiyuko.org>  Wed, 08 Jun 2016 23:34:00 +0200
 
 spectrwm (2.6.0-1) unstable; urgency=low
 
