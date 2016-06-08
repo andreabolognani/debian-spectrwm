@@ -8,9 +8,9 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2014-09-04
 Index: spectrwm.git/spectrwm.c
 ===================================================================
---- spectrwm.git.orig/spectrwm.c	2016-04-09 20:28:29.185644578 +0200
-+++ spectrwm.git/spectrwm.c	2016-04-09 20:28:29.181644563 +0200
-@@ -7152,12 +7152,6 @@
+--- spectrwm.git.orig/spectrwm.c	2016-06-08 23:36:24.095020938 +0200
++++ spectrwm.git/spectrwm.c	2016-06-08 23:36:24.091020892 +0200
+@@ -7153,12 +7153,6 @@
  void
  setup_spawn(void)
  {
@@ -23,7 +23,7 @@ Index: spectrwm.git/spectrwm.c
  	setconfspawn("menu",		"dmenu_run"
  					" $dmenu_bottom"
  					" -fn $bar_font"
-@@ -7185,6 +7179,10 @@
+@@ -7186,6 +7180,10 @@
  					" -sf $bar_color",	0);
  
  	 /* These are not verified for existence, even with a binding set. */
@@ -36,8 +36,8 @@ Index: spectrwm.git/spectrwm.c
  	setconfspawn("initscr",		"initscreen.sh",	SWM_SPAWN_OPTIONAL);
 Index: spectrwm.git/spectrwm.1
 ===================================================================
---- spectrwm.git.orig/spectrwm.1	2016-04-09 20:28:29.185644578 +0200
-+++ spectrwm.git/spectrwm.1	2016-04-09 20:28:29.181644563 +0200
+--- spectrwm.git.orig/spectrwm.1	2016-06-08 23:36:24.095020938 +0200
++++ spectrwm.git/spectrwm.1	2016-06-08 23:36:24.091020892 +0200
 @@ -544,19 +544,19 @@
  .Pp
  Default programs:
@@ -86,8 +86,8 @@ Index: spectrwm.git/spectrwm.1
  .Nm
 Index: spectrwm.git/spectrwm_it.1
 ===================================================================
---- spectrwm.git.orig/spectrwm_it.1	2016-04-09 20:28:29.185644578 +0200
-+++ spectrwm.git/spectrwm_it.1	2016-04-09 20:28:29.181644563 +0200
+--- spectrwm.git.orig/spectrwm_it.1	2016-06-08 23:36:24.095020938 +0200
++++ spectrwm.git/spectrwm_it.1	2016-06-08 23:36:24.091020892 +0200
 @@ -562,19 +562,19 @@
  Programmi predefiniti:
  .Pp
