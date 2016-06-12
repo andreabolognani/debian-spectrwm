@@ -1,0 +1,60 @@
+Description: Adapt libswmhack
+ libswmhack tries to dlopen() libX11.so and libXt.so, but on Debian those
+ are symlinks shipped in the corresponding -dev package.
+ .
+ If dlopen() fails, try with the versioned library names, libX11.so.6 and
+ libXt.so.6. This ensures libswmhack will work with just the runtime
+ packages installed.
+Bug-Debian: http://bugs.debian.org/551732
+Bug: https://github.com/conformal/spectrwm/pull/63
+Author: Andrea Bolognani <eof@kiyuko.org>
+Last-Update: 2016-06-12
+Index: spectrwm.git/lib/swm_hack.c
+===================================================================
+--- spectrwm.git.orig/lib/swm_hack.c	2016-06-12 23:55:28.213687644 +0200
++++ spectrwm.git/lib/swm_hack.c	2016-06-12 23:56:19.346521887 +0200
+@@ -104,6 +104,8 @@
+ 
+ 	if (lib_xlib == NULL)
+ 		lib_xlib = DLOPEN("libX11.so");
++	if (lib_xlib == NULL)
++		lib_xlib = DLOPEN("libX11.so.6");
+ 	if (lib_xlib) {
+ 		if (xia == NULL)
+ 			xia = (XIA *) dlsym(lib_xlib, "XInternAtom");
+@@ -146,6 +148,8 @@
+ 
+ 	if (lib_xlib == NULL)
+ 		lib_xlib = DLOPEN("libX11.so");
++	if (lib_xlib == NULL)
++		lib_xlib = DLOPEN("libX11.so.6");
+ 	if (lib_xlib && func == NULL) {
+ 		func = (CWF *) dlsym(lib_xlib, "XCreateWindow");
+ 		display = dpy;
+@@ -194,6 +198,8 @@
+ 
+ 	if (lib_xlib == NULL)
+ 		lib_xlib = DLOPEN("libX11.so");
++	if (lib_xlib == NULL)
++		lib_xlib = DLOPEN("libX11.so.6");
+ 	if (lib_xlib && func == NULL)
+ 		func = (CSWF *) dlsym(lib_xlib, "XCreateSimpleWindow");
+ 	if (func == NULL) {
+@@ -231,6 +237,8 @@
+ 
+ 	if (lib_xlib == NULL)
+ 		lib_xlib = DLOPEN("libX11.so");
++	if (lib_xlib == NULL)
++		lib_xlib = DLOPEN("libX11.so.6");
+ 	if (lib_xlib && func == NULL)
+ 		func = (RWF *) dlsym(lib_xlib, "XReparentWindow");
+ 	if (func == NULL) {
+@@ -262,6 +270,8 @@
+ 
+ 	if (lib_xtlib == NULL)
+ 		lib_xtlib = DLOPEN("libXt.so");
++	if (lib_xtlib == NULL)
++		lib_xtlib = DLOPEN("libXt.so.6");
+ 	if (lib_xtlib && func == NULL) {
+ 		func = (ANEF *) dlsym(lib_xtlib, "XtAppNextEvent");
+ 		if (display) {

@@ -1,5 +1,5 @@
 # To rebuild this file, use `debian/rules rebuild-patches-series'
-U01-improve-libswmhack.diff
-D01-skip-compatibility-symlinks.diff
+D01-try-versioned-dlopen.diff
 D02-change-default-programs.diff
 D03-make-default-programs-optional.diff
+D04-skip-compatibility-symlinks.diff
