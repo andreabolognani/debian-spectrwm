@@ -2,4 +2,5 @@ files
 scrotwm
 *.debhelper*
 *.substvars
+*.swp
 patches/.dpkg-source-applied
