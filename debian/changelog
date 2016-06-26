@@ -1,4 +1,4 @@
-spectrwm (3.0.0-1) unstable; urgency=low
+spectrwm (3.0.1-1) unstable; urgency=low
 
   * New upstream release
     - Closes: #772431 (fix FTBFS with ld --as-needed)
@@ -7,7 +7,7 @@ spectrwm (3.0.0-1) unstable; urgency=low
   * D01-try-versioned-dlopen.diff:
     - simplify and make downstream only
 
- -- Andrea Bolognani <eof@kiyuko.org>  Sun, 26 Jun 2016 15:48:49 +0200
+ -- Andrea Bolognani <eof@kiyuko.org>  Sun, 26 Jun 2016 17:02:03 +0200
 
 spectrwm (2.6.0-1) unstable; urgency=low
 
