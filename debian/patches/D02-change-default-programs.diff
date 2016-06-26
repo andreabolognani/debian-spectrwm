@@ -8,7 +8,7 @@ Index: spectrwm.git/spectrwm.c
 ===================================================================
 --- spectrwm.git.orig/spectrwm.c
 +++ spectrwm.git/spectrwm.c
-@@ -7863,10 +7863,11 @@ validate_spawns(void)
+@@ -7876,10 +7876,11 @@ validate_spawns(void)
  void
  setup_spawn(void)
  {

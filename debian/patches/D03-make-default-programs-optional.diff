@@ -10,7 +10,7 @@ Index: spectrwm.git/spectrwm.c
 ===================================================================
 --- spectrwm.git.orig/spectrwm.c
 +++ spectrwm.git/spectrwm.c
-@@ -7863,12 +7863,6 @@ validate_spawns(void)
+@@ -7876,12 +7876,6 @@ validate_spawns(void)
  void
  setup_spawn(void)
  {
@@ -23,7 +23,7 @@ Index: spectrwm.git/spectrwm.c
  	setconfspawn("menu",		"dmenu_run"
  					" $dmenu_bottom"
  					" -fn $bar_font"
-@@ -7896,6 +7890,10 @@ setup_spawn(void)
+@@ -7909,6 +7903,10 @@ setup_spawn(void)
  					" -sf $bar_color",	0);
  
  	 /* These are not verified for existence, even with a binding set. */
