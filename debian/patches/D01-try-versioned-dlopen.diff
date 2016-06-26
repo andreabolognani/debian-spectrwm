@@ -5,7 +5,7 @@ Description: Adapt libswmhack
  If dlopen() fails, try with the versioned library names, libX11.so.6 and
  libXt.so.6. This ensures libswmhack will work with just the runtime
  packages installed.
-Bug-Debian: http://bugs.debian.org/551732
+Bug-Debian: https://bugs.debian.org/551732
 Bug: https://github.com/conformal/spectrwm/pull/63
 Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2016-06-12
