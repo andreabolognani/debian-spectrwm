@@ -9,7 +9,7 @@ Index: spectrwm.git/linux/Makefile
 ===================================================================
 --- spectrwm.git.orig/linux/Makefile
 +++ spectrwm.git/linux/Makefile
-@@ -43,7 +43,6 @@ install: all
+@@ -47,7 +47,6 @@ install: all
  	install -m 755 -d $(DESTDIR)$(MANDIR)/man1
  	install -m 755 -d $(DESTDIR)$(XSESSIONSDIR)
  	install -m 755 spectrwm                    $(DESTDIR)$(BINDIR)
@@ -17,7 +17,7 @@ Index: spectrwm.git/linux/Makefile
  	install -m 644 libswmhack.so.$(LIBVERSION) $(DESTDIR)$(LIBDIR)
  	ln -sf libswmhack.so.$(LIBVERSION)         $(DESTDIR)$(LIBDIR)/libswmhack.so.$(LIBMAJORVERSION)
  	ln -sf libswmhack.so.$(LIBVERSION)         $(DESTDIR)$(LIBDIR)/libswmhack.so
-@@ -52,7 +51,6 @@ install: all
+@@ -56,7 +55,6 @@ install: all
  
  uninstall:
  	rm -f $(DESTDIR)$(BINDIR)/spectrwm

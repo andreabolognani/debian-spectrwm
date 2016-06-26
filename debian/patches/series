@@ -1,5 +1,6 @@
 # To rebuild this file, use `debian/rules rebuild-patches-series'
 U01-fix-man-errors.diff
+U02-improve-linking.diff
 D01-try-versioned-dlopen.diff
 D02-change-default-programs.diff
 D03-make-default-programs-optional.diff

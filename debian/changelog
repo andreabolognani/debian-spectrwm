@@ -4,13 +4,15 @@ spectrwm (3.0.2-1) unstable; urgency=low
     - Closes: #772431 (fix FTBFS with ld --as-needed)
   * U01-fix-man-errors.diff:
     - take care of some man errors spotted by Lintian
+  * U02-improve-linking.diff:
+    - reduce number of libraries libswmhack.so is linked against
   * U02-update-italian-man-page.diff:
     - merged upstream; dropped
   * D01-try-versioned-dlopen.diff:
     - simplify and make downstream only
   * Update Standards-Version to 3.9.8 (no changes needed)
 
- -- Andrea Bolognani <eof@kiyuko.org>  Sun, 26 Jun 2016 22:54:10 +0200
+ -- Andrea Bolognani <eof@kiyuko.org>  Sun, 03 Jul 2016 23:56:54 +0200
 
 spectrwm (2.6.0-1) unstable; urgency=low
 
