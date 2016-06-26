@@ -3712,7 +3712,16 @@ spawn(int ws_idx, union arg *args, bool close_fd)
 
 	close(xcb_get_file_descriptor(conn));
 
-	setenv("LD_PRELOAD", SWM_LIB, 1);
+	if ((ret = getenv("LD_PRELOAD"))) {
+		if (asprintf(&ret, "%s:%s", SWM_LIB, ret) == -1) {
+			warn("spawn: asprintf LD_PRELOAD");
+			_exit(1);
+		}
+		setenv("LD_PRELOAD", ret, 1);
+		free(ret);
+	} else {
+		setenv("LD_PRELOAD", SWM_LIB, 1);
+	}
 
 	if (asprintf(&ret, "%d", ws_idx) == -1) {
 		warn("spawn: asprintf SWM_WS");
@@ -4134,6 +4143,10 @@ set_region(struct swm_region *r)
 	    XCB_CW_BORDER_PIXEL, &r->s->c[SWM_S_COLOR_BAR_BORDER].pixel);
 
 	r->s->r_focus = r;
+
+	/* Update the focus window frame on the now unfocused region. */
+	if (rf && rf->ws->focus)
+		draw_frame(rf->ws->focus);
 
 	ewmh_update_current_desktop();
 }
