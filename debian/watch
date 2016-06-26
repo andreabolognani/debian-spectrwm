@@ -1,2 +1,3 @@
-version=3
-http://opensource.conformal.com/snapshots/spectrwm/spectrwm-([\d\.]+)\.tgz
+version=4
+https://github.com/conformal/spectrwm/releases \
+	^.*/SPECTRWM_(\d+)_(\d+)_(\d+)\.tar\.gz$
