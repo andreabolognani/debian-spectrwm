@@ -10,9 +10,11 @@ spectrwm (3.0.2-1) unstable; urgency=low
     - merged upstream; dropped
   * D01-try-versioned-dlopen.diff:
     - simplify and make downstream only
+  * Add Depends: on libxt6
+    - it is dlopen()ed by libswmhack.so
   * Update Standards-Version to 3.9.8 (no changes needed)
 
- -- Andrea Bolognani <eof@kiyuko.org>  Sun, 03 Jul 2016 23:56:54 +0200
+ -- Andrea Bolognani <eof@kiyuko.org>  Mon, 04 Jul 2016 00:00:51 +0200
 
 spectrwm (2.6.0-1) unstable; urgency=low
 
