@@ -2,6 +2,8 @@ spectrwm (3.0.2-1) unstable; urgency=low
 
   * New upstream release
     - Closes: #772431 (fix FTBFS with ld --as-needed)
+  * U01-fix-man-errors.diff:
+    - take care of some man errors spotted by Lintian
   * U02-update-italian-man-page.diff:
     - merged upstream; dropped
   * D01-try-versioned-dlopen.diff:
