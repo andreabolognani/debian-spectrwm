@@ -6,9 +6,9 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2016-04-09
 Index: spectrwm.git/spectrwm.c
 ===================================================================
---- spectrwm.git.orig/spectrwm.c	2016-06-13 00:09:34.459443344 +0200
-+++ spectrwm.git/spectrwm.c	2016-06-13 00:09:34.455443280 +0200
-@@ -7449,10 +7449,11 @@
+--- spectrwm.git.orig/spectrwm.c
++++ spectrwm.git/spectrwm.c
+@@ -7863,10 +7863,11 @@ validate_spawns(void)
  void
  setup_spawn(void)
  {
@@ -25,9 +25,9 @@ Index: spectrwm.git/spectrwm.c
  					" $dmenu_bottom"
 Index: spectrwm.git/spectrwm.1
 ===================================================================
---- spectrwm.git.orig/spectrwm.1	2016-06-13 00:09:34.459443344 +0200
-+++ spectrwm.git/spectrwm.1	2016-06-13 00:09:34.455443280 +0200
-@@ -564,12 +564,12 @@
+--- spectrwm.git.orig/spectrwm.1
++++ spectrwm.git/spectrwm.1
+@@ -564,12 +564,12 @@ bind[] = MOD+Shift+b
  Default programs:
  .Bl -tag -width "screenshot_wind" -offset indent -compact
  .It Cm lock
@@ -42,82 +42,3 @@ Index: spectrwm.git/spectrwm.1
  .It Cm initscr
  initscreen.sh        # optional
  .It Cm screenshot_all
-Index: spectrwm.git/spectrwm_it.1
-===================================================================
---- spectrwm.git.orig/spectrwm_it.1	2016-06-13 00:09:34.459443344 +0200
-+++ spectrwm.git/spectrwm_it.1	2016-06-13 00:09:34.455443280 +0200
-@@ -563,12 +563,12 @@
- .Pp
- .Bl -tag -width "screenshot_wind" -offset indent -compact
- .It Cm lock
--xlock
-+xscreensaver\-command \-lock
- .It Cm menu
- dmenu_run $dmenu_bottom \-fn $bar_font \-nb $bar_color \-nf $bar_font_color \-sb
- $bar_border \-sf $bar_color
- .It Cm term
--xterm
-+x\-terminal\-emulator
- .It Cm initscr
- initscreen.sh        # opzionale
- .It Cm screenshot_all
-Index: spectrwm.git/spectrwm_es.1
-===================================================================
---- spectrwm.git.orig/spectrwm_es.1	2016-06-13 00:09:34.459443344 +0200
-+++ spectrwm.git/spectrwm_es.1	2016-06-13 00:09:34.455443280 +0200
-@@ -243,13 +243,13 @@
- .Pp
- .Bl -tag -width "screenshot_wind" -offset indent -compact
- .It Cm term
--xterm
-+x\-terminal\-emulator
- .It Cm screenshot_all
- screenshot.sh completo
- .It Cm screenshot_wind
- screenshot.sh por ventana
- .It Cm lock
--xlock
-+xscreensaver\-command \-lock
- .It Cm initscr
- initscreen.sh
- .It Cm menu
-Index: spectrwm.git/spectrwm_pt.1
-===================================================================
---- spectrwm.git.orig/spectrwm_pt.1	2016-06-13 00:09:34.459443344 +0200
-+++ spectrwm.git/spectrwm_pt.1	2016-06-13 00:09:34.455443280 +0200
-@@ -196,13 +196,13 @@
- .Pp
- .Bl -tag -width "screenshot_wind" -offset indent -compact
- .It Cm term
--xterm
-+x\-terminal\-emulator
- .It Cm screenshot_all
- screenshot.sh full
- .It Cm screenshot_wind
- screenshot.sh window
- .It Cm lock
--xlock
-+xscreensaver\-command \-lock
- .It Cm initscr
- initscreen.sh
- .It Cm menu
-Index: spectrwm.git/spectrwm_ru.1
-===================================================================
---- spectrwm.git.orig/spectrwm_ru.1	2016-06-13 00:09:34.459443344 +0200
-+++ spectrwm.git/spectrwm_ru.1	2016-06-13 00:09:34.455443280 +0200
-@@ -177,13 +177,13 @@
- .Pp
- .Bl -tag -width "screenshot_wind" -offset indent -compact
- .It Cm term
--xterm
-+x\-terminal\-emulator
- .It Cm screenshot_all
- screenshot.sh full
- .It Cm screenshot_wind
- screenshot.sh window
- .It Cm lock
--xlock
-+xscreensaver\-command \-lock
- .It Cm initscr
- initscreen.sh
- .It Cm menu

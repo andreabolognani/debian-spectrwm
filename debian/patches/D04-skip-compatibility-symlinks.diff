@@ -7,9 +7,9 @@ Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2014-08-18
 Index: spectrwm.git/linux/Makefile
 ===================================================================
---- spectrwm.git.orig/linux/Makefile	2016-06-13 00:09:44.379604210 +0200
-+++ spectrwm.git/linux/Makefile	2016-06-13 00:09:44.375604144 +0200
-@@ -47,7 +47,6 @@
+--- spectrwm.git.orig/linux/Makefile
++++ spectrwm.git/linux/Makefile
+@@ -47,7 +47,6 @@ install: all
  	install -m 755 -d $(DESTDIR)$(MANDIR)/ru/man1
  	install -m 755 -d $(DESTDIR)$(XSESSIONSDIR)
  	install -m 755 spectrwm                    $(DESTDIR)$(BINDIR)
@@ -17,7 +17,7 @@ Index: spectrwm.git/linux/Makefile
  	install -m 644 libswmhack.so.$(LIBVERSION) $(DESTDIR)$(LIBDIR)
  	ln -sf libswmhack.so.$(LIBVERSION)         $(DESTDIR)$(LIBDIR)/libswmhack.so.$(LIBMAJORVERSION)
  	ln -sf libswmhack.so.$(LIBVERSION)         $(DESTDIR)$(LIBDIR)/libswmhack.so
-@@ -60,7 +59,6 @@
+@@ -60,7 +59,6 @@ install: all
  
  uninstall:
  	rm -f $(DESTDIR)$(BINDIR)/spectrwm
