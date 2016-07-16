@@ -3,18 +3,17 @@ Description: Change default programs
  Debian, and xlock is not available at all.
 Forwarded: not-needed
 Author: Andrea Bolognani <eof@kiyuko.org>
-Last-Update: 2016-04-09
+Last-Update: 2016-07-16
 Index: spectrwm.git/spectrwm.c
 ===================================================================
 --- spectrwm.git.orig/spectrwm.c
 +++ spectrwm.git/spectrwm.c
-@@ -7876,10 +7876,11 @@ validate_spawns(void)
+@@ -7876,10 +7876,10 @@ validate_spawns(void)
  void
  setup_spawn(void)
  {
 -	setconfspawn("lock",		"xlock",		0);
-+	setconfspawn("lock",		"xscreensaver-command"
-+					" -lock",		0);
++	setconfspawn("lock",		"slock",		0);
  
 -	setconfspawn("term",		"xterm",		0);
 -	setconfspawn("spawn_term",	"xterm",		0);
@@ -32,7 +31,7 @@ Index: spectrwm.git/spectrwm.1
  .Bl -tag -width "screenshot_wind" -offset indent -compact
  .It Cm lock
 -xlock
-+xscreensaver\-command \-lock
++slock
  .It Cm menu
  dmenu_run $dmenu_bottom \-fn $bar_font \-nb $bar_color \-nf $bar_font_color \-sb
  $bar_border \-sf $bar_color

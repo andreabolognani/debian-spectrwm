@@ -10,11 +10,12 @@ spectrwm (3.0.2-1) unstable; urgency=low
     - merged upstream; dropped
   * D01-try-versioned-dlopen.diff:
     - simplify and make downstream only
+  * Use slock as the default screen locking program
   * Add Depends: on libxt6
     - it is dlopen()ed by libswmhack.so
   * Update Standards-Version to 3.9.8 (no changes needed)
 
- -- Andrea Bolognani <eof@kiyuko.org>  Mon, 04 Jul 2016 00:00:51 +0200
+ -- Andrea Bolognani <eof@kiyuko.org>  Sun, 17 Jul 2016 13:32:50 +0200
 
 spectrwm (2.6.0-1) unstable; urgency=low
 
