@@ -8,7 +8,7 @@ spectrwm (3.0.2-1) unstable; urgency=low
     - reduce number of libraries libswmhack.so is linked against
   * U02-update-italian-man-page.diff:
     - merged upstream; dropped
-  * D01-try-versioned-dlopen.diff:
+  * D01-adapt-libswmhack.diff:
     - simplify and make downstream only
   * D03-make-default-programs-optional.diff:
     - dropped
