@@ -5,16 +5,14 @@ This file details the differences between spectrwm as released by the
 authors and the Debian version. While the maintainer's goal is to keep
 these differences to a minimum, some changes couldn't be avoided.
 
-    * x-terminal-emulator is used instead of xterm as the default
-      terminal emulator, making spectrwm play nice with Debian's
-      alternatives system. Choosing another terminal emulator via
-      spectrwm.conf is of course still possible.
+  * x-terminal-emulator is used instead of xterm as the default
+    terminal emulator, making spectrwm play nice with Debian's
+    alternatives system. Choosing another terminal emulator via
+    spectrwm.conf is of course still possible.
 
-    * Default programs are not validated on startup: this means that
-      the "term" and "lock" actions will not work out of the box unless
-      you have a terminal emulator (see above) and xscreensaver
-      installed; the xscreensaver daemon needs to be running as well.
-      This change was implemented to avoid adding a dependency on
-      xscreensaver.
+  * slock is used instead of xlock as the default screen locking
+    program; this is needed because xlock is not available in Debian.
+    As is the case for the terminal emulator, this default can easily
+    overridden in spectrwm.conf.
 
- -- Andrea Bolognani <eof@kiyuko.org>  Tue, 27 Aug 2014 23:13:20 +0200
+ -- Andrea Bolognani <eof@kiyuko.org>  Sun, 17 Jul 2016 13:37:13 +0200

@@ -25,10 +25,11 @@ Package: spectrwm
 Architecture: any
 Provides: x-window-manager
 Depends: suckless-tools,
+         xterm | x-terminal-emulator,
          libxt6,
          ${shlibs:Depends},
          ${misc:Depends}
-Recommends: xterm | x-terminal-emulator, xfonts-terminus
+Recommends: xfonts-terminus
 Description: dynamic tiling window manager
  spectrwm is a small dynamic tiling window manager for X11.
  .
