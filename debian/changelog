@@ -2,24 +2,38 @@ spectrwm (3.0.2-1) unstable; urgency=low
 
   * New upstream release
     - Closes: #772431 (fix FTBFS with ld --as-needed)
-  * U01-fix-man-errors.diff:
-    - take care of some man errors spotted by Lintian
-  * U02-improve-linking.diff:
-    - reduce number of libraries libswmhack.so is linked against
-  * U02-update-italian-man-page.diff:
-    - merged upstream; dropped
-  * D01-adapt-libswmhack.diff:
-    - simplify and make downstream only
-  * D03-make-default-programs-optional.diff:
-    - dropped
-  * Use slock as the default screen locking program
-  * Upgrade x-terminal-emulator from Recommends: to Depends:
-    - this improves the out-of-the-box experience
-  * Add Depends: on libxt6
-    - it is dlopen()ed by libswmhack.so
-  * Update Standards-Version to 3.9.8 (no changes needed)
 
- -- Andrea Bolognani <eof@kiyuko.org>  Sun, 17 Jul 2016 13:37:13 +0200
+  * Changes to default programs
+    - Use slock as the default screen locking program
+    - Verify all default programs on startup
+
+  * Changes to package relationships
+    - Upgrade x-terminal-emulator from Recommends: to Depends:
+    - Add Depends: on libxt6
+      - It gets dlopen()ed by libswmhack
+
+  * New patches
+    - U01-fix-man-errors.diff
+    - U02-improve-linking.diff
+      - Minimize library dependencies
+
+  * Updated patches
+    - D01-adapt-libswmhack.diff
+      - Simplify and make downstream only
+
+  * Dropped patches
+    - U02-update-italian-man-page.diff
+      - Merged upstream
+    - D03-make-default-programs-optional.diff
+      - No longer needed (see above)
+
+  * Other
+    - Update Homepage: and others to point to GitHub
+    - Use HTTPS wherever possible
+    - Update Standards-Version to 3.9.8
+      - No changes needed
+
+ -- Andrea Bolognani <eof@kiyuko.org>  Sun, 17 Jul 2016 18:26:45 +0200
 
 spectrwm (2.6.0-1) unstable; urgency=low
 
