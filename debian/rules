@@ -4,8 +4,6 @@ DEB_BUILD_MAINT_OPTIONS=hardening=+bindnow
 DPKG_EXPORT_BUILDFLAGS=1
 include /usr/share/dpkg/buildflags.mk
 
-DESTDIR=$(CURDIR)/debian/spectrwm
-
 build: build-indep build-arch
 build-indep: build-stamp
 build-arch: build-stamp
@@ -30,7 +28,7 @@ binary-arch: build
 	dh_prep
 	$(MAKE) -C linux/ install PREFIX=/usr \
 	                          LIBDIR=/usr/lib/spectrwm \
-	                          DESTDIR=$(DESTDIR)
+	                          DESTDIR=$(CURDIR)/debian/spectrwm
 	dh_install
 	dh_installexamples
 	dh_installchangelogs 
