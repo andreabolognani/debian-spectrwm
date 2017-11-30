@@ -1,7 +1,4 @@
 # To rebuild this file, use `debian/rules rebuild-patches-series'
-U01-fix-man-errors.diff
-U02-improve-linking.diff
-U03-enable-pie.diff
 D01-adapt-libswmhack.diff
 D02-change-default-programs.diff
 D04-skip-compatibility-symlinks.diff
