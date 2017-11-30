@@ -133,6 +133,11 @@ Disable border by setting to 0.
 .It Ic bar_color Ns Bq Ar x
 Background color of the status bar(s) in screen
 .Ar x .
+.It Ic bar_color_selected Ns Bq Ar x
+Background color for selections on the status bar(s) in screen
+.Ar x .
+Defaults to the value of
+.Ic bar_border .
 .It Ic bar_enabled
 Set default
 .Ic bar_toggle
@@ -182,8 +187,13 @@ The
 .Xr xfontsel 1
 application can help with the XLFD setting.
 .It Ic bar_font_color Ns Bq Ar x
-Color of the font in status bar in screen
+Foreground color of the status bar(s) in screen
 .Ar x .
+.It Ic bar_font_color_selected Ns Bq Ar x
+Foreground color for selections on the status bar(s) in screen
+.Ar x .
+Defaults to the value of
+.Ic bar_color .
 .It Ic bar_format
 Set the bar format string, overriding
 .Ic clock_format
@@ -205,6 +215,7 @@ It may contain the following character sequences:
 .It Li "+M" Ta "Number of iconic (minimized) windows in workspace"
 .It Li "+N" Ta "Screen number"
 .It Li "+P" Ta "Window class and instance separated by a colon"
+.It Li "+R" Ta "Region index"
 .It Li "+S" Ta "Stacking algorithm"
 .It Li "+T" Ta "Window instance (from WM_CLASS)"
 .It Li "+U" Ta "Urgency hint"
@@ -214,7 +225,12 @@ It may contain the following character sequences:
 .El
 .Pp
 All character sequences may limit its output to a specific length, for
-example +64A.
+example +64A. By default, no padding/alignment is done in case the
+length of the replaced string is less than the specified length (64 in
+the example). The padding/alignment can be enabled using a '_' character
+in the sequence. For example: +_64W, +64_W and +_64_W enable padding before
+(right alignment), after (left alignment), and both before and after
+(center alignment) window name, respectively.
 Any characters that don't match the specification are copied as-is.
 .It Ic bar_justify
 Justify the status bar text.
@@ -315,10 +331,6 @@ When set to 1,
 .Ic maximize_toggle
 will also hide/restore the bar visibility of the affected workspace.
 Defaults to 0.
-.It Ic java_workaround
-Workaround a Java GUI rendering issue on non-reparenting window managers by
-impersonating the LG3D window manager, written by Sun.
-Default is 1.
 .It Ic keyboard_mapping
 Clear all key bindings (not button bindings) and load new bindings from the
 specified file.
@@ -538,8 +550,10 @@ is spawned:
 .Bl -tag -width "$bar_font_color" -offset indent -compact
 .It Cm $bar_border
 .It Cm $bar_color
+.It Cm $bar_color_selected
 .It Cm $bar_font
 .It Cm $bar_font_color
+.It Cm $bar_font_color_selected
 .It Cm $color_focus
 .It Cm $color_unfocus
 .It Cm $dmenu_bottom
@@ -563,13 +577,19 @@ bind[] = MOD+Shift+b
 .Pp
 Default programs:
 .Bl -tag -width "screenshot_wind" -offset indent -compact
+.It Cm term
+xterm
 .It Cm lock
 xlock
 .It Cm menu
 dmenu_run $dmenu_bottom \-fn $bar_font \-nb $bar_color \-nf $bar_font_color \-sb
-$bar_border \-sf $bar_color
-.It Cm term
-xterm
+$bar_color_selected \-sf $bar_font_color_selected
+.It Cm search
+dmenu $dmenu_bottom \-i \-fn $bar_font \-nb $bar_color \-nf $bar_font_color \-sb
+$bar_color_selected \-sf $bar_font_color_selected
+.It Cm name_workspace
+dmenu $dmenu_bottom \-p Workspace \-fn $bar_font \-nb $bar_color \-nf
+$bar_font_color \-sb $bar_color_selected \-sf $bar_font_color_selected
 .It Cm initscr
 initscreen.sh        # optional
 .It Cm screenshot_all
@@ -602,7 +622,7 @@ provides many functions (or actions) accessed via key or pointer bindings.
 The default bindings are listed below:
 .Pp
 .Bl -tag -width "M-j, M-<TAB>XXXXXX" -offset indent -compact
-.It Cm Ns Aq Cm Button1
+.It Aq Cm Button1
 focus
 .It Cm M- Ns Aq Cm Button1
 move
@@ -624,7 +644,7 @@ cycle_layout
 flip_layout
 .It Cm M-S- Ns Aq Cm Space
 stack_reset
-.It Cm Aq Ar unbound
+.It Aq Ar unbound
 stack_balance
 .It Cm M-h
 master_shrink
@@ -674,10 +694,12 @@ wind_kill
 .Pf rg_ Aq Ar 1-9
 .It Cm M-S- Ns Aq Ar Keypad 1-9
 .Pf mvrg_ Aq Ar 1-9
-.It Cm Aq Ar unbound
+.It Aq Ar unbound
 mvrg_next
-.It Cm Aq Ar unbound
+.It Aq Ar unbound
 mvrg_prev
+.It Aq Ar unbound
+ws_empty
 .It Cm M- Ns Aq Cm Right
 ws_next
 .It Cm M- Ns Aq Cm Left
@@ -696,9 +718,9 @@ ws_next_move
 rg_next
 .It Cm M-S- Ns Aq Cm Left
 rg_prev
-.It Cm Aq Ar unbound
+.It Aq Ar unbound
 rg_move_next
-.It Cm Aq Ar unbound
+.It Aq Ar unbound
 rg_move_prev
 .It Cm M-s
 screenshot_all
@@ -852,6 +874,8 @@ is 1 through 9.
 Move current window to workspace in next region.
 .It Cm mvrg_prev
 Move current window to workspace in previous region.
+.It Cm ws_empty
+Switch to the first empty workspace.
 .It Cm ws_next
 Switch to next workspace with a window in it.
 .It Cm ws_prev
@@ -987,7 +1011,7 @@ In the above example,
 initiates
 .Ic move
 and
-.Cm Aq Cm Button3
+.Aq Cm Button3
 pressed with any other combination of modifiers
 sets focus to the window/region under the pointer.
 .Pp
@@ -998,7 +1022,7 @@ bind[focus] = REPLAY+Button3
 .Ed
 .Pp
 In the above example, when
-.Cm Aq Cm Button3
+.Aq Cm Button3
 is pressed without any modifier(s), focus is set to the window under the
 pointer and the button press is passed to the window.
 .Pp

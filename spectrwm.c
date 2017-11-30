@@ -5,7 +5,7 @@
  * Copyright (c) 2009 Pierre-Yves Ritschard <pyr@spootnik.org>
  * Copyright (c) 2010 Tuukka Kataja <stuge@xor.fi>
  * Copyright (c) 2011 Jason L. Wright <jason@thought.net>
- * Copyright (c) 2011-2016 Reginald Kennedy <rk@rejii.com>
+ * Copyright (c) 2011-2017 Reginald Kennedy <rk@rejii.com>
  * Copyright (c) 2011-2012 Lawrence Teo <lteo@lteo.net>
  * Copyright (c) 2011-2012 Tiago Cunha <tcunha@gmx.com>
  * Copyright (c) 2012-2015 David Hill <dhill@mindcry.org>
@@ -69,6 +69,7 @@
 #include <X11/Xcursor/Xcursor.h>
 #include <X11/Xft/Xft.h>
 #include <X11/Xlib-xcb.h>
+#include <xcb/xcb.h>
 #include <xcb/xcb_atom.h>
 #include <xcb/xcb_aux.h>
 #include <xcb/xcb_event.h>
@@ -324,8 +325,8 @@ struct search_window {
 	xcb_gcontext_t			gc;
 	xcb_window_t			indicator;
 };
-TAILQ_HEAD(search_winlist, search_window);
-struct search_winlist			search_wl;
+TAILQ_HEAD(search_winlist, search_window) search_wl =
+    TAILQ_HEAD_INITIALIZER(search_wl);
 
 /* search actions */
 enum {
@@ -393,7 +394,6 @@ bool		 disable_border = false;
 int		 border_width = 1;
 int		 region_padding = 0;
 int		 tile_gap = 0;
-bool		 java_workaround = true;
 bool		 verbose_layout = false;
 #ifdef SWM_DEBUG
 bool		 debug_enabled;
@@ -487,8 +487,7 @@ struct pid_e {
 	pid_t			pid;
 	int			ws;
 };
-TAILQ_HEAD(pid_list, pid_e);
-struct pid_list			pidlist = TAILQ_HEAD_INITIALIZER(pidlist);
+TAILQ_HEAD(pid_list, pid_e) pidlist = TAILQ_HEAD_INITIALIZER(pidlist);
 
 /* layout handlers */
 void	stack(struct swm_region *);
@@ -564,9 +563,11 @@ enum {
 
 enum {
 	SWM_S_COLOR_BAR,
+	SWM_S_COLOR_BAR_SELECTED,
 	SWM_S_COLOR_BAR_BORDER,
 	SWM_S_COLOR_BAR_BORDER_UNFOCUS,
 	SWM_S_COLOR_BAR_FONT,
+	SWM_S_COLOR_BAR_FONT_SELECTED,
 	SWM_S_COLOR_FOCUS,
 	SWM_S_COLOR_FOCUS_MAXIMIZED,
 	SWM_S_COLOR_UNFOCUS,
@@ -671,8 +672,7 @@ struct quirk {
 #define SWM_Q_NOFOCUSCYCLE	(1<<11)	/* Remove from normal focus cycle. */
 #define SWM_Q_MINIMALBORDER	(1<<12)	/* No border when floating/unfocused. */
 };
-TAILQ_HEAD(quirk_list, quirk);
-struct quirk_list		quirks = TAILQ_HEAD_INITIALIZER(quirks);
+TAILQ_HEAD(quirk_list, quirk) quirks = TAILQ_HEAD_INITIALIZER(quirks);
 
 /*
  * Supported EWMH hints should be added to
@@ -804,8 +804,7 @@ struct spawn_prog {
 	char			**argv;
 	int			flags;
 };
-TAILQ_HEAD(spawn_list, spawn_prog);
-struct spawn_list		spawns = TAILQ_HEAD_INITIALIZER(spawns);
+TAILQ_HEAD(spawn_list, spawn_prog) spawns = TAILQ_HEAD_INITIALIZER(spawns);
 
 enum {
 	FN_F_NOREPLAY = 0x1,
@@ -931,6 +930,7 @@ enum actionid {
 	FN_WS_20,
 	FN_WS_21,
 	FN_WS_22,
+	FN_WS_EMPTY,
 	FN_WS_NEXT,
 	FN_WS_NEXT_ALL,
 	FN_WS_NEXT_MOVE,
@@ -963,7 +963,7 @@ struct binding {
 	uint32_t		flags;
 	char			*spawn_name;
 };
-RB_HEAD(binding_tree, binding);
+RB_HEAD(binding_tree, binding) bindings = RB_INITIALIZER(&bindings);
 
 /* function prototypes */
 void	 adjust_font(struct ws_win *);
@@ -1024,6 +1024,7 @@ void	 debug_refresh(struct ws_win *);
 void	 debug_toggle(struct binding *, struct swm_region *, union arg *);
 void	 destroynotify(xcb_destroy_notify_event_t *);
 void	 dumpwins(struct binding *, struct swm_region *, union arg *);
+void	 emptyws(struct binding *, struct swm_region *, union arg *);
 int	 enable_wm(void);
 void	 enternotify(xcb_enter_notify_event_t *);
 void	 event_drain(uint8_t);
@@ -1235,8 +1236,9 @@ void	 _add_startup_exception(const char *, va_list);
 void	 add_startup_exception(const char *, ...);
 
 RB_PROTOTYPE(binding_tree, binding, entry, binding_cmp);
+#ifndef __clang_analyzer__ /* Suppress false warnings. */
 RB_GENERATE(binding_tree, binding, entry, binding_cmp);
-struct binding_tree                 bindings;
+#endif
 
 void
 cursors_load(void)
@@ -2396,19 +2398,17 @@ void
 bar_urgent(char *s, size_t sz)
 {
 	struct ws_win		*win;
-	int			i, j, num_screens;
-	bool			urgent[SWM_WS_MAX];
+	int			i, j, num_screens, urgent[SWM_WS_MAX];
 	char			b[8];
 
-	for (i = 0; i < workspace_limit; i++)
-		urgent[i] = false;
+	memset(&urgent, 0, sizeof(urgent));
 
 	num_screens = get_screen_count();
 	for (i = 0; i < num_screens; i++)
 		for (j = 0; j < workspace_limit; j++)
 			TAILQ_FOREACH(win, &screens[i].ws[j].winlist, entry)
 				if (get_urgent(win))
-					urgent[j] = true;
+					urgent[j] = 1;
 
 	for (i = 0; i < workspace_limit; i++) {
 		if (urgent[i]) {
@@ -2513,28 +2513,41 @@ bar_replace_seq(char *fmt, char *fmtrep, struct swm_region *r, size_t *offrep,
     size_t sz)
 {
 	struct ws_win		*w;
-	char			*ptr;
+	char			*ptr, *cur = fmt;
 	char			tmp[SWM_BAR_MAX];
 	int			limit, size, count;
 	size_t			len;
+	int			pre_padding = 0;
+	int			post_padding = 0;
+	int			padding_len = 0;
 
-	/* reset strlcat(3) buffer */
-	*tmp = '\0';
+	/* Reset replace buffer. */
+	bzero(tmp, sizeof tmp);
+
+	cur++;
+	/* determine if pre-padding is requested */
+	if (*cur == '_') {
+		pre_padding = 1;
+		cur++;
+	}
 
 	/* get number, if any */
-	fmt++;
 	size = 0;
-	if (sscanf(fmt, "%d%n", &limit, &size) != 1)
+	if (sscanf(cur, "%d%n", &limit, &size) != 1)
 		limit = sizeof tmp - 1;
 	if (limit <= 0 || limit >= (int)sizeof tmp)
 		limit = sizeof tmp - 1;
 
-	/* there is nothing to replace (ie EOL) */
-	fmt += size;
-	if (*fmt == '\0')
-		return (fmt);
+	cur += size;
 
-	switch (*fmt) {
+	/* determine if post padding is requested */
+	if (*cur == '_') {
+		post_padding = 1;
+		cur++;
+	}
+
+	/* character sequence */
+	switch (*cur) {
 	case '<':
 		bar_replace_pad(tmp, &limit, sizeof tmp);
 		break;
@@ -2567,6 +2580,9 @@ bar_replace_seq(char *fmt, char *fmtrep, struct swm_region *r, size_t *offrep,
 	case 'P':
 		bar_window_class_instance(tmp, sizeof tmp, r);
 		break;
+	case 'R':
+	        snprintf(tmp, sizeof tmp, "%d", get_region_index(r) + 1);
+	        break;
 	case 'S':
 		snprintf(tmp, sizeof tmp, "%s", r->ws->stacker);
 		break;
@@ -2583,23 +2599,53 @@ bar_replace_seq(char *fmt, char *fmtrep, struct swm_region *r, size_t *offrep,
 		bar_window_name(tmp, sizeof tmp, r);
 		break;
 	default:
-		/* unknown character sequence; copy as-is */
-		snprintf(tmp, sizeof tmp, "+%c", *fmt);
+		/* Unknown character sequence or EOL; copy as-is. */
+		strlcpy(tmp, fmt, cur - fmt + 2);
 		break;
 	}
 
 	len = strlen(tmp);
-	ptr = tmp;
-	if ((int)len < limit)
+
+	/* calculate the padding lengths */
+	padding_len = limit - (int)len;
+	if (padding_len > 0) {
 		limit = len;
+
+		if (pre_padding)
+			pre_padding = padding_len / (pre_padding +
+			    post_padding);
+		if (post_padding)
+			post_padding = padding_len - pre_padding;
+	} else {
+		pre_padding = 0;
+		post_padding = 0;
+	}
+
+	/* do pre padding */
+	while (pre_padding-- > 0) {
+		if (*offrep >= sz - 1)
+			break;
+		fmtrep[(*offrep)++] = ' ';
+	}
+
+	ptr = tmp;
 	while (limit-- > 0) {
 		if (*offrep >= sz - 1)
 			break;
 		fmtrep[(*offrep)++] = *ptr++;
 	}
 
-	fmt++;
-	return (fmt);
+	/* do post padding */
+	while (post_padding-- > 0) {
+		if (*offrep >= sz - 1)
+			break;
+		fmtrep[(*offrep)++] = ' ';
+	}
+
+	if (*cur != '\0')
+		cur++;
+
+	return (cur);
 }
 
 void
@@ -3038,7 +3084,7 @@ bar_cleanup(struct swm_region *r)
 void
 set_win_state(struct ws_win *win, uint8_t state)
 {
-	uint16_t		data[2] = { state, XCB_ATOM_NONE };
+	uint32_t		data[2] = { state, XCB_ATOM_NONE };
 
 	DNPRINTF(SWM_D_EVENT, "set_win_state: win %#x, state: %u\n",
 	    WINID(win), state);
@@ -3708,6 +3754,9 @@ spawn(int ws_idx, union arg *args, bool close_fd)
 	int			fd;
 	char			*ret = NULL;
 
+	if (args == NULL || args->argv[0] == NULL)
+		return;
+
 	DNPRINTF(SWM_D_MISC, "spawn: %s\n", args->argv[0]);
 
 	close(xcb_get_file_descriptor(conn));
@@ -3759,6 +3808,9 @@ spawn(int ws_idx, union arg *args, bool close_fd)
 		if (fd > 2)
 			close(fd);
 	}
+
+	if (signal(SIGPIPE, SIG_DFL) == SIG_ERR)
+		err(1, "could not reset SIGPIPE");
 
 	execvp(args->argv[0], args->argv);
 
@@ -4343,6 +4395,27 @@ cyclews(struct binding *bp, struct swm_region *r, union arg *args)
 	} while (a.id != r->ws->idx);
 
 	DNPRINTF(SWM_D_FOCUS, "cyclews: done\n");
+}
+
+void
+emptyws(struct binding *bp, struct swm_region *r, union arg *args)
+{
+	int		i;
+	union arg	a;
+
+	(void)args;
+
+	DNPRINTF(SWM_D_WS, "emptyws: id: %d, screen[%d]:%dx%d+%d+%d, ws: %d\n",
+	    args->id, r->s->idx, WIDTH(r), HEIGHT(r), X(r), Y(r), r->ws->idx);
+
+	for (i = 0; i < workspace_limit; ++i)
+		if (TAILQ_EMPTY(&r->s->ws[i].winlist)) {
+			a.id = i;
+			switchws(bp, r, &a);
+			break;
+		}
+
+	DNPRINTF(SWM_D_FOCUS, "emptyws: done\n");
 }
 
 void
@@ -5480,7 +5553,7 @@ max_stack(struct workspace *ws, struct swm_geometry *g)
 		if (ICONIC(w))
 			continue;
 
-		if (TRANS(w)) {
+		if (TRANS(w) || FULLSCREEN(w)) {
 			update_floater(w);
 			continue;
 		}
@@ -5993,12 +6066,13 @@ void
 search_win_cleanup(void)
 {
 	struct search_window	*sw = NULL;
-
+#ifndef __clang_analyzer__ /* Suppress false warnings. */
 	while ((sw = TAILQ_FIRST(&search_wl)) != NULL) {
 		xcb_destroy_window(conn, sw->indicator);
 		TAILQ_REMOVE(&search_wl, sw, entry);
 		free(sw);
 	}
+#endif
 }
 
 void
@@ -6010,7 +6084,7 @@ search_win(struct binding *bp, struct swm_region *r, union arg *args)
 	uint32_t		wa[3];
 	xcb_screen_t		*screen;
 	int			i, width, height;
-	char			s[8];
+	char			s[11];
 	FILE			*lfile;
 	size_t			len;
 	XftDraw			*draw;
@@ -6033,8 +6107,6 @@ search_win(struct binding *bp, struct swm_region *r, union arg *args)
 
 	if ((screen = get_screen(r->s->idx)) == NULL)
 		errx(1, "ERROR: can't get screen %d.", r->s->idx);
-
-	TAILQ_INIT(&search_wl);
 
 	i = 1;
 	TAILQ_FOREACH(win, &r->ws->winlist, entry) {
@@ -7486,6 +7558,7 @@ struct action {
 	{ "ws_20",		switchws,	0, {.id = 19} },
 	{ "ws_21",		switchws,	0, {.id = 20} },
 	{ "ws_22",		switchws,	0, {.id = 21} },
+	{ "ws_empty",		emptyws,	0, {0} },
 	{ "ws_next",		cyclews,	0, {.id = SWM_ARG_ID_CYCLEWS_UP} },
 	{ "ws_next_all",	cyclews,	0, {.id = SWM_ARG_ID_CYCLEWS_UP_ALL} },
 	{ "ws_next_move",	cyclews,	0, {.id = SWM_ARG_ID_CYCLEWS_MOVE_UP} },
@@ -7553,6 +7626,11 @@ spawn_expand(struct swm_region *r, union arg *args, const char *spawn_name,
 			    strdup(r->s->c[SWM_S_COLOR_BAR].name))
 			    == NULL)
 				err(1, "spawn_custom bar color");
+		} else if (strcasecmp(ap, "$bar_color_selected") == 0) {
+			if ((real_args[c] =
+			    strdup(r->s->c[SWM_S_COLOR_BAR_SELECTED].name))
+			    == NULL)
+				err(1, "spawn_custom bar color selected");
 		} else if (strcasecmp(ap, "$bar_font") == 0) {
 			if ((real_args[c] = strdup(bar_fonts))
 			    == NULL)
@@ -7562,6 +7640,11 @@ spawn_expand(struct swm_region *r, union arg *args, const char *spawn_name,
 			    strdup(r->s->c[SWM_S_COLOR_BAR_FONT].name))
 			    == NULL)
 				err(1, "spawn_custom color font");
+		} else if (strcasecmp(ap, "$bar_font_color_selected") == 0) {
+			if ((real_args[c] =
+			    strdup(r->s->c[SWM_S_COLOR_BAR_FONT_SELECTED].name))
+			    == NULL)
+				err(1, "spawn_custom bar font color selected");
 		} else if (strcasecmp(ap, "$color_focus") == 0) {
 			if ((real_args[c] =
 			    strdup(r->s->c[SWM_S_COLOR_FOCUS].name))
@@ -7782,10 +7865,11 @@ void
 clear_spawns(void)
 {
 	struct spawn_prog	*sp;
-
+#ifndef __clang_analyzer__ /* Suppress false warnings. */
 	while ((sp = TAILQ_FIRST(&spawns)) != NULL) {
 		spawn_remove(sp);
 	}
+#endif
 }
 
 struct spawn_prog*
@@ -7886,8 +7970,8 @@ setup_spawn(void)
 					" -fn $bar_font"
 					" -nb $bar_color"
 					" -nf $bar_font_color"
-					" -sb $bar_border"
-					" -sf $bar_color",	0);
+					" -sb $bar_color_selected"
+					" -sf $bar_font_color_selected", 0);
 
 	setconfspawn("search",		"dmenu"
 					" $dmenu_bottom"
@@ -7895,8 +7979,8 @@ setup_spawn(void)
 					" -fn $bar_font"
 					" -nb $bar_color"
 					" -nf $bar_font_color"
-					" -sb $bar_border"
-					" -sf $bar_color",	0);
+					" -sb $bar_color_selected"
+					" -sf $bar_font_color_selected", 0);
 
 	setconfspawn("name_workspace",	"dmenu"
 					" $dmenu_bottom"
@@ -7904,8 +7988,8 @@ setup_spawn(void)
 					" -fn $bar_font"
 					" -nb $bar_color"
 					" -nf $bar_font_color"
-					" -sb $bar_border"
-					" -sf $bar_color",	0);
+					" -sb $bar_color_selected"
+					" -sf $bar_font_color_selected", 0);
 
 	 /* These are not verified for existence, even with a binding set. */
 	setconfspawn("screenshot_all",	"screenshot.sh full",	SWM_SPAWN_OPTIONAL);
@@ -7970,6 +8054,7 @@ parsebinding(const char *bindstr, uint16_t *mod, enum binding_type *type,
 			if (*val > 255 || *val == 0) {
 				DNPRINTF(SWM_D_KEY,
 				    "parsebinding: invalid button %u\n", *val);
+				free(str);
 				return (1);
 			}
 		} else {
@@ -8671,10 +8756,11 @@ void
 clear_quirks(void)
 {
 	struct quirk		*qp;
-
+#ifndef __clang_analyzer__ /* Suppress false warnings. */
 	while ((qp = TAILQ_FIRST(&quirks)) != NULL) {
 		quirk_remove(qp);
 	}
+#endif
 }
 
 void
@@ -8832,7 +8918,6 @@ enum {
 	SWM_S_BAR_ACTION,
 	SWM_S_BAR_AT_BOTTOM,
 	SWM_S_BAR_BORDER_WIDTH,
-	SWM_S_BAR_DELAY,
 	SWM_S_BAR_ENABLED,
 	SWM_S_BAR_ENABLED_WS,
 	SWM_S_BAR_FONT,
@@ -8851,13 +8936,10 @@ enum {
 	SWM_S_FOCUS_DEFAULT,
 	SWM_S_FOCUS_MODE,
 	SWM_S_ICONIC_ENABLED,
-	SWM_S_JAVA_WORKAROUND,
 	SWM_S_MAXIMIZE_HIDE_BAR,
 	SWM_S_REGION_PADDING,
 	SWM_S_SPAWN_ORDER,
 	SWM_S_SPAWN_TERM,
-	SWM_S_SS_APP,
-	SWM_S_SS_ENABLED,
 	SWM_S_STACK_ENABLED,
 	SWM_S_TERM_WIDTH,
 	SWM_S_TILE_GAP,
@@ -8894,9 +8976,6 @@ setconfvalue(const char *selector, const char *value, int flags)
 		bar_border_width = atoi(value);
 		if (bar_border_width < 0)
 			bar_border_width = 0;
-		break;
-	case SWM_S_BAR_DELAY:
-		/* No longer needed; leave to not break old conf files. */
 		break;
 	case SWM_S_BAR_ENABLED:
 		bar_enabled = (atoi(value) != 0);
@@ -9025,9 +9104,6 @@ setconfvalue(const char *selector, const char *value, int flags)
 	case SWM_S_ICONIC_ENABLED:
 		iconic_enabled = (atoi(value) != 0);
 		break;
-	case SWM_S_JAVA_WORKAROUND:
-		java_workaround = (atoi(value) != 0);
-		break;
 	case SWM_S_MAXIMIZE_HIDE_BAR:
 		maximize_hide_bar = atoi(value);
 		break;
@@ -9051,12 +9127,6 @@ setconfvalue(const char *selector, const char *value, int flags)
 	case SWM_S_SPAWN_TERM:
 		setconfspawn("term", value, 0);
 		setconfspawn("spawn_term", value, 0);
-		break;
-	case SWM_S_SS_APP:
-		/* No longer needed; leave to not break old conf files. */
-		break;
-	case SWM_S_SS_ENABLED:
-		/* No longer needed; leave to not break old conf files. */
 		break;
 	case SWM_S_STACK_ENABLED:
 		stack_enabled = (atoi(value) != 0);
@@ -9191,15 +9261,31 @@ setconfcolor(const char *selector, const char *value, int flags)
 		setscreencolor(value, i, flags);
 
 		/*
-		 * When setting focus/unfocus colors, we need to also
-		 * set maximize colors to match if they haven't been customized.
+		 * Need to sync 'maximized' and 'selected' colors with their
+		 * respective colors if they haven't been customized.
 		 */
-		if (flags == SWM_S_COLOR_FOCUS &&
-		    !screens[i].c[SWM_S_COLOR_FOCUS_MAXIMIZED].manual)
-			setscreencolor(value, i, SWM_S_COLOR_FOCUS_MAXIMIZED);
-		else if (flags == SWM_S_COLOR_UNFOCUS &&
-		    !screens[i].c[SWM_S_COLOR_UNFOCUS_MAXIMIZED].manual)
-			setscreencolor(value, i, SWM_S_COLOR_UNFOCUS_MAXIMIZED);
+		switch (flags) {
+		case SWM_S_COLOR_FOCUS:
+			if (!screens[i].c[SWM_S_COLOR_FOCUS_MAXIMIZED].manual)
+				setscreencolor(value, i,
+				    SWM_S_COLOR_FOCUS_MAXIMIZED);
+			break;
+		case SWM_S_COLOR_UNFOCUS:
+			if (!screens[i].c[SWM_S_COLOR_UNFOCUS_MAXIMIZED].manual)
+				setscreencolor(value, i,
+				    SWM_S_COLOR_UNFOCUS_MAXIMIZED);
+			break;
+		case SWM_S_COLOR_BAR:
+			if (!screens[i].c[SWM_S_COLOR_BAR_FONT_SELECTED].manual)
+				setscreencolor(value, i,
+				    SWM_S_COLOR_BAR_FONT_SELECTED);
+			break;
+		case SWM_S_COLOR_BAR_BORDER:
+			if (!screens[i].c[SWM_S_COLOR_BAR_SELECTED].manual)
+				setscreencolor(value, i,
+				    SWM_S_COLOR_BAR_SELECTED);
+			break;
+		}
 
 		screens[i].c[flags].manual = 1;
 	}
@@ -9372,9 +9458,9 @@ setlayout(const char *selector, const char *value, int flags)
 
 /* config options */
 struct config_option {
-	char			*optname;
+	char			*name;
 	int			(*func)(const char*, const char*, int);
-	int			funcflags;
+	int			flags;
 };
 struct config_option configopt[] = {
 	{ "autorun",			setautorun,	0 },
@@ -9384,11 +9470,13 @@ struct config_option configopt[] = {
 	{ "bar_border_unfocus",		setconfcolor,	SWM_S_COLOR_BAR_BORDER_UNFOCUS },
 	{ "bar_border_width",		setconfvalue,	SWM_S_BAR_BORDER_WIDTH },
 	{ "bar_color",			setconfcolor,	SWM_S_COLOR_BAR },
-	{ "bar_delay",			setconfvalue,	SWM_S_BAR_DELAY },
+	{ "bar_color_selected",		setconfcolor,	SWM_S_COLOR_BAR_SELECTED },
+	{ "bar_delay",			NULL,		0 }, /* dummy */
 	{ "bar_enabled",		setconfvalue,	SWM_S_BAR_ENABLED },
 	{ "bar_enabled_ws",		setconfvalue,	SWM_S_BAR_ENABLED_WS },
 	{ "bar_font",			setconfvalue,	SWM_S_BAR_FONT },
 	{ "bar_font_color",		setconfcolor,	SWM_S_COLOR_BAR_FONT },
+	{ "bar_font_color_selected",	setconfcolor,	SWM_S_COLOR_BAR_FONT_SELECTED },
 	{ "bar_format",			setconfvalue,	SWM_S_BAR_FORMAT },
 	{ "bar_justify",		setconfvalue,	SWM_S_BAR_JUSTIFY },
 	{ "bind",			setconfbinding,	0 },
@@ -9409,7 +9497,7 @@ struct config_option configopt[] = {
 	{ "focus_default",		setconfvalue,	SWM_S_FOCUS_DEFAULT },
 	{ "focus_mode",			setconfvalue,	SWM_S_FOCUS_MODE },
 	{ "iconic_enabled",		setconfvalue,	SWM_S_ICONIC_ENABLED },
-	{ "java_workaround",		setconfvalue,	SWM_S_JAVA_WORKAROUND },
+	{ "java_workaround",		NULL,		0 }, /* dummy */
 	{ "keyboard_mapping",		setkeymapping,	0 },
 	{ "layout",			setlayout,	0 },
 	{ "maximize_hide_bar",		setconfvalue,	SWM_S_MAXIMIZE_HIDE_BAR },
@@ -9418,8 +9506,8 @@ struct config_option configopt[] = {
 	{ "quirk",			setconfquirk,	0 },
 	{ "region",			setconfregion,	0 },
 	{ "region_padding",		setconfvalue,	SWM_S_REGION_PADDING },
-	{ "screenshot_app",		setconfvalue,	SWM_S_SS_APP },
-	{ "screenshot_enabled",		setconfvalue,	SWM_S_SS_ENABLED },
+	{ "screenshot_app",		NULL,		0 }, /* dummy */
+	{ "screenshot_enabled",		NULL,		0 }, /* dummy */
 	{ "spawn_position",		setconfvalue,	SWM_S_SPAWN_ORDER },
 	{ "spawn_term",			setconfvalue,	SWM_S_SPAWN_TERM },
 	{ "stack_enabled",		setconfvalue,	SWM_S_STACK_ENABLED },
@@ -9515,8 +9603,8 @@ conf_load(const char *filename, int keymapping)
 		optidx = -1;
 		for (i = 0; i < LENGTH(configopt); i++) {
 			opt = &configopt[i];
-			if (strncasecmp(cp, opt->optname, wordlen) == 0 &&
-			    (int)strlen(opt->optname) == wordlen) {
+			if (strncasecmp(cp, opt->name, wordlen) == 0 &&
+			    (int)strlen(opt->name) == wordlen) {
 				optidx = i;
 				break;
 			}
@@ -9526,7 +9614,7 @@ conf_load(const char *filename, int keymapping)
 			    "%.*s", filename, lineno, wordlen, cp);
 			continue;
 		}
-		if (keymapping && opt && strcmp(opt->optname, "bind")) {
+		if (keymapping && opt && strcmp(opt->name, "bind")) {
 			add_startup_exception("%s: line %zd: invalid option "
 			    "%.*s", filename, lineno, wordlen, cp);
 			continue;
@@ -9565,15 +9653,18 @@ conf_load(const char *filename, int keymapping)
 		optval = cp;
 		if (strlen(optval) == 0) {
 			add_startup_exception("%s: line %zd: must supply value "
-			    "to %s", filename, lineno,
-			    configopt[optidx].optname);
+			    "to %s", filename, lineno, opt->name);
 			continue;
 		}
+		/* trim trailing spaces */
+		ce = optval + strlen(optval) - 1;
+		while (ce > optval && isspace(*ce))
+			--ce;
+		*(ce + 1) = '\0';
 		/* call function to deal with it all */
-		if (configopt[optidx].func(optsub, optval,
-		    configopt[optidx].funcflags) != 0) {
+		if (opt->func && opt->func(optsub, optval, opt->flags) != 0) {
 			add_startup_exception("%s: line %zd: invalid data for "
-			    "%s", filename, lineno, configopt[optidx].optname);
+			    "%s", filename, lineno, opt->name);
 			continue;
 		}
 	}
@@ -11797,15 +11888,17 @@ setup_screens(void)
 
 		/* set default colors */
 		setscreencolor("red", i, SWM_S_COLOR_FOCUS);
+		setscreencolor("red", i, SWM_S_COLOR_FOCUS_MAXIMIZED);
 		setscreencolor("rgb:88/88/88", i, SWM_S_COLOR_UNFOCUS);
+		setscreencolor("rgb:88/88/88", i,
+		    SWM_S_COLOR_UNFOCUS_MAXIMIZED);
 		setscreencolor("rgb:00/80/80", i, SWM_S_COLOR_BAR_BORDER);
 		setscreencolor("rgb:00/40/40", i,
 		    SWM_S_COLOR_BAR_BORDER_UNFOCUS);
 		setscreencolor("black", i, SWM_S_COLOR_BAR);
+		setscreencolor("rgb:00/80/80", i, SWM_S_COLOR_BAR_SELECTED);
 		setscreencolor("rgb:a0/a0/a0", i, SWM_S_COLOR_BAR_FONT);
-		setscreencolor("red", i, SWM_S_COLOR_FOCUS_MAXIMIZED);
-		setscreencolor("rgb:88/88/88", i,
-		    SWM_S_COLOR_UNFOCUS_MAXIMIZED);
+		setscreencolor("black", i, SWM_S_COLOR_BAR_FONT_SELECTED);
 
 		/* create graphics context on screen */
 		screens[i].bar_gc = xcb_generate_id(conn);
@@ -12043,6 +12136,7 @@ main(int argc, char *argv[])
 	struct passwd		*pwd;
 	struct swm_region	*r;
 	xcb_generic_event_t	*evt;
+	xcb_mapping_notify_event_t *mne;
 	int			xfd, i, num_screens, num_readable;
 	char			conf[PATH_MAX], *cfile = NULL;
 	bool			stdin_ready = false, startup = true;
@@ -12093,10 +12187,22 @@ main(int argc, char *argv[])
 	xcb_grab_server(conn);
 	xcb_aux_sync(conn);
 
-	/* flush all events */
+	/* Flush the event queue. */
 	while ((evt = get_next_event(false))) {
-		if (XCB_EVENT_RESPONSE_TYPE(evt) == 0)
+		switch (XCB_EVENT_RESPONSE_TYPE(evt)) {
+		case XCB_MAPPING_NOTIFY:
+			/* Need to handle mapping changes during startup. */
+			mne = (xcb_mapping_notify_event_t *)evt;
+			if (mne->request == XCB_MAPPING_KEYBOARD)
+				xcb_refresh_keyboard_mapping(syms, mne);
+			break;
+#ifdef SWM_DEBUG
+		case 0:
+			/* Display errors. */
 			event_handle(evt);
+			break;
+#endif
+		}
 		free(evt);
 	}
 
@@ -12206,12 +12312,15 @@ noconfig:
 		if (startup) {
 			startup = false;
 
-			if (focus_mode != SWM_FOCUS_FOLLOW) {
+			if (focus_mode == SWM_FOCUS_FOLLOW)
+				r = root_to_region(screens[0].root,
+				    SWM_CK_POINTER);
+			else
 				r = TAILQ_FIRST(&screens[0].rl);
-				if (r) {
-					focus_region(r);
-					focus_flush();
-				}
+
+			if (r) {
+				focus_region(r);
+				focus_flush();
 				continue;
 			}
 		}
