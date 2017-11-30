@@ -31,7 +31,7 @@ binary-arch: build
 	                          DESTDIR=$(CURDIR)/debian/spectrwm
 	dh_install
 	dh_installexamples
-	dh_installchangelogs 
+	dh_installchangelogs
 	dh_installdocs
 	dh_installwm /usr/bin/spectrwm
 	dh_strip
