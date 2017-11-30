@@ -7,7 +7,7 @@ for much more important stuff. It has sane defaults and does not require one to
 learn a language to do any configuration. It is written by hackers for hackers
 and it strives to be small, compact and fast.
 
-It was largely inspired by [xmonad](http://xmonad.org xmonad) and
+It was largely inspired by [xmonad](http://xmonad.org) and
 [dwm](http://dwm.suckless.org). Both are fine products but suffer from things
 like: crazy-unportable-language-syndrome, silly defaults, asymmetrical window
 layout, "how hard can it be?" and good old NIH.  Nevertheless
@@ -61,17 +61,12 @@ channel #spectrwm.
 spectrwm is ISC licensed unless otherwise specified in individual files.
 
 ## Screenshots
-![Vertical stack]
-(https://github.com/conformal/spectrwm/wiki/Scrotwm1.png)
+![Vertical stack](https://github.com/conformal/spectrwm/wiki/Scrotwm1.png)
 
-![Horizontal stack]
-(https://github.com/conformal/spectrwm/wiki/Scrotwm2.png)
+![Horizontal stack](https://github.com/conformal/spectrwm/wiki/Scrotwm2.png)
 
-![Horizontal stack]
-(https://github.com/conformal/spectrwm/wiki/Scrotwm3.png)
+![Horizontal stack](https://github.com/conformal/spectrwm/wiki/Scrotwm3.png)
 
-![Vertical stack with floater and extra window in master area]
-(https://github.com/conformal/spectrwm/wiki/Scrotwm4.png)
+![Vertical stack with floater and extra window in master area](https://github.com/conformal/spectrwm/wiki/Scrotwm4.png)
 
-![mplayer, resized and moved]
-(https://github.com/conformal/spectrwm/wiki/Scrotwm5.png)
+![mplayer, resized and moved](https://github.com/conformal/spectrwm/wiki/Scrotwm5.png)

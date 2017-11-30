@@ -10,29 +10,38 @@ LIBVERSION      = $(shell .  $(CURDIR)/../lib/shlib_version; echo $$major.$$mino
 LIBMAJORVERSION = $(shell .  $(CURDIR)/../lib/shlib_version; echo $$major)
 
 MAINT_CFLAGS   = -std=c99 -Wmissing-prototypes -Wall -Wextra -Wshadow -Wno-uninitialized -g
-MAINT_CPPFLAGS = -D_GNU_SOURCE -I. -I/usr/include/freetype2 -DSWM_LIB=\"$(LIBDIR)/libswmhack.so.$(LIBVERSION)\"
-MAINT_LDLIBS   = -lX11 -lX11-xcb -lxcb -lxcb-icccm -lxcb-randr -lxcb-keysyms -lxcb-util -lxcb-xtest -lXft -lXcursor
+MAINT_LDFLAGS  = -Wl,--as-needed
+MAINT_CPPFLAGS = -I. -D_GNU_SOURCE -DSWM_LIB=\"$(LIBDIR)/libswmhack.so.$(LIBVERSION)\"
 
 ifneq ("${BUILDVERSION}", "")
 MAINT_CPPFLAGS += -DSPECTRWM_BUILDSTR=\"$(BUILDVERSION)\"
 endif
 
+BIN_CFLAGS   = -fPIE
+BIN_LDFLAGS  = -fPIE -pie
+BIN_CPPFLAGS = $(shell pkg-config --cflags x11 x11-xcb xcb-icccm xcb-keysyms xcb-randr xcb-util xcb-xtest xcursor xft)
+BIN_LDLIBS   = $(shell pkg-config --libs   x11 x11-xcb xcb-icccm xcb-keysyms xcb-randr xcb-util xcb-xtest xcursor xft)
+LIB_CFLAGS   = -fPIC
+LIB_LDFLAGS  = -fPIC -shared
+LIB_CPPFLAGS = $(shell pkg-config --cflags x11)
+LIB_LDLIBS   = $(shell pkg-config --libs   x11) -ldl
+
 all: spectrwm libswmhack.so.$(LIBVERSION)
 
 spectrwm: spectrwm.o linux.o
-	$(CC) $(MAINT_LDFLAGS) $(LDFLAGS) -o $@ $+ $(MAINT_LDLIBS) $(LDLIBS)
+	$(CC) $(MAINT_LDFLAGS) $(BIN_LDFLAGS) $(LDFLAGS) -o $@ $+ $(BIN_LDLIBS) $(LDLIBS)
 
 spectrwm.o: ../spectrwm.c ../version.h tree.h util.h
-	$(CC) $(MAINT_CFLAGS) $(CFLAGS) $(MAINT_CPPFLAGS) $(CPPFLAGS) -c -o $@ $<
+	$(CC) $(MAINT_CFLAGS) $(BIN_CFLAGS) $(CFLAGS) $(MAINT_CPPFLAGS) $(BIN_CPPFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 linux.o: linux.c util.h
-	$(CC) $(MAINT_CFLAGS) $(CFLAGS) $(MAINT_CPPFLAGS) $(CPPFLAGS) -c -o $@ $<
+	$(CC) $(MAINT_CFLAGS) $(BIN_CFLAGS) $(CFLAGS) $(MAINT_CPPFLAGS) $(BIN_CPPFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 libswmhack.so.$(LIBVERSION): swm_hack.so
-	$(CC) $(MAINT_LDFLAGS) $(LDFLAGS) -Wl,-soname,$@ -shared -fpic -o $@ $+ $(MAINT_LDLIBS) $(LDLIBS)
+	$(CC) $(MAINT_LDFLAGS) $(LIB_LDFLAGS) $(LDFLAGS) -Wl,-soname,$@ -o $@ $+ $(LIB_LDLIBS) $(LDLIBS)
 
 swm_hack.so: ../lib/swm_hack.c
-	$(CC) $(MAINT_CFLAGS) $(CFLAGS) $(MAINT_CPPFLAGS) $(CPPFLAGS) -fpic -DPIC -c -o $@ $<
+	$(CC) $(MAINT_CFLAGS) $(LIB_CFLAGS) $(CFLAGS) $(MAINT_CPPFLAGS) $(LIB_CPPFLAGS) $(CPPFLAGS) -c -o $@ $<
 
 clean:
 	rm -f spectrwm *.o libswmhack.so.* *.so
