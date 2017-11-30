@@ -8,7 +8,7 @@ Index: spectrwm.git/spectrwm.c
 ===================================================================
 --- spectrwm.git.orig/spectrwm.c
 +++ spectrwm.git/spectrwm.c
-@@ -7876,10 +7876,10 @@ validate_spawns(void)
+@@ -7960,10 +7960,10 @@ validate_spawns(void)
  void
  setup_spawn(void)
  {
@@ -26,18 +26,15 @@ Index: spectrwm.git/spectrwm.1
 ===================================================================
 --- spectrwm.git.orig/spectrwm.1
 +++ spectrwm.git/spectrwm.1
-@@ -564,12 +564,12 @@ bind[] = MOD+Shift+b
+@@ -578,9 +578,9 @@ bind[] = MOD+Shift+b
  Default programs:
  .Bl -tag -width "screenshot_wind" -offset indent -compact
+ .It Cm term
+-xterm
++x\-terminal\-emulator
  .It Cm lock
 -xlock
 +slock
  .It Cm menu
  dmenu_run $dmenu_bottom \-fn $bar_font \-nb $bar_color \-nf $bar_font_color \-sb
- $bar_border \-sf $bar_color
- .It Cm term
--xterm
-+x\-terminal\-emulator
- .It Cm initscr
- initscreen.sh        # optional
- .It Cm screenshot_all
+ $bar_color_selected \-sf $bar_font_color_selected
