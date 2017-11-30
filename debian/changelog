@@ -8,7 +8,10 @@ spectrwm (3.1.0-1) unstable; urgency=medium
     - U03-enable-pie.diff
       - Dropped (merged upstream)
 
- -- Andrea Bolognani <eof@kiyuko.org>  Thu, 30 Nov 2017 12:25:46 +0100
+  * Other
+    - Move to debhelper compatibility level 10
+
+ -- Andrea Bolognani <eof@kiyuko.org>  Thu, 30 Nov 2017 18:18:25 +0100
 
 spectrwm (3.0.2-1) unstable; urgency=low
 
