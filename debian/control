@@ -16,6 +16,7 @@ Build-Depends: debhelper (>= 10),
                libxcb-util0-dev,
                libxcb-xtest0-dev,
                libxft-dev
+Rules-Requires-Root: no
 Standards-Version: 4.1.2
 Homepage: https://github.com/conformal/spectrwm
 Vcs-Git: https://anonscm.debian.org/git/collab-maint/spectrwm.git

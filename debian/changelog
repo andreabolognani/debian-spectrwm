@@ -3,7 +3,10 @@ spectrwm (3.1.0-2) unstable; urgency=low
   * autopkgtest
     - Add smoke test
 
- -- Andrea Bolognani <eof@kiyuko.org>  Tue, 05 Dec 2017 20:24:15 +0100
+  * Other
+    - Permit Rules-Requires-Root: no
+
+ -- Andrea Bolognani <eof@kiyuko.org>  Sun, 10 Dec 2017 17:07:56 +0100
 
 spectrwm (3.1.0-1) unstable; urgency=medium
 
