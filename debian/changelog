@@ -3,10 +3,13 @@ spectrwm (3.1.0-2) unstable; urgency=low
   * autopkgtest
     - Add smoke test
 
+  * debhelper
+    - Switch to compat level 11
+
   * Other
     - Permit Rules-Requires-Root: no
 
- -- Andrea Bolognani <eof@kiyuko.org>  Sun, 10 Dec 2017 17:07:56 +0100
+ -- Andrea Bolognani <eof@kiyuko.org>  Sun, 28 Jan 2018 18:12:09 +0100
 
 spectrwm (3.1.0-1) unstable; urgency=medium
 
