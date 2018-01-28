@@ -1,3 +1,6 @@
 version=4
+opts=\
+filenamemangle=s/^.*(\d+)_(\d+)_(\d+).*$/spectrwm-$1.$2.$3.tar.gz/ \
+\
 https://github.com/conformal/spectrwm/releases \
-	^.*/SPECTRWM_(\d+)_(\d+)_(\d+)\.tar\.gz$
+^/conformal/spectrwm/archive/SPECTRWM_(\d+)_(\d+)_(\d+)\.tar\.gz$
