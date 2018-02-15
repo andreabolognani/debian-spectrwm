@@ -36,7 +36,6 @@ binary-arch: build
 	dh_installwm /usr/bin/spectrwm
 	dh_strip
 	dh_compress
-	dh_link
 	dh_fixperms
 	dh_installdeb
 	dh_shlibdeps
