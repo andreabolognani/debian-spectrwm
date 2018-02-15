@@ -33,7 +33,7 @@ binary-arch: build
 	dh_installexamples
 	dh_installchangelogs
 	dh_installdocs
-	dh_installwm /usr/bin/spectrwm
+	dh_installwm
 	dh_strip
 	dh_compress
 	dh_fixperms
