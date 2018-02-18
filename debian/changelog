@@ -1,3 +1,11 @@
+spectrwm (3.1.0-3) unstable; urgency=low
+
+  * Patches
+    - U01-add-keywords-to-desktop-file.diff
+      - Makes Lintian happy
+
+ -- Andrea Bolognani <eof@kiyuko.org>  Sun, 18 Feb 2018 21:55:26 +0100
+
 spectrwm (3.1.0-2) unstable; urgency=low
 
   * autopkgtest

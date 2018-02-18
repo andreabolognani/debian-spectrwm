@@ -1,0 +1,16 @@
+Description: Add keywords to desktop file
+ Though they're not as useful as they would be if spectrwm was
+ a regular application, having them can't possibly hurt and will
+ make Lintian happy.
+Bug: https://github.com/conformal/spectrwm/pull/195
+Author: Andrea Bolognani <eof@kiyuko.org>
+Last-Update: 2018-02-18
+Index: spectrwm.git/linux/spectrwm.desktop
+===================================================================
+--- spectrwm.git.orig/linux/spectrwm.desktop
++++ spectrwm.git/linux/spectrwm.desktop
+@@ -4,3 +4,4 @@ Comment=The spectrwm window manager
+ Type=Application
+ Exec=spectrwm
+ TryExec=spectrwm
++Keywords=tiling;window;manager;wm;
