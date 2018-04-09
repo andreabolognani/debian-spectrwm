@@ -14,8 +14,8 @@ build-stamp:
 	touch $@
 
 binary: binary-arch binary-indep
-binary-arch: build-arch
 binary-indep: build-indep
+binary-arch: build-arch
 	dh_testdir
 	dh_testroot
 	dh_prep
