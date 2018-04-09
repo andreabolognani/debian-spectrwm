@@ -4,44 +4,39 @@ DEB_BUILD_MAINT_OPTIONS=hardening=+bindnow
 DPKG_EXPORT_BUILDFLAGS=1
 include /usr/share/dpkg/buildflags.mk
 
-build: build-arch build-indep
-build-arch: build-stamp
-build-indep:
-build-stamp:
-	dh_testdir
+%:
+	dh $@
+
+# Build, install and clean.
+#
+# The Makefile we need to use is in the linux/ directory, so we need
+# to override the usual dh_auto_* commands to prevent them from using
+# the top-level Makefile, which only works on OpenBSD. We also pass a
+# few extra variables to customize the installation paths.
+override_dh_auto_build:
 	$(MAKE) -C linux/ PREFIX=/usr \
 	                  LIBDIR=/usr/lib/spectrwm
-	touch $@
 
-binary: binary-arch binary-indep
-binary-indep: build-indep
-binary-arch: build-arch
-	dh_testdir
-	dh_testroot
-	dh_prep
+override_dh_auto_install:
 	$(MAKE) -C linux/ install PREFIX=/usr \
 	                          LIBDIR=/usr/lib/spectrwm \
 	                          DESTDIR=$(CURDIR)/debian/spectrwm
-	dh_install
-	dh_installexamples
-	dh_installchangelogs
-	dh_installdocs
-	dh_installwm
-	dh_strip
-	dh_compress
-	dh_fixperms
-	dh_installdeb
-	dh_shlibdeps
-	dh_gencontrol
-	dh_md5sums
-	dh_builddeb
 
-clean:
-	dh_testdir
-	dh_testroot
-	rm -f build-stamp
+override_dh_auto_clean:
 	$(MAKE) -C linux/ clean
-	dh_clean
+
+# Don't try to run tests.
+#
+# spectrwm doesn't have a test suite, but the OpenBSD Makefile in the
+# top-level directory confuses dh_auto_test's detection and tricks it
+# into thinking one exists.
+override_dh_auto_test:
+
+# Don't create shlibs files.
+#
+# libswmhack.so is not a proper shared library, and it should not be
+# treated as such.
+override_dh_makeshlibs:
 
 # Rebuild the patches series by looking at the contents of the
 # debian/patches directory.
@@ -62,4 +57,4 @@ rebuild-patches-series:
 		} >"$${SERIES}"; \
 	)
 
-.PHONY: build build-arch build-indep binary binary-arch binary-indep clean rebuild-patches-series
+.PHONY: rebuild-patches-series

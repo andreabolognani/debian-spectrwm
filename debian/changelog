@@ -1,10 +1,10 @@
 spectrwm (3.1.0-4) unstable; urgency=low
 
-  * rules
-    - Actually fix dependencies between targets instead of
-      causing FTBFS
+  * debhelper
+    - Switch to using the dh sequencer, which actually fixes
+      dependencies between targets instead of causing FTBFS
 
- -- Andrea Bolognani <eof@kiyuko.org>  Mon, 09 Apr 2018 20:26:02 +0200
+ -- Andrea Bolognani <eof@kiyuko.org>  Mon, 09 Apr 2018 20:56:30 +0200
 
 spectrwm (3.1.0-3) unstable; urgency=low
 
