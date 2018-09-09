@@ -25,6 +25,13 @@ override_dh_auto_install:
 override_dh_auto_clean:
 	$(MAKE) -C linux/ clean
 
+# Prevent CHANGELOG.md from being installed.
+#
+# Despite the name, we don't want it to end up being installed as
+# changelog.gz, as doing so would go against Policy.
+override_dh_installchangelogs:
+	dh_installchangelogs --exclude=CHANGELOG.md
+
 # Don't try to run tests.
 #
 # spectrwm doesn't have a test suite, but the OpenBSD Makefile in the
