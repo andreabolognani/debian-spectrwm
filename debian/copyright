@@ -10,7 +10,7 @@ Copyright: 2009-2016 Marco Peereboom <marco@peereboom.us>
            2009 Pierre-Yves Ritschard <pyr@spootnik.org>
            2010 Tuukka Kataja <stuge@xor.fi>
            2011 Jason L. Wright <jason@thought.net>
-           2011-2016 Reginald Kennedy <rk@rejii.com>
+           2011-2018 Reginald Kennedy <rk@rejii.com>
            2011-2012 Lawrence Teo <lteo@lteo.net>
            2011-2012 Tiago Cunha <tcunha@gmx.com>
            2012-2015 David Hill <dhill@mindcry.org>
@@ -24,6 +24,7 @@ License: ISC
 Files: lib/swm_hack.c
 Copyright: 2009 Marco Peereboom <marco@peereboom.us>
            2009 Ryan McBride <mcbride@countersiege.com>
+           2011-2018 Reginald Kennedy <rk@rejii.com>
            2005-2007 Carsten Haitzler
            2006-2007 Kim Woelders
 License: ISC and Expat
