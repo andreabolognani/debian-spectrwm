@@ -6,7 +6,7 @@ include /usr/share/dpkg/buildflags.mk
 
 export PREFIX = /usr
 export LIBDIR = /usr/lib/spectrwm
-export DESTDIR = $(CURDIR)/debian/spectrwm
+export DESTDIR = $(CURDIR)/debian/tmp
 
 %:
 	dh $@
