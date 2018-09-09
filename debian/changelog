@@ -3,6 +3,9 @@ spectrwm (3.2.0-1) unstable; urgency=low
   * New upstream release
 
   * Patches:
+    - U01-install-more-files.diff
+      - Extend upstream's build system to install additional files
+        such as configuration files and documentation
     - U01-add-keywords-to-desktop-file.diff
       - Dropped (merged upstream)
     - D03-skip-compatibility-symlinks.diff
