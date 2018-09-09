@@ -2,6 +2,10 @@ spectrwm (3.2.0-1) unstable; urgency=low
 
   * New upstream release
 
+  * Patches:
+    - U01-add-keywords-to-desktop-file.diff
+      - Dropped (merged upstream)
+
  -- Andrea Bolognani <eof@kiyuko.org>  Sun, 09 Sep 2018 15:58:46 +0200
 
 spectrwm (3.1.0-4) unstable; urgency=low

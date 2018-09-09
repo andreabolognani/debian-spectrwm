@@ -1,5 +1,4 @@
 # To rebuild this file, use `debian/rules rebuild-patches-series'
-U01-add-keywords-to-desktop-file.diff
 D01-adapt-libswmhack.diff
 D02-change-default-programs.diff
 D03-skip-compatibility-symlinks.diff
