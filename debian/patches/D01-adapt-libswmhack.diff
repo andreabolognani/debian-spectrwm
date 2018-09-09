@@ -8,12 +8,12 @@ Description: Adapt libswmhack
 Bug-Debian: https://bugs.debian.org/551732
 Bug: https://github.com/conformal/spectrwm/pull/63
 Author: Andrea Bolognani <eof@kiyuko.org>
-Last-Update: 2016-06-12
-Index: spectrwm.git/lib/swm_hack.c
+Last-Update: 2018-08-09
+Index: spectrwm/lib/swm_hack.c
 ===================================================================
---- spectrwm.git.orig/lib/swm_hack.c
-+++ spectrwm.git/lib/swm_hack.c
-@@ -104,6 +104,8 @@ set_property(Display *dpy, Window id, ch
+--- spectrwm.orig/lib/swm_hack.c
++++ spectrwm/lib/swm_hack.c
+@@ -79,6 +79,8 @@ get_atom_from_string(Display *dpy, char
  
  	if (lib_xlib == NULL)
  		lib_xlib = DLOPEN("libX11.so");
@@ -22,16 +22,34 @@ Index: spectrwm.git/lib/swm_hack.c
  	if (lib_xlib) {
  		if (xia == NULL)
  			xia = (XIA *) dlsym(lib_xlib, "XInternAtom");
-@@ -146,6 +148,8 @@ XCreateWindow(Display *dpy, Window paren
+@@ -104,6 +106,8 @@ set_property(Display *dpy, Window id, At
  
  	if (lib_xlib == NULL)
  		lib_xlib = DLOPEN("libX11.so");
 +	if (lib_xlib == NULL)
 +		lib_xlib = DLOPEN("libX11.so.6");
- 	if (lib_xlib && func == NULL) {
+ 	if (lib_xlib) {
+ 		if (xcp == NULL)
+ 			xcp = (XCP *) dlsym(lib_xlib, "XChangeProperty");
+@@ -131,6 +135,8 @@ XOpenDisplay(register _Xconst char *_dis
+ 
+ 	if (lib_xlib == NULL)
+ 		lib_xlib = DLOPEN("libX11.so");
++	if (lib_xlib == NULL)
++		lib_xlib = DLOPEN("libX11.so.6");
+ 	if (lib_xlib && func == NULL)
+ 		func = (ODF *) dlsym(lib_xlib, "XOpenDisplay");
+ 	if (func == NULL) {
+@@ -167,6 +173,8 @@ XCreateWindow(Display *dpy, Window paren
+ 
+ 	if (lib_xlib == NULL)
+ 		lib_xlib = DLOPEN("libX11.so");
++	if (lib_xlib == NULL)
++		lib_xlib = DLOPEN("libX11.so.6");
+ 	if (lib_xlib && func == NULL)
  		func = (CWF *) dlsym(lib_xlib, "XCreateWindow");
- 		display = dpy;
-@@ -194,6 +198,8 @@ XCreateSimpleWindow(Display *dpy, Window
+ 	if (func == NULL) {
+@@ -206,6 +214,8 @@ XCreateSimpleWindow(Display *dpy, Window
  
  	if (lib_xlib == NULL)
  		lib_xlib = DLOPEN("libX11.so");
@@ -40,16 +58,7 @@ Index: spectrwm.git/lib/swm_hack.c
  	if (lib_xlib && func == NULL)
  		func = (CSWF *) dlsym(lib_xlib, "XCreateSimpleWindow");
  	if (func == NULL) {
-@@ -231,6 +237,8 @@ XReparentWindow(Display *dpy, Window win
- 
- 	if (lib_xlib == NULL)
- 		lib_xlib = DLOPEN("libX11.so");
-+	if (lib_xlib == NULL)
-+		lib_xlib = DLOPEN("libX11.so.6");
- 	if (lib_xlib && func == NULL)
- 		func = (RWF *) dlsym(lib_xlib, "XReparentWindow");
- 	if (func == NULL) {
-@@ -262,6 +270,8 @@ XtAppNextEvent(XtAppContext app_context,
+@@ -245,6 +255,8 @@ XtAppNextEvent(XtAppContext app_context,
  
  	if (lib_xtlib == NULL)
  		lib_xtlib = DLOPEN("libXt.so");

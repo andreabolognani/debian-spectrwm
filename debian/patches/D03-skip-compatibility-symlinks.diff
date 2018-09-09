@@ -5,10 +5,10 @@ Description: Don't install compatibility symlinks
 Forwarded: not-needed
 Author: Andrea Bolognani <eof@kiyuko.org>
 Last-Update: 2014-08-18
-Index: spectrwm.git/linux/Makefile
+Index: spectrwm/linux/Makefile
 ===================================================================
---- spectrwm.git.orig/linux/Makefile
-+++ spectrwm.git/linux/Makefile
+--- spectrwm.orig/linux/Makefile
++++ spectrwm/linux/Makefile
 @@ -52,7 +52,6 @@ install: all
  	install -m 755 -d $(DESTDIR)$(MANDIR)/man1
  	install -m 755 -d $(DESTDIR)$(XSESSIONSDIR)
