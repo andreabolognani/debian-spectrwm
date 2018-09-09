@@ -4,6 +4,10 @@ DEB_BUILD_MAINT_OPTIONS=hardening=+bindnow
 DPKG_EXPORT_BUILDFLAGS=1
 include /usr/share/dpkg/buildflags.mk
 
+export PREFIX = /usr
+export LIBDIR = /usr/lib/spectrwm
+export DESTDIR = $(CURDIR)/debian/spectrwm
+
 %:
 	dh $@
 
@@ -14,13 +18,10 @@ include /usr/share/dpkg/buildflags.mk
 # the top-level Makefile, which only works on OpenBSD. We also pass a
 # few extra variables to customize the installation paths.
 override_dh_auto_build:
-	$(MAKE) -C linux/ PREFIX=/usr \
-	                  LIBDIR=/usr/lib/spectrwm
+	$(MAKE) -C linux/
 
 override_dh_auto_install:
-	$(MAKE) -C linux/ install PREFIX=/usr \
-	                          LIBDIR=/usr/lib/spectrwm \
-	                          DESTDIR=$(CURDIR)/debian/spectrwm
+	$(MAKE) -C linux/ install
 
 override_dh_auto_clean:
 	$(MAKE) -C linux/ clean
