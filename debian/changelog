@@ -5,6 +5,8 @@ spectrwm (3.2.0-1) unstable; urgency=low
   * Patches:
     - U01-add-keywords-to-desktop-file.diff
       - Dropped (merged upstream)
+    - D03-skip-compatibility-symlinks.diff
+      - Dropped (no longer needed)
 
  -- Andrea Bolognani <eof@kiyuko.org>  Sun, 09 Sep 2018 15:58:46 +0200
 
