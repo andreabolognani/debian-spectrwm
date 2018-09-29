@@ -15,7 +15,7 @@ spectrwm (3.2.0-1) unstable; urgency=low
     - Update Standards-Version to 4.2.1
       - No changes needed
 
- -- Andrea Bolognani <eof@kiyuko.org>  Sun, 09 Sep 2018 15:58:46 +0200
+ -- Andrea Bolognani <eof@kiyuko.org>  Sat, 29 Sep 2018 15:32:14 +0200
 
 spectrwm (3.1.0-4) unstable; urgency=low
 
