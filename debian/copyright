@@ -4,13 +4,13 @@ Upstream-Contact: Marco Peereboom <marco@peereboom.us>
 Source: https://github.com/conformal/spectrwm
 
 Files: *
-Copyright: 2009-2016 Marco Peereboom <marco@peereboom.us>
+Copyright: 2009-2019 Marco Peereboom <marco@peereboom.us>
            2009-2011 Ryan McBride <mcbride@countersiege.com>
            2009 Darrin Chandler <dwchandler@stilyagin.com>
            2009 Pierre-Yves Ritschard <pyr@spootnik.org>
            2010 Tuukka Kataja <stuge@xor.fi>
            2011 Jason L. Wright <jason@thought.net>
-           2011-2018 Reginald Kennedy <rk@rejii.com>
+           2011-2019 Reginald Kennedy <rk@rejii.com>
            2011-2012 Lawrence Teo <lteo@lteo.net>
            2011-2012 Tiago Cunha <tcunha@gmx.com>
            2012-2015 David Hill <dhill@mindcry.org>
@@ -49,7 +49,7 @@ Copyright: 1991,1993 The Regents of the University of California
 License: BSD-3-clause
 
 Files: debian/*
-Copyright: 2009-2018, Andrea Bolognani <eof@kiyuko.org>
+Copyright: 2009-2020, Andrea Bolognani <eof@kiyuko.org>
 License: ISC
 
 
