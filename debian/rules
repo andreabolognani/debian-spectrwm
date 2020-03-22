@@ -7,6 +7,7 @@ include /usr/share/dpkg/buildflags.mk
 export PREFIX = /usr
 export LIBDIR = /usr/lib/spectrwm
 export SYSCONFDIR = /etc
+export SOURCEDIR = $(CURDIR)/linux
 export DESTDIR = $(CURDIR)/debian/tmp
 
 %:
@@ -19,17 +20,17 @@ export DESTDIR = $(CURDIR)/debian/tmp
 # the top-level Makefile, which only works on OpenBSD. We also pass a
 # few extra variables to customize the installation paths.
 override_dh_auto_build:
-	$(MAKE) -C linux/
+	dh_auto_build --sourcedir=$(SOURCEDIR)
 
 override_dh_auto_install:
-	$(MAKE) -C linux/ install
+	dh_auto_install --sourcedir=$(SOURCEDIR) --destdir=$(DESTDIR)
 	# Rename the release notes so that dh_installdocs can pick them
 	# up with the expected name later
 	mv $(DESTDIR)/usr/share/doc/spectrwm/CHANGELOG.md \
 	   $(DESTDIR)/usr/share/doc/spectrwm/NEWS
 
 override_dh_auto_clean:
-	$(MAKE) -C linux/ clean
+	dh_auto_clean --sourcedir=$(SOURCEDIR)
 
 # Prevent CHANGELOG.md from being installed.
 #
