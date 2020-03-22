@@ -1,6 +1,6 @@
 From: Andrea Bolognani <eof@kiyuko.org>
 Date: Mon, 2 Nov 2009 00:06:06 +0100
-Subject: Adapt libswmhack
+Subject: debian: Adapt libswmhack
 
 libswmhack tries to dlopen() libX11.so and libXt.so, but on Debian those
 are symlinks shipped in the corresponding -dev package.
