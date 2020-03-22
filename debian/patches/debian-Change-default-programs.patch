@@ -10,10 +10,10 @@ Debian, and xlock is not available at all.
  2 files changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/spectrwm.1 b/spectrwm.1
-index 1c24dd3..36a10a1 100644
+index 40eab4c..eb13c1f 100644
 --- a/spectrwm.1
 +++ b/spectrwm.1
-@@ -609,9 +609,9 @@ bind[] = MOD+Shift+b
+@@ -701,9 +701,9 @@ bind[] = MOD+Shift+b
  Default programs:
  .Bl -tag -width "screenshot_wind" -offset indent -compact
  .It Cm term
@@ -26,10 +26,10 @@ index 1c24dd3..36a10a1 100644
  dmenu_run $dmenu_bottom \-fn $bar_font \-nb $bar_color \-nf $bar_font_color
  \-sb $bar_color_selected \-sf $bar_font_color_selected
 diff --git a/spectrwm.c b/spectrwm.c
-index bb824eb..8fd22eb 100644
+index a613e48..f03f45a 100644
 --- a/spectrwm.c
 +++ b/spectrwm.c
-@@ -8109,10 +8109,10 @@ validate_spawns(void)
+@@ -8714,10 +8714,10 @@ validate_spawns(void)
  void
  setup_spawn(void)
  {

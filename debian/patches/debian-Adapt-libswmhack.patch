@@ -16,7 +16,7 @@ Bug: https://github.com/conformal/spectrwm/pull/63
  1 file changed, 12 insertions(+)
 
 diff --git a/lib/swm_hack.c b/lib/swm_hack.c
-index b2d3e46..ca94526 100644
+index 5b4c690..a9472c1 100644
 --- a/lib/swm_hack.c
 +++ b/lib/swm_hack.c
 @@ -79,6 +79,8 @@ get_atom_from_string(Display *dpy, char *name)
