@@ -1,4 +1,4 @@
-initscreen.sh
-baraction.sh
-screenshot.sh
-spectrwm_*.conf
+usr/share/doc/spectrwm/examples/baraction.sh
+usr/share/doc/spectrwm/examples/initscreen.sh
+usr/share/doc/spectrwm/examples/screenshot.sh
+usr/share/doc/spectrwm/examples/spectrwm_*.conf
