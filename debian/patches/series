@@ -1,4 +1,3 @@
-# To rebuild this file, use `debian/rules rebuild-patches-series'
 U01-install-more-files.diff
 D01-adapt-libswmhack.diff
 D02-change-default-programs.diff

@@ -1,14 +1,20 @@
-Description: Install more files
- Running 'make install' should result in not only the application
- and corresponding library, but also the release notes, license and
- most importantly configuration file being installed.
+From: Andrea Bolognani <eof@kiyuko.org>
+Date: Sun, 9 Sep 2018 18:27:47 +0200
+Subject: Install more files
+
+Running 'make install' should result in not only the application
+and corresponding library, but also the release notes, license and
+most importantly configuration file being installed.
+
 Bug: https://github.com/conformal/spectrwm/pull/220
-Author: Andrea Bolognani <eof@kiyuko.org>
-Last-Update: 2018-09-09
-Index: spectrwm/linux/Makefile
-===================================================================
---- spectrwm.orig/linux/Makefile
-+++ spectrwm/linux/Makefile
+---
+ linux/Makefile | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+diff --git a/linux/Makefile b/linux/Makefile
+index 7ceca3b..1667ff5 100644
+--- a/linux/Makefile
++++ b/linux/Makefile
 @@ -1,8 +1,10 @@
  PREFIX       ?= /usr/local
  BINDIR       ?= $(PREFIX)/bin

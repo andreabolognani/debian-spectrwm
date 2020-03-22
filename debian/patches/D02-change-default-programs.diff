@@ -1,13 +1,34 @@
-Description: Change default programs
- x-terminal-emulator is the best default for a terminal emulator on
- Debian, and xlock is not available at all.
-Forwarded: not-needed
-Author: Andrea Bolognani <eof@kiyuko.org>
-Last-Update: 2016-07-16
-Index: spectrwm/spectrwm.c
-===================================================================
---- spectrwm.orig/spectrwm.c
-+++ spectrwm/spectrwm.c
+From: Andrea Bolognani <eof@kiyuko.org>
+Date: Tue, 24 Mar 2009 15:57:12 +0100
+Subject: Change default programs
+
+x-terminal-emulator is the best default for a terminal emulator on
+Debian, and xlock is not available at all.
+---
+ spectrwm.1 | 4 ++--
+ spectrwm.c | 6 +++---
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/spectrwm.1 b/spectrwm.1
+index 1c24dd3..36a10a1 100644
+--- a/spectrwm.1
++++ b/spectrwm.1
+@@ -609,9 +609,9 @@ bind[] = MOD+Shift+b
+ Default programs:
+ .Bl -tag -width "screenshot_wind" -offset indent -compact
+ .It Cm term
+-xterm
++x\-terminal\-emulator
+ .It Cm lock
+-xlock
++slock
+ .It Cm menu
+ dmenu_run $dmenu_bottom \-fn $bar_font \-nb $bar_color \-nf $bar_font_color
+ \-sb $bar_color_selected \-sf $bar_font_color_selected
+diff --git a/spectrwm.c b/spectrwm.c
+index bb824eb..8fd22eb 100644
+--- a/spectrwm.c
++++ b/spectrwm.c
 @@ -8109,10 +8109,10 @@ validate_spawns(void)
  void
  setup_spawn(void)
@@ -22,19 +43,3 @@ Index: spectrwm/spectrwm.c
  
  	setconfspawn("menu",		"dmenu_run"
  					" $dmenu_bottom"
-Index: spectrwm/spectrwm.1
-===================================================================
---- spectrwm.orig/spectrwm.1
-+++ spectrwm/spectrwm.1
-@@ -609,9 +609,9 @@ bind[] = MOD+Shift+b
- Default programs:
- .Bl -tag -width "screenshot_wind" -offset indent -compact
- .It Cm term
--xterm
-+x\-terminal\-emulator
- .It Cm lock
--xlock
-+slock
- .It Cm menu
- dmenu_run $dmenu_bottom \-fn $bar_font \-nb $bar_color \-nf $bar_font_color
- \-sb $bar_color_selected \-sf $bar_font_color_selected

@@ -1,19 +1,25 @@
-Description: Adapt libswmhack
- libswmhack tries to dlopen() libX11.so and libXt.so, but on Debian those
- are symlinks shipped in the corresponding -dev package.
- .
- If dlopen() fails, try with the versioned library names, libX11.so.6 and
- libXt.so.6. This ensures libswmhack will work with just the runtime
- packages installed.
+From: Andrea Bolognani <eof@kiyuko.org>
+Date: Mon, 2 Nov 2009 00:06:06 +0100
+Subject: Adapt libswmhack
+
+libswmhack tries to dlopen() libX11.so and libXt.so, but on Debian those
+are symlinks shipped in the corresponding -dev package.
+
+If dlopen() fails, try with the versioned library names, libX11.so.6 and
+libXt.so.6. This ensures libswmhack will work with just the runtime
+packages installed.
+
 Bug-Debian: https://bugs.debian.org/551732
 Bug: https://github.com/conformal/spectrwm/pull/63
-Author: Andrea Bolognani <eof@kiyuko.org>
-Last-Update: 2018-08-09
-Index: spectrwm/lib/swm_hack.c
-===================================================================
---- spectrwm.orig/lib/swm_hack.c
-+++ spectrwm/lib/swm_hack.c
-@@ -79,6 +79,8 @@ get_atom_from_string(Display *dpy, char
+---
+ lib/swm_hack.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/lib/swm_hack.c b/lib/swm_hack.c
+index b2d3e46..ca94526 100644
+--- a/lib/swm_hack.c
++++ b/lib/swm_hack.c
+@@ -79,6 +79,8 @@ get_atom_from_string(Display *dpy, char *name)
  
  	if (lib_xlib == NULL)
  		lib_xlib = DLOPEN("libX11.so");
@@ -22,7 +28,7 @@ Index: spectrwm/lib/swm_hack.c
  	if (lib_xlib) {
  		if (xia == NULL)
  			xia = (XIA *) dlsym(lib_xlib, "XInternAtom");
-@@ -104,6 +106,8 @@ set_property(Display *dpy, Window id, At
+@@ -104,6 +106,8 @@ set_property(Display *dpy, Window id, Atom atom, char *val)
  
  	if (lib_xlib == NULL)
  		lib_xlib = DLOPEN("libX11.so");
@@ -31,7 +37,7 @@ Index: spectrwm/lib/swm_hack.c
  	if (lib_xlib) {
  		if (xcp == NULL)
  			xcp = (XCP *) dlsym(lib_xlib, "XChangeProperty");
-@@ -131,6 +135,8 @@ XOpenDisplay(register _Xconst char *_dis
+@@ -131,6 +135,8 @@ XOpenDisplay(register _Xconst char *_display)
  
  	if (lib_xlib == NULL)
  		lib_xlib = DLOPEN("libX11.so");
@@ -40,7 +46,7 @@ Index: spectrwm/lib/swm_hack.c
  	if (lib_xlib && func == NULL)
  		func = (ODF *) dlsym(lib_xlib, "XOpenDisplay");
  	if (func == NULL) {
-@@ -167,6 +173,8 @@ XCreateWindow(Display *dpy, Window paren
+@@ -167,6 +173,8 @@ XCreateWindow(Display *dpy, Window parent, int x, int y, unsigned int width,
  
  	if (lib_xlib == NULL)
  		lib_xlib = DLOPEN("libX11.so");
@@ -49,7 +55,7 @@ Index: spectrwm/lib/swm_hack.c
  	if (lib_xlib && func == NULL)
  		func = (CWF *) dlsym(lib_xlib, "XCreateWindow");
  	if (func == NULL) {
-@@ -206,6 +214,8 @@ XCreateSimpleWindow(Display *dpy, Window
+@@ -206,6 +214,8 @@ XCreateSimpleWindow(Display *dpy, Window parent, int x, int y,
  
  	if (lib_xlib == NULL)
  		lib_xlib = DLOPEN("libX11.so");
@@ -58,7 +64,7 @@ Index: spectrwm/lib/swm_hack.c
  	if (lib_xlib && func == NULL)
  		func = (CSWF *) dlsym(lib_xlib, "XCreateSimpleWindow");
  	if (func == NULL) {
-@@ -245,6 +255,8 @@ XtAppNextEvent(XtAppContext app_context,
+@@ -245,6 +255,8 @@ XtAppNextEvent(XtAppContext app_context, XEvent *event_return)
  
  	if (lib_xtlib == NULL)
  		lib_xtlib = DLOPEN("libXt.so");
