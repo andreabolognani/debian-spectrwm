@@ -4,11 +4,12 @@ DEB_BUILD_MAINT_OPTIONS=hardening=+bindnow
 DPKG_EXPORT_BUILDFLAGS=1
 include /usr/share/dpkg/buildflags.mk
 
+SOURCEDIR = $(CURDIR)/linux
+DESTDIR = $(CURDIR)/debian/tmp
+
 export PREFIX = /usr
 export LIBDIR = /usr/lib/spectrwm
 export SYSCONFDIR = /etc
-export SOURCEDIR = $(CURDIR)/linux
-export DESTDIR = $(CURDIR)/debian/tmp
 
 %:
 	dh $@
@@ -17,15 +18,15 @@ export DESTDIR = $(CURDIR)/debian/tmp
 #
 # The Makefile we need to use is in the linux/ directory, so we need
 # to override the usual dh_auto_* commands to prevent them from using
-# the top-level Makefile, which only works on OpenBSD. We also pass a
-# few extra variables to customize the installation paths.
+# the top-level Makefile, which only works on OpenBSD.
+#
+# We also move some files after installation, to make things easier
+# for the tools that are going to move them into the Debian package.
 override_dh_auto_build:
 	dh_auto_build --sourcedir=$(SOURCEDIR)
 
 override_dh_auto_install:
 	dh_auto_install --sourcedir=$(SOURCEDIR) --destdir=$(DESTDIR)
-	# Rename the release notes so that dh_installdocs can pick them
-	# up with the expected name later
 	mv $(DESTDIR)/usr/share/doc/spectrwm/CHANGELOG.md \
 	   $(DESTDIR)/usr/share/doc/spectrwm/NEWS
 
