@@ -10,10 +10,10 @@ Debian, and xlock is not available at all.
  2 files changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/spectrwm.1 b/spectrwm.1
-index 2d05f81..12641e1 100644
+index 7c9c37b..047a285 100644
 --- a/spectrwm.1
 +++ b/spectrwm.1
-@@ -701,9 +701,9 @@ bind[] = MOD+Shift+b
+@@ -730,9 +730,9 @@ bind[] = MOD+Shift+b
  Default programs:
  .Bl -tag -width "screenshot_wind" -offset indent -compact
  .It Cm term
@@ -26,20 +26,20 @@ index 2d05f81..12641e1 100644
  dmenu_run $dmenu_bottom \-fn $bar_font \-nb $bar_color \-nf $bar_font_color
  \-sb $bar_color_selected \-sf $bar_font_color_selected
 diff --git a/spectrwm.c b/spectrwm.c
-index a613e48..f03f45a 100644
+index b2632cc..e704737 100644
 --- a/spectrwm.c
 +++ b/spectrwm.c
-@@ -8714,10 +8714,10 @@ validate_spawns(void)
+@@ -8913,10 +8913,10 @@ validate_spawns(void)
  void
  setup_spawn(void)
  {
--	setconfspawn("lock",		"xlock",		0);
-+	setconfspawn("lock",		"slock",		0);
+-	setconfspawn("lock", "xlock", 0, NULL);
++	setconfspawn("lock", "slock", 0, NULL);
  
--	setconfspawn("term",		"xterm",		0);
--	setconfspawn("spawn_term",	"xterm",		0);
-+	setconfspawn("term",		"x-terminal-emulator",	0);
-+	setconfspawn("spawn_term",	"x-terminal-emulator",	0);
+-	setconfspawn("term", "xterm", 0, NULL);
+-	setconfspawn("spawn_term", "xterm", 0, NULL);
++	setconfspawn("term", "x-terminal-emulator", 0, NULL);
++	setconfspawn("spawn_term", "x-terminal-emulator", 0, NULL);
  
- 	setconfspawn("menu",		"dmenu_run"
- 					" $dmenu_bottom"
+ 	setconfspawn("menu", "dmenu_run $dmenu_bottom -fn $bar_font "
+ 	    "-nb $bar_color -nf $bar_font_color -sb $bar_color_selected "
