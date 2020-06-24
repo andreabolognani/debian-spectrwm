@@ -6,6 +6,7 @@ DATAROOTDIR  ?= $(PREFIX)/share
 MANDIR       ?= $(DATAROOTDIR)/man
 DOCDIR       ?= $(DATAROOTDIR)/doc/spectrwm
 XSESSIONSDIR ?= $(DATAROOTDIR)/xsessions
+PKG_CONFIG   ?= pkg-config
 
 BUILDVERSION    = $(shell sh $(CURDIR)/../buildver.sh)
 LIBVERSION      = $(shell .  $(CURDIR)/../lib/shlib_version; echo $$major.$$minor)
@@ -21,12 +22,12 @@ endif
 
 BIN_CFLAGS   = -fPIE
 BIN_LDFLAGS  = -fPIE -pie
-BIN_CPPFLAGS = $(shell pkg-config --cflags x11 x11-xcb xcb-icccm xcb-keysyms xcb-randr xcb-util xcb-xinput xcb-xtest xcursor xft)
-BIN_LDLIBS   = $(shell pkg-config --libs   x11 x11-xcb xcb-icccm xcb-keysyms xcb-randr xcb-util xcb-xinput xcb-xtest xcursor xft)
+BIN_CPPFLAGS = $(shell $(PKG_CONFIG) --cflags x11 x11-xcb xcb-icccm xcb-keysyms xcb-randr xcb-util xcb-xinput xcb-xtest xcursor xft)
+BIN_LDLIBS   = $(shell $(PKG_CONFIG) --libs   x11 x11-xcb xcb-icccm xcb-keysyms xcb-randr xcb-util xcb-xinput xcb-xtest xcursor xft)
 LIB_CFLAGS   = -fPIC
 LIB_LDFLAGS  = -fPIC -shared
-LIB_CPPFLAGS = $(shell pkg-config --cflags x11)
-LIB_LDLIBS   = $(shell pkg-config --libs   x11) -ldl
+LIB_CPPFLAGS = $(shell $(PKG_CONFIG) --cflags x11)
+LIB_LDLIBS   = $(shell $(PKG_CONFIG) --libs   x11) -ldl
 
 all: spectrwm libswmhack.so.$(LIBVERSION)
 
@@ -54,6 +55,7 @@ install: all
 	install -m 755 -d $(DESTDIR)$(SYSCONFDIR)
 	install -m 755 -d $(DESTDIR)$(MANDIR)/man1
 	install -m 755 -d $(DESTDIR)$(DOCDIR)
+	install -m 755 -d $(DESTDIR)$(DOCDIR)/examples
 	install -m 755 -d $(DESTDIR)$(XSESSIONSDIR)
 	install -m 755 spectrwm                    $(DESTDIR)$(BINDIR)
 	ln -sf spectrwm                            $(DESTDIR)$(BINDIR)/scrotwm
@@ -64,6 +66,10 @@ install: all
 	install -m 644 ../spectrwm.1               $(DESTDIR)$(MANDIR)/man1
 	install -m 644 ../CHANGELOG.md             $(DESTDIR)$(DOCDIR)
 	install -m 644 ../LICENSE.md               $(DESTDIR)$(DOCDIR)
+	install -m 644 baraction.sh                $(DESTDIR)$(DOCDIR)/examples
+	install -m 644 ../initscreen.sh            $(DESTDIR)$(DOCDIR)/examples
+	install -m 644 ../screenshot.sh            $(DESTDIR)$(DOCDIR)/examples
+	install -m 644 ../spectrwm_*.conf          $(DESTDIR)$(DOCDIR)/examples
 	install -m 644 spectrwm.desktop            $(DESTDIR)$(XSESSIONSDIR)
 
 uninstall:
@@ -76,6 +82,10 @@ uninstall:
 	rm -f $(DESTDIR)$(MANDIR)/man1/spectrwm.1
 	rm -f $(DESTDIR)$(DOCDIR)/CHANGELOG.md
 	rm -f $(DESTDIR)$(DOCDIR)/LICENSE.md
+	rm -f $(DESTDIR)$(DOCDIR)/examples/baraction.sh
+	rm -f $(DESTDIR)$(DOCDIR)/examples/initscreen.sh
+	rm -f $(DESTDIR)$(DOCDIR)/examples/screenshot.sh
+	rm -f $(DESTDIR)$(DOCDIR)/examples/spectrwm_*.conf
 	rm -f $(DESTDIR)$(XSESSIONSDIR)/spectrwm.desktop
 
 .PHONY: all clean install uninstall

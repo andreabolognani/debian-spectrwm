@@ -17,8 +17,7 @@ print_mem() {
 }
 
 _print_cpu() {
-	typeset -R4 _1=${1} _2=${2} _3=${3} _4=${4} _5=${5} _6=${6}
-	echo -n "CPU:${_1}% User${_2}% Nice${_3}% Sys${_4}% Spin${_5}% Int${_6}% Idle  "
+	printf "CPU: %3d%% User %3d%% Nice %3d%% Sys %3d%% Spin %3d%% Int %3d%% Idle  " $1 $2 $3 $4 $5 $6
 }
 
 print_cpu() {
@@ -36,7 +35,12 @@ print_cpu() {
 	_print_cpu $OUT
 }
 
-print_apm() {
+print_cpuspeed() {
+	CPU_SPEED=`/sbin/sysctl hw.cpuspeed | cut -d "=" -f2`
+	printf "CPU speed: %4d MHz  " $CPU_SPEED
+}
+
+print_bat() {
 	BAT_STATUS=$1
 	BAT_LEVEL=$2
 	AC_STATUS=$3
@@ -76,31 +80,20 @@ print_apm() {
 	fi
 }
 
-print_cpuspeed() {
-	CPU_SPEED=`/sbin/sysctl hw.cpuspeed | cut -d "=" -f2`
-	echo -n "CPU speed: $CPU_SPEED MHz  "
-}
-
+# cache the output of apm(8), no need to call that every second.
+APM_DATA=""
+I=0
 while :; do
-	# instead of sleeping, use iostat as the update timer.
-	# cache the output of apm(8), no need to call that every second.
-	/usr/sbin/iostat -C -c 3600 |&	# wish infinity was an option
-	PID="$!"
-	APM_DATA=""
-	I=0
-	trap "kill $PID; exit" TERM
-	while read -p; do
-		if [ $(( ${I} % 1 )) -eq 0 ]; then
-			APM_DATA=`/usr/sbin/apm -alb`
-		fi
-		if [ $I -ge 2 ]; then
-			# print_date
-			print_mem $MEM
-			print_cpu $REPLY
-			print_cpuspeed
-			print_apm $APM_DATA
-			echo ""
-		fi
-		I=$(( ( ${I} + 1 ) % 22 ));
-	done
+	IOSTAT_DATA=`/usr/sbin/iostat -C | grep '[0-9]$'`
+	if [ $I -eq 0 ]; then
+		APM_DATA=`/usr/sbin/apm -alb`
+	fi
+	# print_date
+	print_mem
+	print_cpu $IOSTAT_DATA
+	print_cpuspeed
+	print_bat $APM_DATA
+	echo ""
+	I=$(( ( ${I} + 1 ) % 11 ))
+	sleep 1
 done
