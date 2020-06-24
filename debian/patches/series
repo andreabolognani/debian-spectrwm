@@ -1,5 +1,4 @@
 Fix-man-warning.patch
 linux-Install-examples.patch
-linux-Accept-user-provided-pkg-config-command.patch
 debian-Adapt-libswmhack.patch
 debian-Change-default-programs.patch
