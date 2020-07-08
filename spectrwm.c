@@ -4824,9 +4824,8 @@ focus_win(struct ws_win *win)
 	win->focus_redirect = NULL; /* Clear any redirect from this window. */
 
 	if (ws->r) {
-		if (ws->cur_layout->flags & SWM_L_MAPONFOCUS ||
-		    ws->always_raise) {
-			/* Stack all related. */
+		if (ws->cur_layout->flags & SWM_L_MAPONFOCUS) {
+			/* Only related windows should be mapped. */
 			mainw = find_main_window(win);
 			TAILQ_FOREACH(w, &ws->stack, stack_entry) {
 				if (ICONIC(w))
@@ -4837,13 +4836,10 @@ focus_win(struct ws_win *win)
 				else
 					unmap_window(w);
 			}
-
 			update_stacking(win->s);
-		} else if (tile_gap < 0 && !FLOATING(win)) {
-			/*
-			 * Windows overlap in the layout.
-			 * Raise focused win above all tiled wins.
-			 */
+		} else if ((tile_gap < 0 && !FLOATING(win)) ||
+		    ws->always_raise) {
+			/* Focused window needs to be raised. */
 			raise_window(win);
 			update_win_stacking(win);
 			map_window(win);
@@ -4892,7 +4888,7 @@ get_focus_magic(struct ws_win *win)
 		if (winfocus->focus_redirect == NULL)
 			break;
 
-		if (!winfocus->focus_redirect->mapped)
+		if (ICONIC(winfocus->focus_redirect))
 			break;
 
 		if (validate_win(winfocus->focus_redirect))
@@ -5206,6 +5202,8 @@ cyclews(struct binding *bp, struct swm_region *r, union arg *args)
 
 			clear_maximized(nws);
 			stack(r);
+
+			ewmh_update_current_desktop();
 			center_pointer(nws->r);
 			focus_flush();
 			nws->state = SWM_WS_STATE_MAPPED;
@@ -6727,11 +6725,14 @@ win_to_ws(struct ws_win *win, int wsid, uint32_t flags)
 	struct ws_win		*mainw, *w, *tmpw;
 	struct workspace	*ws, *nws;
 
-	if (wsid < 0 || wsid >= workspace_limit)
+	if (win == NULL || wsid < 0 || wsid >= workspace_limit)
 		return;
 
-	if (win->ws->idx == wsid)
+	if (win->ws->idx == wsid) {
+		DNPRINTF(SWM_D_MOVE, "win %#x already on ws %d\n",
+		    win->id, wsid);
 		return;
+	}
 
 	ws = win->ws;
 	nws = &win->s->ws[wsid];
@@ -11163,7 +11164,7 @@ manage_window(xcb_window_t id, int spawn_pos, bool mapping)
 	    instance, name);
 
 	/* java is retarded so treat it special */
-	if (strstr(instance, "sun-awt")) {
+	if (strstr(instance, "sun-awt") || strstr(instance, "jetbrains")) {
 		DNPRINTF(SWM_D_CLASS, "java window detected.\n");
 		win->java = true;
 	}
@@ -12052,8 +12053,7 @@ enternotify(xcb_enter_notify_event_t *e)
 		return;
 	}
 
-	if (focus_mode == SWM_FOCUS_MANUAL &&
-	    e->mode == XCB_NOTIFY_MODE_NORMAL) {
+	if (focus_mode == SWM_FOCUS_MANUAL) {
 		DNPRINTF(SWM_D_EVENT, "ignore; manual focus\n");
 		return;
 	}
@@ -12261,8 +12261,7 @@ maprequest(xcb_map_request_event_t *e)
 
 	dofocus = !(pointer_follow(win->s));
 	/* The new window should get focus; prepare. */
-	if ((dofocus  && !(win->quirks & SWM_Q_NOFOCUSONMAP) &&
-	    ACCEPTS_FOCUS(win)) ||
+	if ((dofocus && !(win->quirks & SWM_Q_NOFOCUSONMAP)) ||
 	    (win->ws->cur_layout == &layouts[SWM_MAX_STACK])) {
 		if (win->quirks & SWM_Q_FOCUSONMAP_SINGLE) {
 			/* See if other wins of same type are already mapped. */
@@ -12486,8 +12485,9 @@ unmapnotify(xcb_unmap_notify_event_t *e)
 	} else {
 		/* Withdraw. */
 		DNPRINTF(SWM_D_EVENT, "withdraw\n");
-		/* EWMH: need to remove _NET_WM_DESKTOP on withdraw. */
+		/* EWMH advises removal of _NET_WM_DESKTOP and _NET_WM_STATE. */
 		xcb_delete_property(conn, win->id, ewmh[_NET_WM_DESKTOP].atom);
+		xcb_delete_property(conn, win->id, ewmh[_NET_WM_STATE].atom);
 		set_win_state(win, XCB_ICCCM_WM_STATE_WITHDRAWN);
 		unmanage_window(win);
 	}
@@ -12590,9 +12590,10 @@ clientmessage(xcb_client_message_event_t *e)
 	}
 
 	if (e->type == ewmh[_NET_ACTIVE_WINDOW].atom) {
-		DNPRINTF(SWM_D_EVENT, "_NET_ACTIVE_WINDOW, " "source_type: "
-		    "%s(%d)\n", get_source_type_label(e->data.data32[0]),
-		    e->data.data32[0]);
+		DNPRINTF(SWM_D_EVENT, "_NET_ACTIVE_WINDOW, source_type: "
+		    "%s(%d), timestamp: %#x, active_window: %#x\n",
+		    get_source_type_label(e->data.data32[0]), e->data.data32[0],
+		    e->data.data32[1], e->data.data32[2]);
 
 		/*
 		 * Allow focus changes that are a result of direct user
@@ -12663,6 +12664,10 @@ clientmessage(xcb_client_message_event_t *e)
 		ewmh_update_wm_state(win);
 		stack(win->ws->r);
 	} else if (e->type == ewmh[_NET_WM_DESKTOP].atom) {
+		DNPRINTF(SWM_D_EVENT, "_NET_WM_DESKTOP, new_desktop: %d, "
+		    "source_type: %s(%d)\n", e->data.data32[0],
+		    get_source_type_label(e->data.data32[1]),
+		    e->data.data32[1]);
 		DNPRINTF(SWM_D_EVENT, "_NET_WM_DESKTOP\n");
 		r = win->ws->r;
 
