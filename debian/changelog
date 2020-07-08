@@ -1,3 +1,9 @@
+spectrwm (3.4.1-1) unstable; urgency=medium
+
+  * New upstream release
+
+ -- Andrea Bolognani <eof@kiyuko.org>  Wed, 08 Jul 2020 23:37:22 +0200
+
 spectrwm (3.4.0-1) unstable; urgency=medium
 
   * New upstream release.
