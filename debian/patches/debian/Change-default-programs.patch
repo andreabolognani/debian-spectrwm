@@ -10,7 +10,7 @@ Debian, and xlock is not available at all.
  2 files changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/spectrwm.1 b/spectrwm.1
-index 84ac8e3..30bc30d 100644
+index 6b758ec..71af7b2 100644
 --- a/spectrwm.1
 +++ b/spectrwm.1
 @@ -736,9 +736,9 @@ bind[] = MOD+Shift+b
