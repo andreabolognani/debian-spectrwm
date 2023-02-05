@@ -19,7 +19,7 @@ Build-Depends: debhelper-compat (= 13),
                libxcb-xtest0-dev,
                libxft-dev
 Rules-Requires-Root: no
-Standards-Version: 4.6.1
+Standards-Version: 4.6.2
 Homepage: https://github.com/conformal/spectrwm
 Vcs-Git: https://salsa.debian.org/debian/spectrwm.git
 Vcs-Browser: https://salsa.debian.org/debian/spectrwm
