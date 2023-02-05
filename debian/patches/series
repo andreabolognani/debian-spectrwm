@@ -1,2 +1,2 @@
-debian-Adapt-libswmhack.patch
-debian-Change-default-programs.patch
+debian/Adapt-libswmhack.patch
+debian/Change-default-programs.patch

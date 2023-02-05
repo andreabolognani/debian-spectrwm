@@ -1,6 +1,6 @@
 From: Andrea Bolognani <eof@kiyuko.org>
 Date: Tue, 24 Mar 2009 15:57:12 +0100
-Subject: debian: Change default programs
+Subject: Change default programs
 
 x-terminal-emulator is the best default for a terminal emulator on
 Debian, and xlock is not available at all.
