@@ -52,3 +52,11 @@ override_dh_auto_test:
 # libswmhack.so is not a proper shared library, and it should not be
 # treated as such.
 override_dh_makeshlibs:
+
+# Set priority for the x-window-manager alternative.
+#
+# According to Policy, the base priority is 40. It can then be
+# increased based on additional features that the window manager
+# implements, but spectrwm doesn't qualify for any of those bonuses.
+override_dh_installwm:
+	dh_installwm --priority=40
