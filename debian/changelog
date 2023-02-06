@@ -1,3 +1,28 @@
+spectrwm (3.4.1-2) unstable; urgency=medium
+
+  * Patches
+    + Reorganize by using gbp pq's topic feature
+    + Add forward/Escape-backslashes-correctly-in-manual-page.patch
+      - Fixes acute-accent-in-manual-page Lintian tag
+
+  * Package relationships
+    + Build-Depend on libxcb-util-dev instead of libxcb-util0-dev
+      - Fixes build-depends-on-obsolete-package Lintian tag
+
+  * debhelper
+    + Switch to compat level 13
+      - Contributed by Debian Janitor
+
+  * Standards-Version
+    + Update to 4.6.2
+      - Set priority to 40 for the x-window-manager alternative
+
+  * Other
+    + Fix watch file
+      - Adapt to recent changes in GitHub
+
+ -- Andrea Bolognani <eof@kiyuko.org>  Mon, 06 Feb 2023 22:28:49 +0100
+
 spectrwm (3.4.1-1) unstable; urgency=medium
 
   * New upstream release
