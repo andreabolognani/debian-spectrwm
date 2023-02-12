@@ -4,6 +4,8 @@ Subject: Change default programs
 
 x-terminal-emulator is the best default for a terminal emulator on
 Debian, and xlock is not available at all.
+
+Forwarded: not-needed
 ---
  spectrwm.1 | 4 ++--
  spectrwm.c | 6 +++---
