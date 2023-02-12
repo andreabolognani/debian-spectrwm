@@ -8,7 +8,9 @@ remaining spots.
 
 Spotted by Lintian.
 
-Forwarded: https://github.com/conformal/spectrwm/pull/520
+(cherry picked from commit be32ce19bb9c513d1cfdaee305e8fe8817d7e98b)
+
+Origin: https://github.com/conformal/spectrwm/commit/be32ce19bb9c513d1cfdaee305e8fe8817d7e98b
 ---
  spectrwm.1 | 6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)

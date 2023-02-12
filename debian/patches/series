@@ -1,3 +1,3 @@
-forward/Escape-backslashes-correctly-in-manual-page.patch
+backported/Escape-backslashes-correctly-in-manual-page.patch
 debian/Adapt-libswmhack.patch
 debian/Change-default-programs.patch
