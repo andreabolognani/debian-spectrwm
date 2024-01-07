@@ -44,10 +44,6 @@ Files: osx/osx.c
 Copyright: 2004 Ted Unangst and Todd Miller
 License: ISC
 
-Files: osx/queue.h
-Copyright: 1991,1993 The Regents of the University of California
-License: BSD-3-clause
-
 Files: debian/*
 Copyright: 2009-2023, Andrea Bolognani <eof@kiyuko.org>
 License: ISC
