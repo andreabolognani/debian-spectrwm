@@ -1,7 +1,5 @@
 #include <sys/types.h>
-#include <sys/cdefs.h>
 
-#include <errno.h>
 #include <errno.h>
 #include <limits.h>
 #include <stdio.h>
@@ -154,9 +152,7 @@ strlcat(char *dst, const char *src, size_t siz)
  */
 
 char *
-fgetln(fp, len)
-	FILE *fp;
-	size_t *len;
+fgetln(FILE *fp, size_t *len)
 {
 	static char *buf = NULL;
 	static size_t bufsiz = 0;
