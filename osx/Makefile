@@ -7,16 +7,16 @@ BUILDVERSION    = $(shell sh $(CURDIR)/../buildver.sh)
 
 # To use xquartz, uncomment the following three lines.
 INCFLAGS+= -I/opt/X11/include -I/opt/X11/include/freetype2/
-LDADD+=  -L/opt/X11/lib -lX11 -lXcursor -lXft
+LDADD+=  -L/opt/X11/lib -lX11 -lXcursor -lfontconfig -lXft
 
 # To use homebrew, uncomment the following three lines.
 #INCFLAGS+= -I/opt/X11/include
-#LDADD+=  -lX11 -lXcursor -lXft -L/opt/X11/lib
+#LDADD+=  -lX11 -lXcursor -lfontconfig -lXft -L/opt/X11/lib
 #INCFLAGS+= -I/usr/local/Cellar/freetype/2.5.0.1/include/freetype2
 
 # To use homebrew , comment out the following two lines.
 #INCFLAGS+= -I/opt/local/include/freetype2 -I/opt/local/include
-#LDADD+=  -L/opt/local/lib -lX11 -lXcursor -lXft
+#LDADD+=  -L/opt/local/lib -lX11 -lXcursor -lfontconfig -lXft
 
 LDADD+=  -lxcb-keysyms -lxcb-util -lxcb-randr -lX11-xcb -lxcb-xtest -lxcb -lxcb-icccm
 
@@ -37,7 +37,7 @@ spectrwm.c:
 	ln -sf ../linux/tree.h
 	ln -sf ../spectrwm.c
 	ln -sf ../version.h
-	ln -sf ../linux/pledge.h
+	ln -sf ../linux/queue_compat.h
 
 swm_hack.c:
 	ln -sf ../lib/swm_hack.c
@@ -65,6 +65,6 @@ install: all
 	ln -sf libswmhack.so.0.0 $(DESTDIR)$(LIBDIR)/libswmhack.so
 
 clean:
-	rm -f spectrwm *.o *.so libswmhack.so.* spectrwm.c swm_hack.c tree.h version.h pledge.h
+	rm -f spectrwm *.o *.so libswmhack.so.* spectrwm.c swm_hack.c tree.h version.h queue_compat.h
 
 .PHONY: all install clean
