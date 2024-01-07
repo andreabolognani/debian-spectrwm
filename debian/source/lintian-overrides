@@ -1,5 +1,0 @@
-# The file was generated from spectrwm.1 at some point in the distant
-# past, and hasn't been kept up to date. We don't include it in the
-# binary package, so this is not a problem for regular users or even
-# people rebuilding from source. There is no licensing concern.
-spectrwm source: source-is-missing [spectrwm.html]
