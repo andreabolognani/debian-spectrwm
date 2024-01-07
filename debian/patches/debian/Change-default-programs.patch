@@ -7,9 +7,10 @@ Debian, and xlock is not available at all.
 
 Forwarded: not-needed
 ---
- spectrwm.1 | 4 ++--
- spectrwm.c | 6 +++---
- 2 files changed, 5 insertions(+), 5 deletions(-)
+ spectrwm.1    | 4 ++--
+ spectrwm.c    | 6 +++---
+ spectrwm.conf | 4 ++--
+ 3 files changed, 7 insertions(+), 7 deletions(-)
 
 diff --git a/spectrwm.1 b/spectrwm.1
 index b3b1d22..a608fae 100644
@@ -45,3 +46,18 @@ index 607177f..ee4e2d2 100644
  
  	setconfspawn("menu", "dmenu_run $dmenu_bottom -fn $bar_font "
  	    "-nb $bar_color -nf $bar_font_color -sb $bar_color_selected "
+diff --git a/spectrwm.conf b/spectrwm.conf
+index 6543766..73b3d05 100644
+--- a/spectrwm.conf
++++ b/spectrwm.conf
+@@ -139,8 +139,8 @@
+ # PROGRAMS
+ 
+ # Validated default programs:
+-#program[lock]		= xlock
+-#program[term]		= xterm
++#program[lock]		= slock
++#program[term]		= x-terminal-emulator
+ #program[menu]		= dmenu_run $dmenu_bottom -fn $bar_font -nb $bar_color -nf $bar_font_color -sb $bar_color_selected -sf $bar_font_color_selected
+ #program[search]	= dmenu $dmenu_bottom -i -fn $bar_font -nb $bar_color -nf $bar_font_color -sb $bar_color_selected -sf $bar_font_color_selected
+ #program[name_workspace]	= dmenu $dmenu_bottom -p Workspace -fn $bar_font -nb $bar_color -nf $bar_font_color -sb $bar_color_selected -sf $bar_font_color_selected
