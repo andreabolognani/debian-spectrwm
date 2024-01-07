@@ -63,20 +63,26 @@
 #else
 #include <util.h>
 #endif
+#if defined(__NetBSD__)
+#include <inttypes.h>
+#endif
 #include <X11/cursorfont.h>
 #include <X11/extensions/Xrandr.h>
 #include <X11/Xcursor/Xcursor.h>
 #include <X11/Xft/Xft.h>
 #include <X11/Xlib-xcb.h>
+#if !defined(SWM_XCB_HAS_XINPUT) && (defined(__linux__) || defined(__FreeBSD__)	\
+    || defined(__OpenBSD__) || defined(__NetBSD__))
+#define SWM_XCB_HAS_XINPUT
+#endif
 #include <xcb/xcb.h>
 #include <xcb/xcb_atom.h>
 #include <xcb/xcb_aux.h>
 #include <xcb/xcb_event.h>
 #include <xcb/xcb_icccm.h>
 #include <xcb/xcb_keysyms.h>
-#if defined(__linux__) || defined(__FreeBSD__) || defined(__OpenBSD__)
+#ifdef SWM_XCB_HAS_XINPUT
 #include <xcb/xinput.h>
-#define SWM_XCB_HAS_XINPUT
 #endif
 #include <xcb/xtest.h>
 #include <xcb/randr.h>
@@ -675,6 +681,7 @@ struct ws_win {
 	struct swm_geometry	g_grav;		/* win-gravity reference. */
 	struct swm_geometry	g_float;	/* root coordinates */
 	struct swm_geometry	g_floatref;	/* reference coordinates */
+	bool			g_floatref_root;
 	bool			g_float_xy_valid;
 	uint8_t			gravity;
 	bool			mapped;
@@ -1444,6 +1451,7 @@ void	 binding_insert(uint16_t, enum binding_type, uint32_t, enum actionid,
 	     uint32_t, const char *);
 struct binding	*binding_lookup(uint16_t, enum binding_type, uint32_t);
 void	 binding_remove(struct binding *);
+static bool	 bounds_intersect(struct swm_geometry *, struct swm_geometry *);
 bool	 button_has_binding(uint32_t);
 void	 buttonpress(xcb_button_press_event_t *);
 void	 buttonrelease(xcb_button_release_event_t *);
@@ -1713,6 +1721,7 @@ void	 stack_master(struct workspace *, struct swm_geometry *, int, bool);
 static void	 update_layout(struct swm_screen *);
 void	 store_float_geom(struct ws_win *);
 char	*strdupsafe(const char *);
+static int32_t	 strtoint32(const char *, int32_t, int32_t, int *);
 void	 swapwin(struct swm_screen *, struct binding *, union arg *);
 void	 switch_workspace(struct swm_region *, struct workspace *, bool);
 void	 switchlayout(struct swm_screen *, struct binding *, union arg *);
@@ -3962,7 +3971,7 @@ bar_urgent(struct swm_screen *s, char *str, size_t sz)
 	struct workspace	*ws;
 	struct ws_win		*win;
 	bool			urgent;
-	char			b[8];
+	char			b[13];
 
 	RB_FOREACH(ws, workspace_tree, &s->workspaces) {
 		if (ws_root(ws))
@@ -3976,7 +3985,7 @@ bar_urgent(struct swm_screen *s, char *str, size_t sz)
 			}
 
 		if (urgent) {
-			snprintf(b, sizeof b, "%d ", ws->idx);
+			snprintf(b, sizeof b, "%d ", ws->idx + 1);
 			strlcat(str, b, sz);
 		} else if (!urgent_collapse)
 			strlcat(str, "- ", sz);
@@ -5188,7 +5197,7 @@ bar_setup(struct swm_region *r)
 
 	r->bar->r = r;
 	X(r->bar) = X(r) + bar_border_width;
-	Y(r->bar) = bar_at_bottom ? (Y(r) + HEIGHT(r) - bar_height -
+	Y(r->bar) = bar_at_bottom ? (Y(r) + HEIGHT(r) - bar_height +
 	    bar_border_width) : Y(r) + bar_border_width;
 	WIDTH(r->bar) = WIDTH(r) - 2 * bar_border_width;
 	HEIGHT(r->bar) = bar_height - 2 * bar_border_width;
@@ -7668,8 +7677,10 @@ store_float_geom(struct ws_win *win)
 	win->g_float.y -= win->g_grav.y;
 
 	r = (win_free(win) && win->s->r_focus) ? win->s->r_focus : win->ws->r;
-	if (r)
+	if (r) {
 		win->g_floatref = r->g;
+		win->g_floatref_root = false;
+	}
 
 	DNPRINTF(SWM_D_MISC, "win %#x, g_float: (%d,%d) %d x %d, "
 	    "g_floatref: (%d,%d) %d x %d\n", win->id, win->g_float.x,
@@ -7687,13 +7698,14 @@ load_float_geom(struct ws_win *win)
 	win->g.x += win->g_grav.x;
 	win->g.y += win->g_grav.y;
 
-	if (!win_free(win) && win->ws->r) {
+	if (!win_free(win) && win->ws->r && !win->g_floatref_root) {
 		/* Adjust position to current region. */
 		X(win) += X(win->ws->r) - win->g_floatref.x;
 		Y(win) += Y(win->ws->r) - win->g_floatref.y;
 	}
-	DNPRINTF(SWM_D_MISC, "win %#x, g: (%d,%d) %d x %d\n", win->id,
-	    X(win), Y(win), WIDTH(win), HEIGHT(win));
+	DNPRINTF(SWM_D_MISC, "win %#x, g: (%d,%d) %d x %d, ref_root:%d\n",
+	    win->id, X(win), Y(win), WIDTH(win), HEIGHT(win),
+	    win->g_floatref_root);
 }
 
 void
@@ -7701,7 +7713,7 @@ update_floater(struct ws_win *win)
 {
 	struct workspace	*ws;
 	struct swm_region	*r, *rf;
-	bool			bordered = true, constrained = false;
+	bool			bordered, fs;
 
 	DNPRINTF(SWM_D_MISC, "win %#x\n", WINID(win));
 
@@ -7721,18 +7733,18 @@ update_floater(struct ws_win *win)
 	} else
 		rf = r;
 
-	if (WINDOCK(win) || WINDESKTOP(win))
-		bordered = false;
+	bordered = !WINDOCK(win) && !WINDESKTOP(win);
 
 	if (FULLSCREEN(win)) {
 		/* _NET_WM_FULLSCREEN: fullscreen without border. */
 		win->g = rf->g;
-		bordered = false;
-		constrained = true;
+		if (win->bordered) {
+			win->bordered = false;
+			update_gravity(win);
+		}
 	} else if (MAXIMIZED(win)) {
 		/* Maximize: like a single stacked window. */
 		win->g = rf->g_usable;
-		constrained = true;
 
 		if (bar_enabled && ws->bar_enabled && !maximize_hide_bar) {
 			if (!bar_at_bottom)
@@ -7742,9 +7754,8 @@ update_floater(struct ws_win *win)
 			bordered = false;
 		}
 
-		if (disable_border_always) {
+		if (disable_border_always)
 			bordered = false;
-		}
 
 		if (bordered) {
 			/* Window geometry excludes frame. */
@@ -7753,26 +7764,39 @@ update_floater(struct ws_win *win)
 			HEIGHT(win) -= 2 * border_width;
 			WIDTH(win) -= 2 * border_width;
 		}
+
+		if (win->bordered != bordered) {
+			win->bordered = bordered;
+			update_gravity(win);
+		}
 	} else {
 		/* Normal floating window. */
-		/* Update geometry if new region. */
 		if (rf != ws->old_r || ws_floating(ws) ||
 		    win->quirks & SWM_Q_ANYWHERE)
 			load_float_geom(win);
 
-		if (((win->quirks & SWM_Q_FULLSCREEN) &&
-		    WIDTH(win) >= WIDTH(rf) && HEIGHT(win) >= HEIGHT(rf)) ||
-		    ((!ws_focused(win->ws) || win->ws->focus != win) &&
-		    (win->quirks & SWM_Q_MINIMALBORDER))) {
-			/* Remove border */
+		fs = ((win->quirks & SWM_Q_FULLSCREEN) &&
+		    WIDTH(win) >= WIDTH(rf) && HEIGHT(win) >= HEIGHT(rf));
+		if (fs || ((!ws_focused(win->ws) || win->ws->focus != win) &&
+		    (win->quirks & SWM_Q_MINIMALBORDER)))
 			bordered = false;
-		} else if (!MANUAL(win) && !win->g_float_xy_valid) {
+
+		if (win->bordered != bordered) {
+			win->bordered = bordered;
+			update_gravity(win);
+			load_float_geom(win);
+		}
+
+		/* Invalidate client position if out of region. */
+		if (win->g_float_xy_valid && !bounds_intersect(&win->g, &r->g))
+			win->g_float_xy_valid = false;
+
+		if (!fs && !MANUAL(win) && !win->g_float_xy_valid) {
 			if (win_transient(win) &&
 			    (win->quirks & SWM_Q_TRANSSZ)) {
 				/* Adjust size on TRANSSZ quirk. */
 				WIDTH(win) = (double)WIDTH(rf) * dialog_ratio;
 				HEIGHT(win) = (double)HEIGHT(rf) * dialog_ratio;
-				constrained = true;
 			}
 
 			if (!(win->quirks & SWM_Q_ANYWHERE) && !WINDOCK(win)
@@ -7786,22 +7810,12 @@ update_floater(struct ws_win *win)
 				Y(win) = Y(rf) + (HEIGHT(rf) - HEIGHT(win)) / 2;
 
 				store_float_geom(win);
-				constrained = true;
 			}
 		}
 	}
 
-	if (win->bordered != bordered) {
-		win->bordered = bordered;
-		/* Recalculate gravity since border changed. */
-		update_gravity(win);
-		if (!constrained)
-			load_float_geom(win);
-	}
-
 	/* Ensure at least 1 pixel of the window is in the region. */
 	contain_window(win, r->g, boundary_width, SWM_CW_ALLSIDES);
-
 	update_window(win);
 }
 
@@ -8673,11 +8687,11 @@ iconify(struct swm_screen *s, struct binding *bp, union arg *args)
 	if (win == NULL)
 		return;
 
+	nfw = get_focus_other(win);
 	unfocus_win(win);
 	ewmh_apply_flags(win, win->ewmh_flags | EWMH_F_HIDDEN);
 	ewmh_update_wm_state(win);
 
-	nfw = get_focus_other(win);
 	if (nfw == NULL && win_free(win)) {
 		if ((r = get_current_region(s)) == NULL)
 			return;
@@ -8725,7 +8739,7 @@ get_win_name(xcb_window_t win)
 		name = strdup("");
 
 	if (name == NULL)
-		err(1, "get_win_name: failed to allocate memory.");
+		err(1, "get_win_name: strdup");
 
 	free(r);
 
@@ -9323,8 +9337,7 @@ search_resp_search_workspace(const char *resp)
 {
 	struct workspace	*ws;
 	char			*p, *q;
-	int			ws_idx;
-	const char		*errstr;
+	int			ws_idx, fail;
 
 	DNPRINTF(SWM_D_MISC, "resp: %s\n", resp);
 
@@ -9336,9 +9349,9 @@ search_resp_search_workspace(const char *resp)
 	p = strchr(q, ':');
 	if (p != NULL)
 		*p = '\0';
-	ws_idx = (int)strtonum(q, 1, workspace_limit, &errstr) - 1;
-	if (errstr) {
-		DNPRINTF(SWM_D_MISC, "workspace idx is %s: %s", errstr, q);
+	ws_idx = strtoint32(q, 1, workspace_limit, &fail) - 1;
+	if (fail) {
+		DNPRINTF(SWM_D_MISC, "integer conversion failed for %s\n", q);
 		free(q);
 		return;
 	}
@@ -9353,8 +9366,7 @@ void
 search_resp_search_window(const char *resp)
 {
 	char			*s, *p;
-	int			idx;
-	const char		*errstr;
+	int			idx, fail;
 	struct search_window	*sw;
 
 	DNPRINTF(SWM_D_MISC, "resp: %s\n", resp);
@@ -9367,9 +9379,9 @@ search_resp_search_window(const char *resp)
 	p = strchr(s, ':');
 	if (p != NULL)
 		*p = '\0';
-	idx = (int)strtonum(s, 1, INT_MAX, &errstr);
-	if (errstr) {
-		DNPRINTF(SWM_D_MISC, "window idx is %s: %s", errstr, s);
+	idx = strtoint32(s, 1, INT_MAX, &fail);
+	if (fail) {
+		DNPRINTF(SWM_D_MISC, "integer conversion failed for %s\n", s);
 		free(s);
 		return;
 	}
@@ -9575,6 +9587,7 @@ free_toggle(struct swm_screen *s, struct binding *bp, union arg *args)
 			win->g_float.x -= win->g_grav.x;
 			win->g_float.y -= win->g_grav.y;
 			win->g_floatref = nws->r->g;
+			win->g_floatref_root = false;
 		}
 	}
 
@@ -9765,6 +9778,13 @@ below_toggle(struct swm_screen *s, struct binding *bp, union arg *args)
 	center_pointer(win->ws->r);
 	flush();
 	DNPRINTF(SWM_D_MISC, "done\n");
+}
+
+static bool
+bounds_intersect(struct swm_geometry *b1, struct swm_geometry *b2)
+{
+	return (!(b1->x + b1->w < b2->x || b1->x > b2->x + b2->w ||
+	    b1->y + b1->h < b2->y || b1->y > b2->y + b2->h));
 }
 
 struct swm_geometry
@@ -10403,6 +10423,7 @@ regionize(struct ws_win *win, int x, int y)
 		win->g_float.x -= win->g_grav.x;
 		win->g_float.y -= win->g_grav.y;
 		win->g_floatref = r->g;
+		win->g_floatref_root = false;
 
 		if (!ws_floating(r->ws))
 			win->ewmh_flags |= EWMH_F_ABOVE;
@@ -10441,6 +10462,7 @@ unsnap_win(struct ws_win *win, bool inplace)
 		win->g_float.x -= win->g_grav.x;
 		win->g_float.y -= win->g_grav.y;
 		win->g_floatref = get_boundary(win);
+		win->g_floatref_root = false;
 	}
 
 	newf = (win->ewmh_flags | SWM_F_MANUAL) & ~EWMH_F_MAXIMIZED;
@@ -12046,6 +12068,7 @@ get_input_event_label(xcb_ge_generic_event_t *ev)
 
 	return (label);
 }
+#endif /* SWM_XCB_HAS_XINPUT */
 
 #if defined(SWM_XCB_HAS_XINPUT) && defined(XCB_INPUT_RAW_BUTTON_PRESS)
 void
@@ -13147,13 +13170,14 @@ setconfcolorlist(const char *selector, const char *value, int flags, char **emsg
 	switch (flags) {
 	case SWM_S_COLOR_BAR:
 	case SWM_S_COLOR_BAR_UNFOCUS:
+	case SWM_S_COLOR_BAR_FREE:
 		/* Set list of background colors */
 		if ((sp = str = strdup(value)) == NULL)
 			err(1, "setconfvalue: strdup");
 
 		num_bg_colors = 0;
 		while ((b = strsep(&sp, SWM_CONF_DELIMLIST)) != NULL) {
-			while (isblank(*b)) b++;
+			while (isblank((unsigned char)*b)) b++;
 			if (*b == '\0')
 				continue;
 			setconfcolor(selector, b, flags + num_bg_colors, emsg);
@@ -13165,13 +13189,14 @@ setconfcolorlist(const char *selector, const char *value, int flags, char **emsg
 		break;
 	case SWM_S_COLOR_BAR_FONT:
 	case SWM_S_COLOR_BAR_FONT_UNFOCUS:
+	case SWM_S_COLOR_BAR_FONT_FREE:
 		/* Set list of foreground colors */
 		if ((sp = str = strdup(value)) == NULL)
 			err(1, "setconfvalue: strdup");
 
 		num_fg_colors = 0;
 		while ((b = strsep(&sp, SWM_CONF_DELIMLIST)) != NULL) {
-			while (isblank(*b)) b++;
+			while (isblank((unsigned char)*b)) b++;
 			if (*b == '\0')
 				continue;
 			setconfcolor(selector, b, flags + num_fg_colors, emsg);
@@ -13273,8 +13298,9 @@ setautorun(const char *selector, const char *value, int flags, char **emsg)
 		return (1);
 	}
 	value += n;
-	ws_id--;
-	if (ws_id < 0 || ws_id >= workspace_limit) {
+	if (ws_id > 0)
+		ws_id--;
+	if (ws_id < -1 || ws_id >= workspace_limit) {
 		ALLOCSTR(emsg, "invalid workspace: %d", ws_id + 1);
 		return (1);
 	}
@@ -13662,7 +13688,7 @@ conf_load(const char *filename, int keymapping)
 		}
 		/* trim trailing spaces */
 		ce = optval + strlen(optval) - 1;
-		while (ce > optval && isspace(*ce))
+		while (ce > optval && isspace((unsigned char)*ce))
 			--ce;
 		*(ce + 1) = '\0';
 		/* call function to deal with it all */
@@ -13687,85 +13713,69 @@ conf_load(const char *filename, int keymapping)
 	return (0);
 }
 
+static int32_t
+strtoint32(const char *str, int32_t min, int32_t max, int *fail)
+{
+	int32_t		ret;
+#if defined(__NetBSD__)
+	int		e;
+
+	ret = strtoi(str, NULL, 10, min, max, &e);
+	*fail = (e != 0);
+#else
+	const char	*errstr;
+
+	ret = strtonum(str, min, max, &errstr);
+	*fail = (errstr != NULL);
+#endif
+	return (ret);
+}
+
 pid_t
 window_get_pid(xcb_window_t win)
 {
 	pid_t				ret = 0;
-	const char			*errstr;
-	xcb_get_property_cookie_t	pc;
+	int				fail;
 	xcb_get_property_reply_t	*pr;
 
-	pc = xcb_get_property(conn, 0, win, a_net_wm_pid,
-	    XCB_ATOM_CARDINAL, 0, 1);
-	pr = xcb_get_property_reply(conn, pc, NULL);
-	if (pr == NULL)
-		goto tryharder;
-	if (pr->type != XCB_ATOM_CARDINAL) {
-		free(pr);
-		goto tryharder;
-	}
-
-	if (pr->type == a_net_wm_pid && pr->format == 32)
+	pr = xcb_get_property_reply(conn, xcb_get_property(conn, 0, win,
+	    a_net_wm_pid, XCB_ATOM_CARDINAL, 0, 1), NULL);
+	if (pr && pr->type == XCB_ATOM_CARDINAL && pr->format == 32)
 		ret = *((pid_t *)xcb_get_property_value(pr));
-	free(pr);
-
-	return (ret);
-
-tryharder:
-	pc = xcb_get_property(conn, 0, win, a_swm_pid, XCB_ATOM_STRING,
-	    0, SWM_PROPLEN);
-	pr = xcb_get_property_reply(conn, pc, NULL);
-	if (pr == NULL)
-		return (0);
-	if (pr->type != a_swm_pid) {
+	else { /* tryharder */
 		free(pr);
-		return (0);
+		pr = xcb_get_property_reply(conn, xcb_get_property(conn, 0, win,
+		    a_swm_pid, XCB_ATOM_STRING, 0, SWM_PROPLEN), NULL);
+		if (pr && pr->type == XCB_ATOM_STRING && pr->format == 8) {
+			ret = (pid_t)strtoint32(xcb_get_property_value(pr), 0,
+			    INT32_MAX, &fail);
+			if (fail)
+				ret = 0;
+		}
 	}
-
-	ret = (pid_t)strtonum(xcb_get_property_value(pr), 0, INT_MAX, &errstr);
 	free(pr);
 
+	DNPRINTF(SWM_D_PROP, "pid: %d\n", ret);
 	return (ret);
 }
 
 int
 get_swm_ws(xcb_window_t id)
 {
-	int			ws_idx = -2;
-	char			*prop = NULL;
-	size_t			proplen;
-	const char		*errstr;
+	int				ws_idx = -2, fail;
 	xcb_get_property_reply_t	*gpr;
 
-	gpr = xcb_get_property_reply(conn,
-		xcb_get_property(conn, 0, id, a_swm_ws,
-		    XCB_ATOM_STRING, 0, SWM_PROPLEN),
-		NULL);
-	if (gpr == NULL)
-		return (-1);
-	if (gpr->type) {
-		proplen = xcb_get_property_value_length(gpr);
-		if (proplen > 0) {
-			prop = malloc(proplen + 1);
-			if (prop) {
-				memcpy(prop,
-				    xcb_get_property_value(gpr),
-				    proplen);
-				prop[proplen] = '\0';
-			}
-		}
+	gpr = xcb_get_property_reply(conn, xcb_get_property(conn, 0, id,
+	    a_swm_ws, XCB_ATOM_STRING, 0, SWM_PROPLEN), NULL);
+	if (gpr && gpr->type == XCB_ATOM_STRING && gpr->format == 8) {
+		ws_idx = strtoint32(xcb_get_property_value(gpr), -1,
+		    workspace_limit - 1, &fail);
+		if (fail)
+			ws_idx = -2;
 	}
 	free(gpr);
 
-	if (prop) {
-		DNPRINTF(SWM_D_PROP, "_SWM_WS: %s\n", prop);
-		ws_idx = (int)strtonum(prop, -1, workspace_limit - 1, &errstr);
-		if (errstr) {
-			DNPRINTF(SWM_D_PROP, "win #%s: %s", errstr, prop);
-		}
-		free(prop);
-	}
-
+	DNPRINTF(SWM_D_PROP, "_SWM_WS: %d\n", ws_idx);
 	return (ws_idx);
 }
 
@@ -13781,14 +13791,12 @@ get_ws_id(struct ws_win *win)
 
 	gpr = xcb_get_property_reply(conn, xcb_get_property(conn, 0, win->id,
 	    ewmh[_NET_WM_DESKTOP].atom, XCB_ATOM_CARDINAL, 0, 1), NULL);
-	if (gpr) {
-		if (gpr->type == XCB_ATOM_CARDINAL && gpr->format == 32) {
-			val = *((uint32_t *)xcb_get_property_value(gpr));
-			DNPRINTF(SWM_D_PROP, "get _NET_WM_DESKTOP: %#x\n", val);
-			wsid = (val == EWMH_ALL_DESKTOPS ? -1 : (int)val);
-		}
-		free(gpr);
+	if (gpr && gpr->type == XCB_ATOM_CARDINAL && gpr->format == 32) {
+		val = *((uint32_t *)xcb_get_property_value(gpr));
+		DNPRINTF(SWM_D_PROP, "get _NET_WM_DESKTOP: %#x\n", val);
+		wsid = (val == EWMH_ALL_DESKTOPS ? -1 : (int)val);
 	}
+	free(gpr);
 
 	if (wsid == -2 && !(win->quirks & SWM_Q_IGNORESPAWNWS))
 		wsid = get_swm_ws(win->id);
@@ -13965,6 +13973,7 @@ manage_window(xcb_window_t id, int spawn_pos, bool mapping)
 	X(win) = gr->x + gr->border_width;
 	Y(win) = gr->y + gr->border_width;
 	win->g_float = win->g; /* Window is initially floating. */
+	win->g_floatref_root = true;
 	win->g_float_xy_valid = false;
 	win->bordered = false;
 	win->maxstackmax = max_layout_maximize;
@@ -13976,9 +13985,6 @@ manage_window(xcb_window_t id, int spawn_pos, bool mapping)
 	win->parent = NULL;
 
 	free(gr);
-
-	TAILQ_INSERT_TAIL(&s->managed, win, manage_entry);
-	s->managed_count++;
 
 	/* Select which X events to monitor and set border pixel color. */
 	wa[0] = XCB_EVENT_MASK_ENTER_WINDOW | XCB_EVENT_MASK_PROPERTY_CHANGE |
@@ -14043,7 +14049,7 @@ manage_window(xcb_window_t id, int spawn_pos, bool mapping)
 			    "mask: %#x, ws: %d\n", qp->class, qp->instance,
 			    qp->name, qp->quirk, qp->ws);
 			win->quirks = qp->quirk;
-			if (qp->ws >= 0 && qp->ws < workspace_limit)
+			if (qp->ws >= -1 && qp->ws < workspace_limit)
 				force_ws = qp->ws;
 		}
 	}
@@ -14081,6 +14087,10 @@ manage_window(xcb_window_t id, int spawn_pos, bool mapping)
 	if (win->ws == NULL)
 		win->ws = s->r->ws; /* Failsafe. */
 
+	/* WS must be valid before adding to managed list. */
+	TAILQ_INSERT_TAIL(&s->managed, win, manage_entry);
+	s->managed_count++;
+
 	/* Set the _NET_WM_DESKTOP atom. */
 	DNPRINTF(SWM_D_PROP, "set _NET_WM_DESKTOP: %d\n", win->ws->idx);
 	xcb_change_property(conn, XCB_PROP_MODE_REPLACE, win->id,
@@ -14096,10 +14106,11 @@ manage_window(xcb_window_t id, int spawn_pos, bool mapping)
 		win->g_float_xy_valid = true;
 
 	if (win->ws->r) {
-		/* On MapRequest, region is the reference instead of root. */
-		if (mapping)
+		/* On MapRequest, update the reference point. */
+		if (mapping) {
 			win->g_floatref = win->ws->r->g;
-
+			win->g_floatref_root = false;
+		}
 		/* Make sure window has at least 1px inside its region. */
 		contain_window(win, get_boundary(win), boundary_width,
 		    SWM_CW_ALLSIDES | SWM_CW_HARDBOUNDARY);
@@ -14154,6 +14165,9 @@ manage_window(xcb_window_t id, int spawn_pos, bool mapping)
 
 	if (win->quirks & SWM_Q_ANYWHERE)
 		new_flags |= SWM_F_MANUAL;
+
+	if (win->maxstackmax && ws_maxstack(win->ws))
+		new_flags |= EWMH_F_MAXIMIZED;
 
 	ewmh_apply_flags(win, new_flags);
 	ewmh_update_wm_state(win);
@@ -14835,8 +14849,10 @@ configurerequest(xcb_configure_request_event_t *e)
 			r = win->ws->old_r;
 
 		/* Assume position is in reference to latest region. */
-		if (r)
+		if (r) {
 			win->g_floatref = r->g;
+			win->g_floatref_root = false;
+		}
 
 		if (e->value_mask & XCB_CONFIG_WINDOW_X) {
 			win->g_float.x = e->x;
@@ -15226,7 +15242,6 @@ get_mapping_notify_label(uint8_t request)
 
 	return (label);
 }
-#endif
 
 void
 mappingnotify(xcb_mapping_notify_event_t *e)
@@ -15385,6 +15400,9 @@ maprequest(xcb_map_request_event_t *e)
 			setfocus = true;
 	}
 
+	if (ewmh_apply_flags(win, win->ewmh_flags & ~EWMH_F_HIDDEN))
+		ewmh_update_wm_state(win);
+
 	if (setfocus) {
 		set_focus(s, get_focus_magic(win));
 		draw_frame(get_ws_focus_prev(ws));
@@ -15474,7 +15492,7 @@ propertynotify(xcb_property_notify_event_t *e)
 
 	if (e->atom == XCB_ATOM_WM_CLASS ||
 	    e->atom == XCB_ATOM_WM_NAME) {
-		if (win->ws && win->ws->r)
+		if (win->ws->r)
 			bar_draw(win->ws->r->bar);
 	} else if (e->atom == XCB_ATOM_WM_HINTS) {
 		get_wm_hints(win);
@@ -15772,11 +15790,13 @@ clientmessage(xcb_client_message_event_t *e)
 			ewmh_change_wm_state(win, e->data.data32[2],
 			    e->data.data32[0]);
 
+		if (s->focus == win && HIDDEN(win))
+			set_focus(s, get_focus_other(win));
+
 		if (ws_maxstack(win->ws) && origmax != MAXIMIZED(win))
 			win->maxstackmax = MAXIMIZED(win);
 
 		ewmh_update_wm_state(win);
-		/* TODO need to adjust position in stack. */
 		update_win_layer_related(win);
 		refresh_stack(s);
 		update_stacking(s);
@@ -15823,6 +15843,8 @@ clientmessage(xcb_client_message_event_t *e)
 			ewmh_apply_flags(win, win->ewmh_flags | EWMH_F_HIDDEN);
 			ewmh_update_wm_state(win);
 			update_stacking(s);
+			if (s->focus == win)
+				set_focus(s, get_focus_other(win));
 			if (refresh_strut(s))
 				update_layout(s);
 			else
@@ -16636,7 +16658,7 @@ setup_extensions(void)
 			free(xiqvr);
 		}
 	}
-#endif
+#endif /* SWM_XCB_HAS_XINPUT */
 }
 
 void
