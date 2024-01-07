@@ -16,7 +16,7 @@ Bug: https://github.com/conformal/spectrwm/pull/63
  1 file changed, 12 insertions(+)
 
 diff --git a/lib/swm_hack.c b/lib/swm_hack.c
-index 5b4c690..a9472c1 100644
+index b0c851c..03e7dfc 100644
 --- a/lib/swm_hack.c
 +++ b/lib/swm_hack.c
 @@ -79,6 +79,8 @@ get_atom_from_string(Display *dpy, char *name)
@@ -46,7 +46,7 @@ index 5b4c690..a9472c1 100644
  	if (lib_xlib && func == NULL)
  		func = (ODF *) dlsym(lib_xlib, "XOpenDisplay");
  	if (func == NULL) {
-@@ -167,6 +173,8 @@ XCreateWindow(Display *dpy, Window parent, int x, int y, unsigned int width,
+@@ -168,6 +174,8 @@ XCreateWindow(Display *dpy, Window parent, int x, int y, unsigned int width,
  
  	if (lib_xlib == NULL)
  		lib_xlib = DLOPEN("libX11.so");
@@ -55,7 +55,7 @@ index 5b4c690..a9472c1 100644
  	if (lib_xlib && func == NULL)
  		func = (CWF *) dlsym(lib_xlib, "XCreateWindow");
  	if (func == NULL) {
-@@ -206,6 +214,8 @@ XCreateSimpleWindow(Display *dpy, Window parent, int x, int y,
+@@ -207,6 +215,8 @@ XCreateSimpleWindow(Display *dpy, Window parent, int x, int y,
  
  	if (lib_xlib == NULL)
  		lib_xlib = DLOPEN("libX11.so");
@@ -64,7 +64,7 @@ index 5b4c690..a9472c1 100644
  	if (lib_xlib && func == NULL)
  		func = (CSWF *) dlsym(lib_xlib, "XCreateSimpleWindow");
  	if (func == NULL) {
-@@ -245,6 +255,8 @@ XtAppNextEvent(XtAppContext app_context, XEvent *event_return)
+@@ -246,6 +256,8 @@ XtAppNextEvent(XtAppContext app_context, XEvent *event_return)
  
  	if (lib_xtlib == NULL)
  		lib_xtlib = DLOPEN("libXt.so");

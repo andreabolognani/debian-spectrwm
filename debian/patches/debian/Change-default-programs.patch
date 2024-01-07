@@ -12,10 +12,10 @@ Forwarded: not-needed
  2 files changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/spectrwm.1 b/spectrwm.1
-index 6b758ec..71af7b2 100644
+index b3b1d22..a608fae 100644
 --- a/spectrwm.1
 +++ b/spectrwm.1
-@@ -736,9 +736,9 @@ bind[] = MOD+Shift+b
+@@ -1098,9 +1098,9 @@ bind[] = MOD+Shift+b
  Default programs:
  .Bl -tag -width "screenshot_wind" -offset indent -compact
  .It Cm term
@@ -28,10 +28,10 @@ index 6b758ec..71af7b2 100644
  dmenu_run $dmenu_bottom \-fn $bar_font \-nb $bar_color \-nf $bar_font_color
  \-sb $bar_color_selected \-sf $bar_font_color_selected
 diff --git a/spectrwm.c b/spectrwm.c
-index 72b67ad..1549d3a 100644
+index 607177f..ee4e2d2 100644
 --- a/spectrwm.c
 +++ b/spectrwm.c
-@@ -8914,10 +8914,10 @@ validate_spawns(void)
+@@ -11320,10 +11320,10 @@ validate_spawns(void)
  void
  setup_spawn(void)
  {
