@@ -1,0 +1,53 @@
+From: Andrea Bolognani <eof@kiyuko.org>
+Date: Sat, 10 Feb 2024 16:19:24 +0100
+Subject: Update documentation
+
+Document the Debian-specific defaults and paths instead of the
+upstream ones.
+
+Forwarded: not-needed
+---
+ spectrwm.1    | 6 +++---
+ spectrwm.conf | 4 ++--
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/spectrwm.1 b/spectrwm.1
+index b3b1d22..7538b97 100644
+--- a/spectrwm.1
++++ b/spectrwm.1
+@@ -1098,9 +1098,9 @@ bind[] = MOD+Shift+b
+ Default programs:
+ .Bl -tag -width "screenshot_wind" -offset indent -compact
+ .It Cm term
+-xterm
++x\-terminal\-emulator
+ .It Cm lock
+-xlock
++slock
+ .It Cm menu
+ dmenu_run $dmenu_bottom \-fn $bar_font \-nb $bar_color \-nf $bar_font_color
+ \-sb $bar_color_selected \-sf $bar_font_color_selected
+@@ -1990,7 +1990,7 @@ via
+ .Pa LD_PRELOAD
+ must be specified.
+ .Bd -literal -offset indent
+-LD_PRELOAD=/usr/lib/libswmhack.so.0.0 urxvtd -q -o -f
++LD_PRELOAD=/usr/lib/spectrwm/libswmhack.so.0.0 urxvtd -q -o -f
+ .Ed
+ .Pp
+ Note that some operating systems may ignore
+diff --git a/spectrwm.conf b/spectrwm.conf
+index 6543766..73b3d05 100644
+--- a/spectrwm.conf
++++ b/spectrwm.conf
+@@ -139,8 +139,8 @@
+ # PROGRAMS
+ 
+ # Validated default programs:
+-#program[lock]		= xlock
+-#program[term]		= xterm
++#program[lock]		= slock
++#program[term]		= x-terminal-emulator
+ #program[menu]		= dmenu_run $dmenu_bottom -fn $bar_font -nb $bar_color -nf $bar_font_color -sb $bar_color_selected -sf $bar_font_color_selected
+ #program[search]	= dmenu $dmenu_bottom -i -fn $bar_font -nb $bar_color -nf $bar_font_color -sb $bar_color_selected -sf $bar_font_color_selected
+ #program[name_workspace]	= dmenu $dmenu_bottom -p Workspace -fn $bar_font -nb $bar_color -nf $bar_font_color -sb $bar_color_selected -sf $bar_font_color_selected

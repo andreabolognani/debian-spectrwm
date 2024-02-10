@@ -1,2 +1,3 @@
 debian/Adapt-libswmhack.patch
 debian/Change-default-programs.patch
+debian/Update-documentation.patch
