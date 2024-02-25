@@ -29,6 +29,9 @@ override_dh_auto_install:
 	dh_auto_install --sourcedir=$(SOURCEDIR) --destdir=$(DESTDIR)
 	mv $(DESTDIR)/usr/share/doc/spectrwm/CHANGELOG.md \
 	   $(DESTDIR)/usr/share/doc/spectrwm/NEWS
+	mkdir -p $(DESTDIR)/usr/share/xdg-desktop-portal/
+	cp debian/spectrwm-portals.conf \
+	   $(DESTDIR)/usr/share/xdg-desktop-portal/
 
 override_dh_auto_clean:
 	dh_auto_clean --sourcedir=$(SOURCEDIR)
