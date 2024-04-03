@@ -28,7 +28,6 @@ Architecture: any
 Provides: x-window-manager
 Depends: suckless-tools,
          xterm | x-terminal-emulator,
-         libxt6,
          ${shlibs:Depends},
          ${misc:Depends}
 Recommends: xfonts-terminus
