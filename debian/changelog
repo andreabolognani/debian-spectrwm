@@ -1,3 +1,27 @@
+spectrwm (3.5.1-2) unstable; urgency=medium
+
+  * Interoperability
+    + Integrate with xdg-desktop-portal
+      - The GTK portal will be used by default
+      - Closes: #1051018 (spectrwm: please set XDG_CURRENT_DESKTOP
+        and use it to configure xdg-desktop-portal)
+
+  * Package relationships
+    + Drop Depends on libxt6
+      - We don't link to it directly, and libswmhack only tries
+        to load it when running an application that already links
+        against (and thus by definition Depends on) the library
+      - In addition to being unnecessary, the hardcoded dependency
+        was getting in the way of the 64-bit time_t transition
+      - Closes: #1068203 (spectrwm: hard-coded dependency on
+        pre-t64 library)
+
+  * Standards-Version
+    + Update to 4.7.0
+      - No changes needed
+
+ -- Andrea Bolognani <eof@kiyuko.org>  Sun, 21 Apr 2024 12:43:55 +0200
+
 spectrwm (3.5.1-1) unstable; urgency=medium
 
   * New upstream release
