@@ -2,8 +2,8 @@ From: Andrea Bolognani <eof@kiyuko.org>
 Date: Tue, 24 Mar 2009 15:57:12 +0100
 Subject: Change default programs
 
-x-terminal-emulator is the best default for a terminal emulator on
-Debian, and xlock is not available at all.
+x-terminal-emulator is the best default for a terminal
+emulator on Debian, and xlock is not available at all.
 
 Forwarded: not-needed
 ---
@@ -11,20 +11,20 @@ Forwarded: not-needed
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/spectrwm.c b/spectrwm.c
-index 607177f..ee4e2d2 100644
+index 0737202..63c5ab3 100644
 --- a/spectrwm.c
 +++ b/spectrwm.c
-@@ -11320,10 +11320,10 @@ validate_spawns(void)
- void
+@@ -11796,10 +11796,10 @@ validate_spawns(void)
+ static void
  setup_spawn(void)
  {
--	setconfspawn("lock", "xlock", 0, NULL);
-+	setconfspawn("lock", "slock", 0, NULL);
+-	setconfspawn(SWM_ASOP_BASIC, "lock", "xlock", 0, NULL);
+-	setconfspawn(SWM_ASOP_BASIC, "term", "xterm", 0, NULL);
++	setconfspawn(SWM_ASOP_BASIC, "lock", "slock", 0, NULL);
++	setconfspawn(SWM_ASOP_BASIC, "term", "x-terminal-emulator", 0, NULL);
+ 	setconfspawnflags(SWM_ASOP_BASIC, "term", "xterm_fontadj", 0, NULL);
+-	setconfspawn(SWM_ASOP_BASIC, "spawn_term", "xterm", 0, NULL);
++	setconfspawn(SWM_ASOP_BASIC, "spawn_term", "x-terminal-emulator", 0, NULL);
+ 	setconfspawnflags(SWM_ASOP_BASIC, "spawn_term", "xterm_fontadj", 0,
+ 	    NULL);
  
--	setconfspawn("term", "xterm", 0, NULL);
--	setconfspawn("spawn_term", "xterm", 0, NULL);
-+	setconfspawn("term", "x-terminal-emulator", 0, NULL);
-+	setconfspawn("spawn_term", "x-terminal-emulator", 0, NULL);
- 
- 	setconfspawn("menu", "dmenu_run $dmenu_bottom -fn $bar_font "
- 	    "-nb $bar_color -nf $bar_font_color -sb $bar_color_selected "
