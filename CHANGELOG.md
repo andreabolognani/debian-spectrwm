@@ -1,5 +1,64 @@
+spectrwm 3.6.0
+==============
+
+Released on Jun 10, 2024
+
+Adds some new features, removes limits and fixes bugs.
+
+* Improve `focus_mode` to support customization of specific focus situations.
+* Improve quirks.
+  - Add support for `+=` and `-=` assignment operators for quirk assignment.
+  - Add new optional window type field to quirks.
+  - Add `BELOW` quirk.
+  - Add `ICONIFY` quirk.
+  - Add `MAXIMIZE` quirk.
+* Add new `spawn_flags` option to adjust program spawn entry settings.
+* Add new `layout_order` option to customize the layout sequence used by the
+  `cycle_layout` action.
+* Improve bar font handling.
+  - Remove the `bar_font` limit of 10 fonts when using Xft.
+  - Extend `bar_format` markup sequences to support font indexes above 9.
+* Improve bar color handling.
+  - Remove the 10 color limit on options that accept a color list.
+  - Extend `bar_format` markup sequences to support color indexes above 9.
+  - Add support for the `+=` operator with options that accept a color list.
+  - Fix handling of normal/unfocus/free bar colors with different counts.
+  - Fix bar colors should be per X screen.
+* Improve urgent window handling.
+  - Add `color_urgent*` options to change the border colors of urgent windows.
+  - Fix `focus_urgent` search issue.
+* Improve EWMH handling.
+  - Add special handling of `_NET_WM_WINDOW_TYPE_NOTIFICATION` windows.
+  - Fix `warp_pointer` should not apply to `_NET_WM_MOVERESIZE`.
+  - Fix `_NET_ACTIVE_WINDOW` request handling.
+  - Fix `_NET_DESKTOP_VIEWPORTS`.
+  - Fix EWMH `_NET_WM_DESKTOP` requests should not bypass `workspace_limit`.
+* Improve libswmhack.so.
+  - Add XCB support.
+  - Remove unneeded compile time linking with libX11.
+  - Improve symbol lookup.
+* Add new `bar_workspace_limit` option to limit the workspaces shown in the
+  workspace (`+L`) and urgency hint (`+U`) indicators.
+* Fix flipped vertical/horizontal layout positioning issue.
+* Fix segfault when setting the `layout` option to `floating`.
+* Fix window mapping issue when swapping a maximized window.
+* Fix `swap_main` issue.
+* Fix listing of empty workspaces in `bar_format` `+U` and `+L`.
+* Fix escape handling of `+` in `bar_action` script output.
+* Fix possible bar redraw delays.
+* Fix some leaks and a possible crash.
+* Fix building against XCB with RandR < 1.6.
+* Improve RandR checks.
+* Remove Xlib RandR dependency.
+* Remove BSD function ports for Linux and depend on `libbsd` instead.
+* Improve included `spectrwm.desktop` and move it to the main directory.
+* Improve man page.
+* Improve CHANGELOG and README.
+
+
 spectrwm 3.5.1
 ==============
+
 Released on Nov 25, 2023
 
 Fixes NetBSD support and a few minor issues.
@@ -50,8 +109,8 @@ color support, tons of fixes, and more!
   - Add *demands attention* support to urgency features to include windows that
     request focus but are denied.
   - Add support for *below* state to keep windows stacked below others.
-  - Improve _NET_ACTIVE_WINDOW handling.
-  - Fix _NET_DESKTOP_VIEWPORT should update on workspace and region changes.
+  - Improve `_NET_ACTIVE_WINDOW` handling.
+  - Fix `_NET_DESKTOP_VIEWPORT` should update on workspace and region changes.
 * Improve window stacking.
   - Overhaul window stacking for improved reliability and flexibility required
     for new features/fixes. Windows are now stacked as a whole instead of per
@@ -106,17 +165,17 @@ color support, tons of fixes, and more!
   - Fix handling of ConfigureWindow and EWMH requests.
   - Fix workspace switching issues.
 * Improve status bar.
-  - Add character sequence for workspace list indicator (+L).
-  - Add workspace mark options for the workspace indicator (+L).
-  - Add stack mark options for the stacking indicator (+S).
-  - Add focus mark options for the focus status indicator (+F).
-  - Add character sequence for number of windows in workspace (+w) (lowercase).
+  - Add character sequence for workspace list indicator (`+L`).
+  - Add workspace mark options for the workspace indicator (`+L`).
+  - Add stack mark options for the stacking indicator (`+S`).
+  - Add focus mark options for the focus status indicator (`+F`).
+  - Add character sequence for number of windows in workspace (`+w`) (lowercase).
   - Add unfocused options to color bar text and background.
   - Add color options for when a window in free mode is focused.
   - Fix `bar_action` piping deadlock issue.
   - Fix `name_workspace` should clear on empty string.
   - Fix refresh bar on `name_workspace`.
-  - Set WM_CLASS, WM_NAME and _NET_WM_NAME on the bar window.
+  - Set `WM_CLASS`, `WM_NAME` and `_NET_WM_NAME` on the bar window.
 * Add `floating` workspace layout stacking mode.
   - In floating layout, windows are not tiled and may be freely moved around
     and resized.
@@ -160,7 +219,7 @@ color support, tons of fixes, and more!
   - Add `-d` command-line option to enable debug mode. Enables debug mode
     actions and logging to *stderr* without the need to rebuild with
     `-DSWM_DEBUG`.
-  - Add multi-line support to `debug_toggle` overlay (default: M-d).
+  - Add multi-line support to `debug_toggle` overlay (default: `M-d`).
   - Add atom name cache to avoid redundant requests/syncs when printing output.
 * Fix X connection error handling to exit on a failed connection.
 * Fix build issues.
@@ -187,12 +246,12 @@ spectrwm 3.4.1
 
 Released on Jun 25, 2020
 
-* Fix always_raise mapping issue.
-* Fix _NET_CURRENT_DESKTOP should be updated on ws_next_move/ws_prev_move.
+* Fix `always_raise` mapping issue.
+* Fix `_NET_CURRENT_DESKTOP` should be updated on `ws_next_move`/`ws_prev_move`.
 * Fix focus redirect for transient windows that are about to map.
 * Fix manual focus should not be affected by pointer on (un)grab.
 * Add java detection for JetBrains windows.
-* Remove _NET_WM_STATE on withdrawn windows as advised by EWMH spec.
+* Remove `_NET_WM_STATE` on withdrawn windows as advised by EWMH spec.
 * Add information to man page about program call execution.
 
 
@@ -202,8 +261,8 @@ spectrwm 3.4.0
 Released on Jun 17, 2020
 
 * Add optional startup parameters:
-  - -c file - Specify a configuration file to load instead of scanning for one.
-  - -v - Print version and exit.
+  - `-c file` - Specify a configuration file to load instead of scanning for one.
+  - `-v` - Print version and exit.
 * Add new `restart_of_day` action. (Unbound by default.)
   (Same as restart but configuration file is loaded in full.)
 * Improve startup error handling.
@@ -239,7 +298,7 @@ Released on Dec 19, 2019
   to the Unicode Private Use Area (U+E000 -> U+F8FF).
 * Extend `disable_border` option with `always`.
 * Add support for XDG Base Directory Specification.
-* Add OpenBSD pledge(2) support.
+* Add OpenBSD `pledge(2)` support.
 * Enable xinput2 on OpenBSD.
 * Enable travis.
 * Fix keysym binding issue with multiple keyboard layouts.
