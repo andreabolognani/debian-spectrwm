@@ -1,3 +1,15 @@
+spectrwm (3.6.0-1) unstable; urgency=medium
+
+  * New upstream release
+
+  * Package relationships
+    + Add Build-Depends on libbsd-dev
+      - libbsd is now used instead of vendored BSD code
+    + Drop Build-Depends on libxrandr-dev
+      - No longer used
+
+ -- Andrea Bolognani <eof@kiyuko.org>  Fri, 02 Aug 2024 23:34:16 +0200
+
 spectrwm (3.5.1-2) unstable; urgency=medium
 
   * Interoperability
