@@ -1,3 +1,13 @@
+spectrwm (3.7.0-1) unstable; urgency=medium
+
+  * New upstream release
+
+  * Standards-Version
+    + Update to 4.7.2
+      - No changes needed
+
+ -- Andrea Bolognani <eof@kiyuko.org>  Mon, 13 Oct 2025 22:47:57 +0200
+
 spectrwm (3.6.0-1) unstable; urgency=medium
 
   * New upstream release
