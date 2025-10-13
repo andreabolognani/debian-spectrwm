@@ -12,10 +12,10 @@ Forwarded: not-needed
  2 files changed, 5 insertions(+), 5 deletions(-)
 
 diff --git a/spectrwm.1 b/spectrwm.1
-index d22a331..1cc6c40 100644
+index c06a77b..a8b6401 100644
 --- a/spectrwm.1
 +++ b/spectrwm.1
-@@ -1320,9 +1320,9 @@ The respective default program entries are as follows:
+@@ -1417,9 +1417,9 @@ The respective default program entries are as follows:
  .Pp
  .Bl -tag -width "screenshot_wind" -offset indent -compact
  .It Cm term
@@ -27,7 +27,7 @@ index d22a331..1cc6c40 100644
  .It Cm menu
  dmenu_run $dmenu_bottom \-fn $bar_font \-nb $bar_color \-nf $bar_font_color
  \-sb $bar_color_selected \-sf $bar_font_color_selected
-@@ -2295,7 +2295,7 @@ via
+@@ -2419,7 +2419,7 @@ via
  .Pa LD_PRELOAD
  must be specified.
  .Bd -literal -offset indent
@@ -37,10 +37,10 @@ index d22a331..1cc6c40 100644
  .Pp
  Note that some operating systems may ignore
 diff --git a/spectrwm.conf b/spectrwm.conf
-index 5ce3f08..04edf77 100644
+index 19ad130..efdb9ae 100644
 --- a/spectrwm.conf
 +++ b/spectrwm.conf
-@@ -158,8 +158,8 @@
+@@ -174,8 +174,8 @@
  #autorun		= ws[2]:xombrero http://www.openbsd.org
  
  # Validated default program entries:

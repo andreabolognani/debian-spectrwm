@@ -11,10 +11,10 @@ Forwarded: not-needed
  1 file changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/spectrwm.c b/spectrwm.c
-index 0737202..63c5ab3 100644
+index 2e03967..880d497 100644
 --- a/spectrwm.c
 +++ b/spectrwm.c
-@@ -11796,10 +11796,10 @@ validate_spawns(void)
+@@ -12333,10 +12333,10 @@ validate_spawns(void)
  static void
  setup_spawn(void)
  {
