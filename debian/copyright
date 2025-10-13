@@ -10,7 +10,7 @@ Copyright: 2009-2019 Marco Peereboom <marco@peereboom.us>
            2009 Pierre-Yves Ritschard <pyr@spootnik.org>
            2010 Tuukka Kataja <stuge@xor.fi>
            2011 Jason L. Wright <jason@thought.net>
-           2011-2024 Reginald Kennedy <rk@rejii.com>
+           2011-2025 Reginald Kennedy <rk@rejii.com>
            2011-2012 Lawrence Teo <lteo@lteo.net>
            2011-2012 Tiago Cunha <tcunha@gmx.com>
            2012-2015 David Hill <dhill@mindcry.org>
@@ -39,7 +39,7 @@ Copyright: 2004 Ted Unangst and Todd Miller
 License: ISC
 
 Files: debian/*
-Copyright: 2009-2023, Andrea Bolognani <eof@kiyuko.org>
+Copyright: 2009-2025, Andrea Bolognani <eof@kiyuko.org>
 License: ISC
 
 
