@@ -1,2 +1,7 @@
-Tests: smoke
-Depends: spectrwm, xvfb, xfonts-base, x11-utils, wmctrl, procps
+Tests: smoke,
+Depends: procps,
+         spectrwm,
+         wmctrl,
+         x11-utils,
+         xfonts-base,
+         xvfb,

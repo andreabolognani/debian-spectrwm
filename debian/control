@@ -4,19 +4,19 @@ Priority: optional
 Maintainer: Andrea Bolognani <eof@kiyuko.org>
 Build-Depends: debhelper-compat (= 13),
                libbsd-dev,
+               libfontconfig-dev,
                libx11-dev,
                libx11-xcb-dev,
-               libxcursor-dev,
-               libxt-dev,
-               libxcb1-dev,
                libxcb-icccm4-dev,
                libxcb-keysyms1-dev,
                libxcb-randr0-dev,
                libxcb-util-dev,
                libxcb-xinput-dev,
                libxcb-xtest0-dev,
-               libfontconfig-dev,
-               libxft-dev
+               libxcb1-dev,
+               libxcursor-dev,
+               libxft-dev,
+               libxt-dev,
 Rules-Requires-Root: no
 Standards-Version: 4.7.4
 Homepage: https://github.com/conformal/spectrwm
@@ -25,12 +25,12 @@ Vcs-Browser: https://salsa.debian.org/abologna/spectrwm
 
 Package: spectrwm
 Architecture: any
-Provides: x-window-manager
+Provides: x-window-manager,
 Depends: suckless-tools,
          xterm | x-terminal-emulator,
+         ${misc:Depends},
          ${shlibs:Depends},
-         ${misc:Depends}
-Recommends: xfonts-terminus
+Recommends: xfonts-terminus,
 Description: dynamic tiling window manager
  spectrwm is a small dynamic tiling window manager for X11.
  .
