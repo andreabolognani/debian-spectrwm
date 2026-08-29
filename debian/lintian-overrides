@@ -2,7 +2,3 @@
 # applications, not window managers, so they don't apply to us
 spectrwm: desktop-entry-lacks-icon-entry [usr/share/xsessions/spectrwm.desktop]
 spectrwm: desktop-entry-lacks-keywords-entry [usr/share/xsessions/spectrwm.desktop]
-# exit() is only called if dlopen()/dlsym() can't find one of the
-# underlying libraries/symbols, but in our case the package manager
-# ensures that they're present so that will never happen
-spectrwm: exit-in-shared-library [usr/lib/spectrwm/libswmhack.so.0.0]
